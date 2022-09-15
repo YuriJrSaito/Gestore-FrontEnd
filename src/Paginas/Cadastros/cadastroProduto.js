@@ -5,7 +5,7 @@ import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
-import { parsePath } from 'history';
+import Validar from '../../servicos/validar';
 
 function Formulario() {
 
@@ -25,30 +25,28 @@ function Formulario() {
     const [cadDescCategoria, setDescCategoria] = useState('');
     const [msgCategoria, setMsgCategoria] = useState('');
     const [categoriaMsgCor, setCategoriaCor] = useState('red');
-
+    
     const [img1, setImg1] = useState('');
     const [img2, setImg2] = useState('');
     const [img3, setImg3] = useState('');
 
-    const [altProd, setAltProd] = useState('');
-
     const [produtos, setProdutos] = useState('');
-    const [alterando, setAlterando] = useState(false);
-    const [excluindo, setExcluindo] = useState(false);
-
     const [filtro, setFiltro] = useState('');
 
-    const [msg, setMsg] = useState('');
+    const [altProd, setAltProd] = useState('');
+    const [excProd, setExcProd] = useState('');
+
     const [salvando, setSalvando] = useState(false);
-    const [buscando, setBuscando] = useState(false);
+    const [requisicao, setRequisicao] = useState(false);
+
+    const [msg, setMsg] = useState('');
     const [button, setButton] = useState('Salvar');
     const [tituloPagina, setTituloPagina] = useState('Cadastrar Produto');
-
-    const [excProd, setExcProd] = useState('');
 
     async function limpar()
     {
         setSalvando(false);
+        setRequisicao(false);
         setButton("Salvar");
         setMsg('');
 
@@ -77,151 +75,41 @@ function Formulario() {
         document.querySelector("#msgValorCompra").innerHTML = "";
     }
 
-    async function validarTitulo()
-    {
-        if(titulo == "")
-        {
-            document.querySelector("#msgTitulo").innerHTML="<p>Digite um título</p>"; 
-            return false;
-        }
-        if(titulo.length > 50)
-        {
-            document.querySelector("#msgTitulo").innerHTML="<p>Título deve ter no máximo 50 caracteres</p>";
-            return false;
-        }
-        return true;        
-    }
-
-    async function validarCodigo()
-    {
-        if(codigoRef != "" && codigoRef.length > 20)
-        {
-            document.querySelector("#msgCodigoRef").innerHTML="<p>Código de referência deve ter no máximo 20 caracteres</p>";
-            return false;
-        }
-        return true;        
-    }
-
-    async function validarQuantidade()
-    {
-        if(qtdeEstoque == "")
-        {
-            document.querySelector("#msgQtde").innerHTML="<p>Digite a quantidade</p>"; 
-            return false;
-        }
-        if(qtdeEstoque < 0)
-        {
-            document.querySelector("#msgQtde").innerHTML="<p>Quantidade deve ser maior ou  igual a 0 (zero)</p>";
-            return false;
-        }
-        return true;      
-    }
-
-    async function validarDescricao()
-    {
-        if(descricao != "" && descricao.length > 50)
-        {
-            document.querySelector("#msgDescricao").innerHTML="<p>Descrição deve ter no máximo 50 caracteres</p>";
-            return false;
-        }
-        return true;      
-    }
-
-    async function validarValorUnitario()
-    {
-        if(valorUnitario == "")
-        {
-            document.querySelector("#msgValorUnitario").innerHTML="<p>Digite o valor unitário</p>"; 
-            return false;
-        }
-        if(valorUnitario.length < 0)
-        {
-            document.querySelector("#msgValorUnitario").innerHTML="<p>Valor unitário deve ser maior ou igual a 0 (zero)</p>";
-            return false;
-        }
-        return true;    
-    }
-
-    async function validarValorCompra()
-    {
-        if(valorCompra != "" && valorCompra < 0)
-        {
-            document.querySelector("#msgValorCompra").innerHTML="<p>Valor de compra deve ser maior ou igual a 0 (zero)</p>";
-            return false;
-        }
-        return true;    
-    }
-
-    async function validarFonecedores()
-    {
-        if(fornecedores == "")
-        {
-            document.querySelector("#msgFornecedor").innerHTML="<p>Cadaste fornecedores antes de cadastrar produtos</p>";
-            return false;
-        }
-        return true;    
-    }
-
-    async function validarCategoria()
-    {
-        if(idCategoria == "")
-        {
-            document.querySelector("#msgCategoria").innerHTML="<p>Selecione uma categoria</p>";
-            return false;
-        }
-        return true;    
-    }
-
     async function validar()
     {
-        let validar;
+        var val = new Validar();
 
-        validar = await validarTitulo();
-        if(!validar)
+        if(await val.validarNome(titulo, 50, "#msgTitulo", "Título") &&
+           await val.validarCodigo(codigoRef) &&
+           await val.validarQuantidadeObrigatorio(qtdeEstoque, "#msgQtde", 0, "<p>Digite a quantidade</p>", "<p>Quantidade deve ser maior ou  igual a 0 (zero)</p>", "<p>Digite apenas Números</p>", "<p>Quantidade inválida</p>") &&
+           await val.validarStringOpcional(descricao, 50, "#msgDescricao", "<p>Descrição deve ter no máximo 50 caracteres</p>") &&
+           await val.validarValorUnitario(valorUnitario) &&
+           await val.validarValorCompra(valorCompra) &&
+           await val.validarFonecedores(fornecedores) &&
+           await val.validarCategoria(idCategoria)
+        )
+        {
+            return true;
+        }
+        else
+        {
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
             return false;
-
-        validar = await validarCodigo();
-        if(!validar)
-            return false;
-
-        validar = await validarQuantidade();
-        if(!validar)
-            return false;
-
-        validar = await validarDescricao();
-        if(!validar)
-            return false;
-        
-        validar = await validarValorUnitario();
-        if(!validar)
-            return false;
-        
-        validar = await validarValorCompra();
-        if(!validar)
-            return false;
-
-        validar = await validarFonecedores();
-        if(!validar)
-            return false;
-
-        validar = await validarCategoria();
-        if(!validar)
-            return false;
-        
-        return true;
+        }
     }
 
     async function confirmarDados(e)
     {
         e.preventDefault();
-        if(salvando === false)
+        if(requisicao === false)
         {
-            setSalvando(true);
+            setRequisicao(true);
             setMsg('');
 
             if(await validar())
             {
-                if(button == "Salvar")
+                setSalvando(true);
+                if(button === "Salvar")
                 {
                     await api.post('/cadProduto',{
                         titulo: titulo,
@@ -233,8 +121,8 @@ function Formulario() {
                         idFornecedor: idFornecedor,
                         idCategoria: idCategoria,
                         img1: img1,
-                        img1: img2,
-                        img1: img3,
+                        img2: img2,
+                        img3: img3,
                     }).then(
                         response => {
                             setMsg(response.data);
@@ -264,8 +152,9 @@ function Formulario() {
                 }
                 await carregarTodosProdutos();
                 await limpar();
+                setSalvando(false);
             }
-            setSalvando(false);
+            setRequisicao(false);
         }
     }
     
@@ -282,40 +171,68 @@ function Formulario() {
 
     async function carregarTodosProdutos()
     {
-        await api.get('/listarTodosProdutos')
-        .then((response)=>{
-            setProdutos(response.data);
-        });
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get('/listarTodosProdutos')
+            .then((response)=>{
+                setProdutos(response.data);
+            });
+            setRequisicao(false);
+        }
     }
 
     async function carregarFornecedores()
     {
-        await api.get('/listarFornecedores')
-        .then((response)=>{
-            setFornecedores(response.data);
-        });
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get('/listarFornecedores')
+            .then((response)=>{
+                setFornecedores(response.data);
+            });
+            setRequisicao(false);
+        }
     }
 
     async function filtrarProdutos()
     {
-        if(filtro != "")
+        if(requisicao === false)
         {
-            await api.get(`/filtrarProdutos/${filtro}`)
-            .then((response)=>{
-                setProdutos(response.data);
-            })   
+            setRequisicao(true);
+            if(filtro !== "")
+            {
+                await api.get(`/filtrarProdutos/${filtro}`)
+                .then((response)=>{
+                    setProdutos(response.data);
+                })   
+            }
+            else
+            {
+                await carregarTodosProdutos();
+            }   
+            setRequisicao(false);
         }
-        else
+    }
+
+    async function buscarCategoria(id)
+    {
+        if(requisicao === false)
         {
-            carregarTodosProdutos();
-        }   
+            setRequisicao(true);
+            await api.get(`/buscarCategoria/${id}`)
+            .then((response)=>{
+                setCategoria(response.data[0].id);
+            })
+            setRequisicao(false);
+        }
     }
 
     async function alterarProduto(produto)
     {
-        if(alterando === false)
+        if(requisicao === false)
         {
-            setAlterando(true);
+            setRequisicao(true);
             setButton('Alterar');
             limparAvisos();
 
@@ -329,47 +246,47 @@ function Formulario() {
             setCategoria(produto.id_categoria);
             setFornecedor(produto.id_fornecedor);
 
-            if(produto.img1 != null)
+            if(produto.img1 !== null)
                 setImg1(produto.img1);
 
-            if(produto.img2 != null)
-
+            if(produto.img2 !== null)
                 setImg2(produto.img2);
 
-            if(produto.img3 != null)
+            if(produto.img3 !== null)
                 setImg3(produto.img3);
 
-            await api.get(`/buscarCategoria/${produto.id_categoria}`)
-            .then((response)=>{
-                setCategoria(response.data[0].id);
-            })
-
-            setAlterando(false);  
+            await buscarCategoria(produto.id_categoria);
+            setRequisicao(false);  
         }
     }
 
     async function delProduto(idProduto)
     {
-        if(idProduto != "" && idProduto != null)
+        if(idProduto !== "" && idProduto !== null)
         {
-            await api.delete(`/deletarProduto/${idProduto}`)
-            .then((response)=>{
-                setMsg(response.data);
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarProduto/${idProduto}`)
+                .then((response)=>{
+                    setMsg(response.data);
+                })
+                setRequisicao(false);
+            }
         }   
     }
 
     async function excluirProduto()
     {
-        if(excluindo === false)
+        if(requisicao === false)
         {
-            setExcluindo(true);
+            setRequisicao(true);
 
             await delProduto(excProd);
             await carregarTodosProdutos();
 
             document.getElementById('id01').style.display='none';
-            setExcluindo(false);
+            setRequisicao(false);
         }
     }
 
@@ -400,7 +317,7 @@ function Formulario() {
 
     async function definirBotaoNovaCategoria()
     {
-        if(btnNovaCategoria == true)
+        if(btnNovaCategoria === true)
             setNovaCategoria(false);
         else
             setNovaCategoria(true);
@@ -415,27 +332,37 @@ function Formulario() {
 
     async function carregarCategorias()
     {
-        await api.get('/buscarCategorias').then((resp)=>{
-            setCategorias(resp.data);
-        });
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get('/buscarCategorias').then((resp)=>{
+                setCategorias(resp.data);
+            });
+            setRequisicao(false);
+        }
     }
 
     async function cadastrarCategoria()
     {
-        await api.post('/cadCategoria',{
-            descricao: cadDescCategoria,
-        }).then(
-            response => {
-                setMsgCategoria(response.data);
-                if(response.data.includes("sucesso"))
-                {
-                    setCategoriaCor('green');
-                    carregarCategorias();
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.post('/cadCategoria',{
+                descricao: cadDescCategoria,
+            }).then(
+                response => {
+                    setMsgCategoria(response.data);
+                    if(response.data.includes("sucesso"))
+                    {
+                        setCategoriaCor('green');
+                        carregarCategorias();
+                    }
+                    else
+                        setCategoriaCor('red');
                 }
-                else
-                    setCategoriaCor('red');
-            }
-        )
+            )
+            setRequisicao(false);
+        }
     }
 
     return (
@@ -460,7 +387,7 @@ function Formulario() {
                         </div>
 
                         <div className="formulario-padrao">
-                            <label>Código de referência</label>
+                            <label>Código de Referência</label>
                             <input type="text" name="codigoRef" id="codigoRef" value={codigoRef  || ""} placeholder="Digite o código de referência" onChange={e=>{setCodigoRef(e.target.value);document.querySelector("#msgCodigoRef").innerHTML = ""}}/>
                             <div className='msg' id='msgCodigoRef'></div>
                         </div>
@@ -490,11 +417,11 @@ function Formulario() {
                         </div>
 
                         <div className='formulario-padrao'>
-                            {fornecedores != "" &&
+                            {fornecedores !== "" &&
                                 <>
                                     <label>Fornecedor*</label>
                                     <select id="selFornecedor" value={idFornecedor} onChange={e=>{setFornecedor(e.target.value);document.querySelector("#msgFornecedor").innerHTML = ""}}>
-                                        <option key={0} value={0}>Escolha um fornecedor</option>
+                                        <option key={0} value={0}>Escolha um Fornecedor</option>
                                         {fornecedores.map(fornecedor => (
                                             <option key={fornecedor.id} value={fornecedor.id}>{fornecedor.nome}</option>
                                         ))}
@@ -505,7 +432,7 @@ function Formulario() {
                         </div>
 
                         <div className='formulario-padrao'>
-                            {categorias != "" &&
+                            {categorias !== "" &&
                                 <>
                                     <label>Categoria*</label>
                                     <select id="selCategoria" value={idCategoria} onChange={e=>{setCategoria(e.target.value);document.querySelector("#msgCategoria").innerHTML = ""}}>
@@ -518,13 +445,13 @@ function Formulario() {
                                 </>
                             }
                             <input type="button" id='btnCargo' onClick={definirBotaoNovaCategoria} value="Nova Categoria"/> 
-                            {btnNovaCategoria==true &&
+                            {btnNovaCategoria === true &&
                             <div className='formulario-padrao'>
                                     <label>Cadastrar Nova Categoria</label>
                                     <div className='adicionar-cargo'>
                                         <input type="text" name="cargo" id="cargo" value={cadDescCategoria || ""} onChange={e=>setDescCategoria(e.target.value)} placeholder="Digite a Categoria"/>
                                         <input type="button" onClick={cadastrarCategoria} value="Cadastrar"/> 
-                                        {msgCategoria!="" &&
+                                        {msgCategoria !== "" &&
                                             <p style={{color: categoriaMsgCor}}>{msgCategoria}</p>
                                         }
                                     </div>
@@ -579,14 +506,14 @@ function Formulario() {
                                     <thead>
                                         <tr>
                                             <th>Título</th>
-                                            <th>Quantidade estoque</th>
+                                            <th>Quantidade Estoque</th>
                                             {localStorage.getItem("nivelAcesso") >= 60 &&
                                                 <th>Ação</th>
                                             }
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {produtos != "" &&
+                                        {produtos !== "" &&
                                             produtos.map(produto =>(
                                                 <tr key={produto.id} id="alterando">
                                                     <td onClick={e=>alterarProduto(produto)}>{produto.titulo}</td>
@@ -611,26 +538,26 @@ function Formulario() {
 
             <div className='main-row'>
 
-                {img1 != "" &&
+                {img1 !== "" &&
                     <div className="formulario-img">
-                        <img className='' src={`/img//${img1}`}></img>
+                        <img className='' src={`/img//${img1}`} alt="Aqui fica a primeira imagem"></img>
                     </div>
                  }
 
-                {img2 != "" &&
+                {img2 !== "" &&
                     <div className="formulario-img">
-                        <img className='' src={`/img//${img2}`}></img>                      
+                        <img className='' src={`/img//${img2}`} alt="Aqui fica a segunda imagem"></img>                      
                     </div>
                 }
                 
-                {img3 != "" &&
+                {img3 !== "" &&
                     <div className="formulario-img">
-                        <img className='' src={`/img//${img3}`}></img>
+                        <img className='' src={`/img//${img3}`} alt="Aqui fica a terceira imagem"></img>
                     </div>
                 }
             </div>
 
-            {msg != "" &&
+            {msg !== "" &&
                 <div className='formulario'>
                     <p id='msgSistema'>Mensagem do Sistema</p>
                     <p id='msgSistema'>{msg}</p>
@@ -642,13 +569,13 @@ function Formulario() {
                     <button type="button" onClick={limpar}>Limpar</button>
                     <button className={(salvando ? "disabled": "")} 
                         type="submit" id="btnForm" onClick={confirmarDados}>
-                        {salvando == false && button}
+                        {salvando === false && button}
                     </button>
-                    {  salvando == true &&
+                    {  salvando === true &&
                         
                         <button className='salvando' type="button">
                         {
-                            salvando == true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
+                            salvando === true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
                         }
                         </button>
                     }

@@ -5,7 +5,8 @@ import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
-//clicar em um cliente e abrir o endereço e dps clicar em outro cliente da connection error
+import Validar from '../../servicos/validar';
+
 function Formulario() {
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
@@ -28,8 +29,7 @@ function Formulario() {
     const [button, setButton] = useState('Salvar');
     const [titulo, setTitulo] = useState('Cadastrar Cliente');
     const [salvando, setSalvando] = useState(false);
-    const [alterando, setAlterando] = useState(false);
-    const [excluindo, setExcluindo] = useState(false);
+    const [requisicao, setRequisicao] = useState(false); 
 
     const [msg, setMsg] = useState('');
 
@@ -58,81 +58,25 @@ function Formulario() {
         setContatos(verContatos.filter(verContatos=>verContatos.codigo!==codigo));
     }
 
-    async function validarEmail(valor)
-    {
-        if(email == "")
-            return true;
-        var exp = /^[a-z0-9-_]+@[a-z0-9]+\.com/;
-        if(exp.test(valor))
-            return true;
-
-        document.querySelector("#msgEmail").innerHTML = "<p>Email inválido</p>"
-        return false;
-    }
-
-    async function validarCPF(valor)
-    {
-        var exp = /(\d{3})\.(\d{3})\.(\d{3})-(\d{2})/;
-        if(exp.test(valor))
-            return true;
-
-        document.querySelector("#msgCPF").innerHTML = "<p>CPF inválido</p>";
-        return false;
-    }
-
-    async function formatarCPF()
-    {
-        var retorno = true;
-        if(cpf != "")
-        {
-            if(cpf.length > 11)
-            {
-                document.querySelector("#msgCPF").innerHTML = "<p>CPF inválido</p>";
-                return false;
-            }
-            else
-            {
-                var val = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-                retorno = await validarCPF(val);
-            }
-        }
-        return retorno;
-    }
-
     async function formatarTelefone(valor)
     {
         var retorno = "";
         for(var x=0; x<valor.length; x++)
         {
-            if(x == 0 && !valor.includes("("))
+            if(x === 0 && !valor.includes("("))
                 retorno = "(";
-            if(x == 2 && !valor.includes(")"))
+            if(x === 2 && !valor.includes(")"))
                 retorno += ")"
-            if(x == 7 && !valor.includes("-"))
+            if(x === 7 && !valor.includes("-"))
                 retorno += "-";
             retorno += valor[x];
         }
         return retorno;
     }
 
-    async function validarNome()
-    {
-        if(nome == "")
-        {
-            document.querySelector("#msgNome").innerHTML="<p>Digite um nome</p>"; 
-            return false;
-        }
-        if(nome.length > 50)
-        {
-            document.querySelector("#msgNome").innerHTML="<p>Nome deve ter no máximo 50 caracteres</p>";
-            return false;
-        }
-        return true;
-    }
-
     async function validarTelefoneExiste()
     {
-        if(verContatos.length == 0)
+        if(verContatos.length === 0)
         {
             document.querySelector("#mensagemContato").innerHTML = "<p>Insira pelo menos 1 Telefone</p>";
             return false;
@@ -141,185 +85,41 @@ function Formulario() {
         return true;
     }
 
-    async function mascaraNumero(valor)
-    {
-        var exp = /^\d+$/;
-        if(exp.test(parseInt(valor)))
-            return true; 
-        return false
-    }
-
-    async function validarNumero()
-    {
-        var retorno = true;
-        if(numero != "")
-        {
-            if(parseInt(numero) < 0)
-            {
-                document.querySelector("#msgNumero").innerHTML = "<p>Número inválida</p>";
-                retorno = false;
-            }
-            if(await mascaraNumero(numero) == false)
-            {
-                document.querySelector("#msgNumero").innerHTML = "<p>Digite apenas Números</p>";
-                retorno = false;
-            }
-        }   
-        return retorno;
-    }
-
-    async function validarIdade()
-    {
-        var retorno = true;
-        if(idade != "")
-        {
-            if(parseInt(idade) < 13 || parseInt(idade)>100)
-            {
-                document.querySelector("#msgIdade").innerHTML = "<p>Idade inválida</p>";
-                retorno = false;
-            }
-            if(await mascaraNumero(idade) == false)
-            {
-                document.querySelector("#msgIdade").innerHTML = "<p>Digite apenas Números</p>";
-                retorno = false;
-            }
-        }
-
-        return retorno;
-    }
-
-    async function formatarCep()
-    {
-        var retorno = true;
-        if(cep != "")
-        {
-            var exp = /^\d+$/;
-            if(exp.test(parseInt(cep)))
-            {
-                var val = cep.replace(/(\d{5})(\d{3})/, "$1-$2");
-                setCep(val);
-                retorno = await validarCep(val);
-            }
-            else
-            {
-                document.querySelector("#msgCep").innerHTML = "<p>Digite apenas Números</p>";
-                return false;
-            }
-        }
-        return retorno;
-    }
-
-    async function validarCep(valor)
-    {
-        var exp = /(\d{5})-(\d{3})/;
-        if(exp.test(valor))
-            return true;
-
-        document.querySelector("#msgCep").innerHTML = "<p>CEP inválido</p>";
-        return false;
-    }
-
-    async function validarComplemento()
-    {
-        if(complemento != "")
-        {
-            if(complemento.length > 30)
-            {
-                document.querySelector("#msgComplemento").innerHTML = "<p>Complemento deve ter no máximo 30 caracteres</p>";
-                return false;
-            }
-        }
-        return true;
-    }
-
-    async function validarCidade()
-    {
-        if(cidade != "")
-        {
-            if(cidade.length > 30)
-            {
-                document.querySelector("#msgCidade").innerHTML = "<p>Cidade deve ter no máximo 30 caracteres</p>";
-                return false;
-            }
-        }
-        return true;
-    }
-
-    async function validarBairro()
-    {
-        if(bairro != "")
-        {
-            if(bairro.length > 30)
-            {
-                document.querySelector("#msgBairro").innerHTML = "<p>Bairro deve ter no máximo 30 caracteres</p>";
-                return false;
-            }
-        }
-        return true;
-    }
-
-    async function validarRua()
-    {
-        if(rua != "")
-        {
-            if(rua.length > 50)
-            {
-                document.querySelector("#msgRua").innerHTML = "<p>Rua deve ter no máximo 50 caracteres</p>";
-                return false;
-            }
-        }
-        return true;
-    }
-
     async function validar()
     {
-        let validar;
+        var val = new Validar();
 
-        validar = await validarNome();
-        if(!validar)
+        if(await val.validarNome(nome, 50, "#msgNome", "Nome") && 
+           await val.formatarCPF(cpf)&&
+           await val.validarIdade(idade)&&
+           await val.validarEmail(email)&&
+           await validarTelefoneExiste()
+        )
+        {
+            if(EnderecoOpen === true)
+            {
+                if(
+                    await val.formatarCep(cep)&&
+                    await val.validarNumero(numero)&&
+                    await val.validarComplemento(complemento)&&
+                    await val.validarCidade(cidade)&&
+                    await val.validarBairro(bairro)&&
+                    await val.validarRua(rua)
+                )
+                    return true;
+                else
+                {
+                    document.body.scrollTop = document.documentElement.scrollTop = 0;
+                    return false;
+                }
+            }
+            return true;
+        }
+        else
+        {
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
             return false;
-
-        validar = await validarEmail(email);
-        if(!validar)
-            return false;
-        
-        validar = await formatarCPF(cpf);
-        if(!validar)
-            return false;
-            
-        validar = await validarTelefoneExiste();
-        if(!validar)
-            return false;
-
-        validar = await validarIdade();
-        if(!validar)
-            return false;
-
-        validar = await formatarCep(cep);
-        if(!validar)
-            return false;
-
-        validar = await validarNumero();
-        if(!validar)
-            return false;
-        
-        validar = await validarComplemento();
-        if(!validar)
-            return false;
-
-        validar = await validarCidade();
-        if(!validar)
-            return false;
-            
-        validar = await validarBairro();
-        if(!validar)
-            return false;
-
-        validar = await validarRua();
-        if(!validar)
-            return false;
-
-        return true;
+        }
     }
 
     async function addLista()
@@ -329,7 +129,7 @@ function Formulario() {
         var valor = telefone;
         if(verContatos.length < 3)
         {
-            var valor = await formatarTelefone();
+            valor = await formatarTelefone();
             if(validarTelefone(valor))
             {
                 setTelefone(valor);
@@ -352,22 +152,6 @@ function Formulario() {
         }
     }
 
-    async function formatarTelefone()
-    {
-        var valor = "";
-        for(var x=0; x<telefone.length; x++)
-        {
-            if(x == 0 && !telefone.includes("("))
-                valor = "(";
-            if(x == 2 && !telefone.includes(")"))
-                valor += ")"
-            if(x == 7 && !telefone.includes("-"))
-                valor += "-";
-            valor += telefone[x];
-        }
-        return valor;
-    }
-
     function limparAvisos()
     {
         document.querySelector("#SexoF").checked = false;
@@ -379,7 +163,7 @@ function Formulario() {
         document.querySelector("#msgEmail").innerHTML = "";
         document.querySelector("#mensagemContato").innerHTML = "";
 
-        if(EnderecoOpen == true)
+        if(EnderecoOpen === true)
         {
             document.querySelector("#msgCep").innerHTML = "";
             document.querySelector("#msgCidade").innerHTML = "";
@@ -393,8 +177,7 @@ function Formulario() {
     async function limpar()
     {
         setSalvando(false);
-        setAlterando(false);
-        setExcluindo(false);
+        setRequisicao(false);
         
         setButton("Salvar");
 
@@ -428,12 +211,13 @@ function Formulario() {
     {
         e.preventDefault();
         setMsg('');
-        if(salvando === false)
+        if(requisicao === false)
         {
-            setSalvando(true);
+            setRequisicao(true);
             if(await validar())
             {
-                if(button == "Salvar")
+                setSalvando(true);
+                if(button === "Salvar")
                 {
                     await api.post('/cadCliente',{
                         nome: nome,
@@ -480,8 +264,9 @@ function Formulario() {
                 }
                 await carregarTodosClientes();
                 await limpar();
+                setSalvando(false);
             }
-            setSalvando(false);
+            setRequisicao(false);
         }
     }
 
@@ -491,73 +276,97 @@ function Formulario() {
 
     async function carregarTodosClientes()
     {
-        await api.get('/listarTodosClientes')
-        .then((response)=>{
-            setClientes(response.data);
-        });
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get('/listarTodosClientes')
+            .then((response)=>{
+                setClientes(response.data);
+            });
+            setRequisicao(false);
+        }
     }
 
     async function filtrarClientes()
     {
-        if(filtro != "")
+        if(requisicao === false)
         {
-            await api.get(`/filtrarClientes/${filtro}`)
-            .then((response)=>{
-                setClientes(response.data);
-            })   
-        }
-        else
-        {
-            await carregarTodosClientes();
+            setRequisicao(true);
+            if(filtro !== "")
+            {
+                await api.get(`/filtrarClientes/${filtro}`)
+                .then((response)=>{
+                    setClientes(response.data);
+                })   
+            }
+            else
+            {
+                await carregarTodosClientes();
+            }
+            setRequisicao(false);
         }
     }
 
     async function delEndereco(idEndereco)
     {
-        if(idEndereco != null && idEndereco != "")
+        if(idEndereco !== null && idEndereco !== "")
         {
-
-            await api.delete(`/deletarEndereco/${idEndereco}`)
-            .then((response)=>{
-                console.log(response.data);
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarEndereco/${idEndereco}`)
+                .then((response)=>{
+                    console.log(response.data);
+                })
+                setRequisicao(false);
+            }
         }
     }
 
     async function delTelefone(idTelefone)
     {
-        if(idTelefone != null && idTelefone != "")
+        if(idTelefone !== null && idTelefone !== "")
         {
-            await api.delete(`/deletarTelefone/${idTelefone}`)
-            .then((response)=>{
-                console.log(response.data);
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarTelefone/${idTelefone}`)
+                .then((response)=>{
+                    console.log(response.data);
+                })
+                setRequisicao(false);
+            }
         }
     }
 
     async function delCliente(idCliente)
     {
-        if(idCliente != "" && idCliente != null)
+        if(idCliente !== "" && idCliente !== null)
         {
-            await api.delete(`/deletarCliente/${idCliente}`)
-            .then((response)=>{
-                setMsg(response.data);
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarCliente/${idCliente}`)
+                .then((response)=>{
+                    setMsg(response.data);
+                })
+                setRequisicao(false);
+            }
         }   
     }
 
     async function excluirCliente()
     {
-        if(excluindo === false)
+        if(requisicao === false)
         {
-            setExcluindo(true);
+            setRequisicao(true);
             await delEndereco(excEnd);
             await delTelefone(excTel);
             await delCliente(excCli);
             await carregarTodosClientes();
 
             document.getElementById('id01').style.display='none';
-            setExcluindo(false);
+            setRequisicao(false);
         }
     }
 
@@ -569,43 +378,11 @@ function Formulario() {
         setExcCli(idCliente);
     }
 
-    async function alterarCliente(cliente)
-    {   
-        if(alterando === false)
+    async function carregarTelefones(cliente)
+    {
+        if(requisicao === false)
         {
-            limpar();
-            setAlterando(true);
-            verContatos.length = 0;
-            /*if(cliente.cpf != "")
-            {
-                var val = cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-                console.log(val);
-                setCpf(val);
-            }
-            else*/
-            setCpf(cliente.cpf);
-
-            if(cliente.idade == null)
-                setIdade('');
-            else
-                setIdade(cliente.idade);
-
-            setNome(cliente.nome);
-            setEmail(cliente.email);
-            setAltEnd(cliente.id_endereco);
-            setAltTel(cliente.id_telefone);
-            setAltCli(cliente.id);
-            setSexo(cliente.sexo);
-
-            if(cliente.sexo == "Masculino")
-                definirM();
-            else
-                if(cliente.sexo == "Feminino")
-                    definirF(); 
-
-            if(EnderecoOpen == true)
-                definirEnderecoOpen();
-
+            setRequisicao(true);
             await api.get(`/buscarTelefones/${cliente.id_telefone}`)
             .then((response)=>{
                 var telefonesVet = [response.data[0].telefone1, response.data[0].telefone2, response.data[0].telefone3];
@@ -622,8 +399,53 @@ function Formulario() {
                     } 
                 }
                 setContatos(vet2);
-            })   
-            setAlterando(false);
+            })
+            setRequisicao(false);
+        }
+    }
+
+    async function alterarCliente(cliente)
+    {   
+        if(requisicao === false)
+        {
+            limpar();
+            setRequisicao(true);
+
+            verContatos.length = 0;
+            /*if(cliente.cpf != "")
+            {
+                var val = cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+                console.log(val);
+                setCpf(val);
+            }
+            else*/
+            setCpf(cliente.cpf);
+
+            if(cliente.idade === null)
+                setIdade('');
+            else
+                setIdade(cliente.idade);
+
+            setNome(cliente.nome);
+            setEmail(cliente.email);
+            setAltEnd(cliente.id_endereco);
+            setAltTel(cliente.id_telefone);
+            setAltCli(cliente.id);
+            setSexo(cliente.sexo);
+
+            if(cliente.sexo === "Masculino")
+                definirM();
+            else
+                if(cliente.sexo === "Feminino")
+                    definirF(); 
+
+            if(EnderecoOpen === true)
+            {
+                await definirEnderecoOpen();
+            }
+            await carregarTelefones(cliente);
+
+            setRequisicao(false);
             setButton("Alterar");
         }
     }
@@ -631,7 +453,7 @@ function Formulario() {
     async function definirF()
     {
         var inputSexo = document.querySelector("#SexoM").checked;
-        if(inputSexo == true)
+        if(inputSexo === true)
             document.querySelector("#SexoM").checked = false;
         
         document.querySelector("#SexoF").checked = true;
@@ -640,7 +462,7 @@ function Formulario() {
     async function definirM()
     {
         var inputSexo = document.querySelector("#SexoF").checked;
-        if(inputSexo == true)
+        if(inputSexo === true)
             document.querySelector("#SexoF").checked = false;
 
         document.querySelector("#SexoM").checked = true;
@@ -648,50 +470,59 @@ function Formulario() {
 
     async function definirEnderecoOpen()
     {
-        console.log(button, altEnd, EnderecoOpen);
-        if(button === "Alterar")
-        {
-            await api.get(`/buscarEndereco/${altEnd}`)
-            .then((response)=>{
-                if(response.data.length > 0)
-                {
-                    setEnderecoOpen(true);
-                    if(response.data[0].cep == null || response.data[0].cep == [])
-                        setCep('');
-                    else
-                        setCep(response.data[0].cep);
-    
-                    if(response.data[0].cidade == null)
-                        setCidade('');
-                    else
-                        setCidade(response.data[0].cidade);
-    
-                    if(response.data[0].rua == null)
-                        setRua('');
-                    else
-                        setRua(response.data[0].rua);
-    
-                    if(response.data[0].numero == null)
-                        setNumero('');
-                    else
-                        setNumero(response.data[0].numero);
-    
-                    if(response.data[0].bairro == null)
-                        setBairro('');
-                    else
-                        setBairro(response.data[0].bairro);
-    
-                    if(response.data[0].complemento == null)
-                        setComplemento('');
-                    else
-                        setComplemento(response.data[0].complemento);
-                }
-            })  
-        }
+        await carregarEnd();
         if(EnderecoOpen === false)
             setEnderecoOpen(true);
         else
             setEnderecoOpen(false);
+    }
+
+    async function carregarEnd()
+    {
+        if(button === "Alterar")
+        {
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+
+                await api.get(`/buscarEndereco/${altEnd}`)
+                .then((response)=>{
+                    if(response.data.length > 0)
+                    {
+                        if(response.data[0].cep === null || response.data[0].cep === [])
+                            setCep('');
+                        else
+                            setCep(response.data[0].cep);
+        
+                        if(response.data[0].cidade === null)
+                            setCidade('');
+                        else
+                            setCidade(response.data[0].cidade);
+        
+                        if(response.data[0].rua === null)
+                            setRua('');
+                        else
+                            setRua(response.data[0].rua);
+        
+                        if(response.data[0].numero === null)
+                            setNumero('');
+                        else
+                            setNumero(response.data[0].numero);
+        
+                        if(response.data[0].bairro === null)
+                            setBairro('');
+                        else
+                            setBairro(response.data[0].bairro);
+        
+                        if(response.data[0].complemento === null)
+                            setComplemento('');
+                        else
+                            setComplemento(response.data[0].complemento);
+                    }
+                })  
+                setRequisicao(false);
+            }
+        }
     }
 
     return (
@@ -814,7 +645,7 @@ function Formulario() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {clientes != "" &&
+                                        {clientes !== "" &&
                                             clientes.map(cliente =>(
                                                 <tr key={cliente.id} id="alterando">
                                                     <td onClick={e=>alterarCliente(cliente)}>{cliente.nome}</td>
@@ -880,7 +711,7 @@ function Formulario() {
                 </div>
             }
 
-            {msg != "" &&
+            {msg !== "" &&
                 <div className='formulario'>
                     <p id='msgSistema'>Mensagem do Sistema</p>
                     <p id='msgSistema'>{msg}</p>
@@ -892,13 +723,13 @@ function Formulario() {
                     <button type="button" onClick={limpar}>Limpar</button>
                     <button className={(salvando ? "disabled": "")} 
                         type="submit" id="btnForm" onClick={confirmarDados}>
-                        {salvando == false && button}
+                        {salvando === false && button}
                     </button>
-                    {  salvando == true &&
+                    {  salvando === true &&
                         
                         <button className='salvando' type="button">
                         {
-                            salvando == true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
+                            salvando === true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
                         }
                         </button>
                     }

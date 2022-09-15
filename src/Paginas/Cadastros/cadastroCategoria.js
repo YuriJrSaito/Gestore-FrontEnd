@@ -5,6 +5,7 @@ import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
+import Validar from '../../servicos/validar';
 
 function Formulario() {
     const [categoria, setCategoria] = useState('');
@@ -18,37 +19,18 @@ function Formulario() {
     const [msg, setMsg] = useState('');
 
     const [salvando, setSalvando] = useState(false);
-    const [excluindo, setExcluindo] = useState(false);
+    const [requisicao, setRequisicao] = useState(false);
 
     const [excCategoria, setExcCategoria] = useState('');
     const [msgProcurar, setMsgProcurar] = useState(0);
 
-    async function validarDesc()
-    {
-        var msg = document.querySelector("#msgCategoria");
-        if(categoria == "")
-        {
-            msg.innerHTML = "<p>Digite a Categoria</p>";
-            return false;
-        }
-        if(categoria.length > 30)
-        {
-            msg.innerHTML = "<p>Categoria deve ter no máximo 30 caracteres</p>"
-            return false;
-        }
-           
-        return true;
-    }
-
     async function validar()
     {
-        let validar;
+        var val = new Validar();
 
-        validar = await validarDesc();
-        if(!validar)
-            return false;
-
-        return true;
+        if(await val.validarDescObrigatoria(categoria, document.querySelector("#msgCategoria"), "<p>Digite a Categoria</p>", "<p>Categoria deve ter no máximo 30 caracteres</p>"))
+            return true;
+        return false;
     }
 
     function limparAvisos()
@@ -59,7 +41,7 @@ function Formulario() {
     async function limpar()
     {
         setSalvando(false);
-        setExcluindo(false);
+        setRequisicao(false);
         setMsg('');
 
         setCategoria('');
@@ -72,13 +54,14 @@ function Formulario() {
     {
         e.preventDefault();
         
-        if(salvando === false)
+        if(requisicao === false)
         {
-            setSalvando(true);
+            setRequisicao(true);
             setMsg('');
 
             if(await validar())
             {
+                setSalvando(true);
                 await api.post('/cadCategoria',{
                     descricao: categoria,
                 }).then(
@@ -88,17 +71,23 @@ function Formulario() {
                 )
                 await carregarCategorias();
                 await limpar();
+                setSalvando(false);
             }
-            setSalvando(false);
+            setRequisicao(false);
         }
     }
 
     async function carregarCategorias()
     {
-        await api.get('/buscarCategorias')
-        .then((response)=>{
-            setCategorias(response.data);
-        });
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get('/buscarCategorias')
+            .then((response)=>{
+                setCategorias(response.data);
+            });
+            setRequisicao(false);
+        }
     }
 
     useEffect(()=>{
@@ -107,40 +96,55 @@ function Formulario() {
 
     async function filtrarCategoria()
     {
-        if(filtro != "")
+        if(requisicao === false)
         {
-            await api.get(`/filtrarCategorias/${filtro}`)
-            .then((response)=>{
-                setCategorias(response.data);
-            })   
+            setRequisicao(true);
+            if(filtro !== "")
+            {
+                await api.get(`/filtrarCategorias/${filtro}`)
+                .then((response)=>{
+                    setCategorias(response.data);
+                })   
+            }
+            else
+            {
+                await carregarCategorias();
+            }       
+            setRequisicao(false); 
         }
-        else
-        {
-            carregarCategorias();
-        }        
     }
 
     async function delCategoria(idCategoria)
     {
-        if(idCategoria != "" && idCategoria != null)
+        if(idCategoria !== "" && idCategoria !== null)
         {
-            await api.delete(`/deletarCategoria/${idCategoria}`)
-            .then((response)=>{
-                setMsg(response.data);
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarCategoria/${idCategoria}`)
+                .then((response)=>{
+                    setMsg(response.data);
+                })
+                setRequisicao(false);
+            }
         }   
     }
 
     async function buscarCategoriasEmUsuarios(idCategoria)
     {
-        if(idCategoria != "" && idCategoria != null)
+        if(idCategoria !== "" && idCategoria !== null)
         {
-            return await api.get(`/buscarCategoriaProd/${idCategoria}`)
-            .then((response)=>{
-                setMsgProcurar(response.data.length);
-                //console.log(response.data.length);
-                return response.data.length;
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                return await api.get(`/buscarCategoriaProd/${idCategoria}`)
+                .then((response)=>{
+                    setMsgProcurar(response.data.length);
+                    //console.log(response.data.length);
+                    setRequisicao(false);
+                    return response.data.length;
+                })
+            }
         }   
     }
 
@@ -156,18 +160,18 @@ function Formulario() {
 
     async function excluirCategoria()
     {
-        if(excluindo === false)
+        if(requisicao === false)
         {
-            setExcluindo(true);
+            setRequisicao(true);
 
-            if(msgProcurar == 0)
+            if(msgProcurar === 0)
             {
                 await delCategoria(excCategoria);
                 await carregarCategorias();
             }
 
             document.getElementById('id01').style.display='none';
-            setExcluindo(false);
+            setRequisicao(false);
         } 
     }
 
@@ -231,7 +235,7 @@ function Formulario() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {categorias != "" &&
+                                    {categorias !== "" &&
                                         categorias.map(categoria =>(
                                             <tr key={categoria.id || ""} id="alterando">
                                                 <td>{categoria.descricao || ""}</td>
@@ -252,7 +256,7 @@ function Formulario() {
             </div> 
 
 
-            {msg != "" &&
+            {msg !== "" &&
                 <div className='formulario'>
                     <p id='msgSistema'>Mensagem do Sistema</p>
                     <p id='msgSistema'>{msg}</p>
@@ -264,13 +268,13 @@ function Formulario() {
                     <button type="button" onClick={limpar}>Limpar</button>
                     <button className={(salvando ? "disabled": "")} 
                         type="submit" id="btnForm" onClick={confirmarDados}>
-                        {salvando == false && button}
+                        {salvando === false && button}
                     </button>
-                    {  salvando == true &&
+                    {  salvando === true &&
                         
                         <button className='salvando' type="button">
                         {
-                            salvando == true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
+                            salvando === true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
                         }
                         </button>
                     }
@@ -285,7 +289,7 @@ function Formulario() {
                             <p>Esta categoria está presente em alguns produtos, não é possível deletar!!</p>                       
                         }           
                         {
-                            msgProcurar <=0 &&
+                            msgProcurar <= 0 &&
                             <p>Categoria será deletada, deseja continuar?</p>
                         }
 

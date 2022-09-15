@@ -49,14 +49,14 @@ export const sidebarDados = [
     {
         titulo: 'Cargo',
         caminho: '/cadastroCargo',
-        icone: <FaIcons.FaUserTag/>,
+        icone: <FaIcons.FaUsers/>,
         cNome: 'nav-text',
         nivel: 60,
     },
     {
         titulo: 'Categoria Produto',
         caminho: '/cadastroCategoria',
-        icone: <FaIcons.FaUserTag/>,
+        icone: <MdIcons.MdOutlineCategory/>,
         cNome: 'nav-text',
         nivel: 20,
     },

@@ -5,6 +5,7 @@ import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
+import Validar from '../../servicos/validar';
 
 function Formulario() {
     const [nome, setNome] = useState('');
@@ -17,7 +18,6 @@ function Formulario() {
     const [filtro, setFiltro] = useState('');
     const [fornecedores, setFornecedores] = useState('');
 
-    const [isOpen, setIsOpen] = useState(true);
     const [button, setButton] = useState('Salvar');
     const [titulo, setTitulo] = useState('Cadastrar Fornecedor');
 
@@ -25,8 +25,7 @@ function Formulario() {
 
     const [altFor, setAltFor] = useState('');
     const [salvando, setSalvando] = useState(false);
-    const [alterando, setAlterando] = useState(false);
-    const [excluindo, setExcluindo] = useState(false);
+    const [requisicao, setRequisicao] = useState(false);
 
     const [excFor, setExcFor] = useState('');
     const [msgProcurar, setMsgProcurar] = useState(0);
@@ -40,88 +39,27 @@ function Formulario() {
             return false;
     }
 
-    async function validarEmail(valor)
-    {
-        if(email == "")
-            return true;
-        var exp = /^[a-z0-9-_]+@[a-z0-9]+\.com/;
-        if(exp.test(valor))
-            return true;
-
-        document.querySelector("#msgEmail").innerHTML = "<p>Email inválido</p>"
-        return false;
-    }
-
-    async function validarCnpj(valor)
-    {
-        if(cnpj == "")
-            return true;
-        var exp = /^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})-(\d{2})/;
-        if(exp.test(valor))
-            return true;
-
-        document.querySelector("#msgCnpj").innerHTML = "<p>CNPJ inválido</p>";
-        return false;
-    }
-
-    async function formatarCnpj(valor)
-    {
-        var retorno = true;
-        if(cnpj != "")
-        {
-            if(cnpj.length > 14)
-            {
-                document.querySelector("#msgCnpj").innerHTML = "<p>CNPJ inválido</p>";
-                return false;
-            }
-            else
-            {
-                var val = await valor.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
-                setCnpj(val);
-                retorno = await validarCnpj(val);
-            }
-        }
-        return retorno;
-    }
-
     async function formatarTelefone(valor)
     {
         var retorno = "";
         for(var x=0; x<valor.length; x++)
         {
-            if(x == 0 && !valor.includes("("))
+            if(x === 0 && !valor.includes("("))
                 retorno = "(";
-            if(x == 2 && !valor.includes(")"))
+            if(x === 2 && !valor.includes(")"))
                 retorno += ")"
-            if(x == 7 && !valor.includes("-"))
+            if(x === 7 && !valor.includes("-"))
                 retorno += "-";
             retorno += valor[x];
         }
         return retorno;
     }
 
-    async function validarNome()
-    {
-        var msg = document.querySelector("#msgNome");
-        if(nome == "")
-        {
-            msg.innerHTML = "<p>Digite o Nome</p>";
-            return false;
-        }
-        if(nome.length > 30)
-        {
-            msg.innerHTML = "<p>Nome deve ter no máximo 30 caracteres</p>"
-            return false;
-        }
-           
-        return true;
-    }
-
     async function validarTel()
     {
         let tel;
         let retorno = true;
-        if(telefone1 != "")
+        if(telefone1 !== "")
         {
             tel = await formatarTelefone(telefone1);
             setTelefone1(tel);
@@ -130,7 +68,7 @@ function Formulario() {
                 document.querySelector("#msgTel1").innerHTML = "<p>Telefone inválido</p>";
         }
 
-        if(telefone2 != "")
+        if(telefone2 !== "")
         {
             tel = await formatarTelefone(telefone2);
             setTelefone2(tel);
@@ -144,25 +82,21 @@ function Formulario() {
 
     async function validar()
     {
-        let validar;
+        var val = new Validar();
 
-        validar = await validarNome();
-        if(!validar)
+        if(await val.validarNome(nome, 30, "#msgNome", "Nome") &&
+           await val.formatarCnpj(cnpj) &&
+           await val.validarEmail(email) &&
+           await validarTel()
+        )
+        {
+            return true;
+        }
+        else
+        {
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
             return false;
-        
-        validar = await validarTel();
-        if(!validar)
-            return false;
-        
-        validar = await validarEmail(email)
-        if(!validar)
-            return false;
-
-        validar = await formatarCnpj(cnpj)
-        if(!validar)
-            return false;
-
-        return true;
+        }
     }
 
     function limparAvisos()
@@ -177,8 +111,7 @@ function Formulario() {
     async function limpar()
     {
         setSalvando(false);
-        setAlterando(false);
-        setExcluindo(false);
+        setRequisicao(false);
         
         setButton('Salvar');
         setNome('');
@@ -196,14 +129,14 @@ function Formulario() {
     {
         e.preventDefault();
         
-        if(salvando === false)
+        if(requisicao === false)
         {
-            setSalvando(true);
             setMsg('');
-
+            setRequisicao(true);
             if(await validar())
             {
-                if(button == "Salvar")
+                setSalvando(true);
+                if(button === "Salvar")
                 {
                     await api.post('/cadFornecedor',{
                         descricao: descricao,
@@ -236,17 +169,23 @@ function Formulario() {
                 }
                 await carregarFornecedores();
                 await limpar();
+                setSalvando(false);
             }
-            setSalvando(false);
+            setRequisicao(false);
         }
     }
 
     async function carregarFornecedores()
     {
-        await api.get('/listarFornecedores')
-        .then((response)=>{
-            setFornecedores(response.data);
-        });
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get('/listarFornecedores')
+            .then((response)=>{
+                setFornecedores(response.data);
+            });
+            setRequisicao(false);
+        }
     }
 
     useEffect(()=>{
@@ -255,40 +194,54 @@ function Formulario() {
 
     async function filtrarFornecedores()
     {
-        if(filtro != "")
+        if(requisicao === false)
         {
-            await api.get(`/filtrarFornecedores/${filtro}`)
-            .then((response)=>{
-                setFornecedores(response.data);
-            })   
+            setRequisicao(true);
+            if(filtro !== "")
+            {
+                await api.get(`/filtrarFornecedores/${filtro}`)
+                .then((response)=>{
+                    setFornecedores(response.data);
+                })   
+            }
+            else
+            {
+                await carregarFornecedores();
+            }
+            setRequisicao(false);
         }
-        else
-        {
-            carregarFornecedores();
-        }        
     }
 
     async function delFornecedor(idFornecedor)
     {
-        if(idFornecedor != "" && idFornecedor != null)
+        if(idFornecedor !== "" && idFornecedor !== null)
         {
-            await api.delete(`/deletarFornecedor/${idFornecedor}`)
-            .then((response)=>{
-                setMsg(response.data);
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarFornecedor/${idFornecedor}`)
+                .then((response)=>{
+                    setMsg(response.data);
+                })
+                setRequisicao(false);
+            }
         }   
     }
 
     async function buscarFornecedoremProdutos(idFornecedor)
     {
-        if(idFornecedor != "" && idFornecedor != null)
+        if(idFornecedor !== "" && idFornecedor !== null)
         {
-            return await api.get(`/buscarFornecedor/${idFornecedor}`)
-            .then((response)=>{
-                setMsgProcurar(response.data.length);
-                console.log(response.data.length);
-                return response.data.length;
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                return await api.get(`/buscarFornecedor/${idFornecedor}`)
+                .then((response)=>{
+                    setMsgProcurar(response.data.length);
+                    setRequisicao(false);
+                    return response.data.length;
+                })
+            }
         }   
     }
 
@@ -304,18 +257,18 @@ function Formulario() {
 
     async function excluirFornecedor()
     {
-        if(excluindo === false)
+        if(requisicao === false)
         {
-            setExcluindo(true);
+            setRequisicao(true);
 
-            if(msgProcurar == 0)
+            if(msgProcurar === 0)
             {
                 await delFornecedor(excFor);
                 await carregarFornecedores();
             }
 
             document.getElementById('id01').style.display='none';
-            setExcluindo(false);
+            setRequisicao(false);
         } 
     }
 
@@ -333,9 +286,9 @@ function Formulario() {
 
     async function alterarFornecedor(fornecedor)
     {
-        if(alterando === false)
+        if(requisicao === false)
         {
-            setAlterando(true);
+            setRequisicao(true);
             /*if(fornecedor.CNPJ != null)
             {
                 var val = fornecedor.CNPJ.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
@@ -354,7 +307,7 @@ function Formulario() {
             setTelefone2(await formatarTelefone(fornecedor.telefone2));
             
             setAltFor(fornecedor.id);
-            setAlterando(false);
+            setRequisicao(false);
         }
     }
 
@@ -432,7 +385,7 @@ function Formulario() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {fornecedores != "" &&
+                                        {fornecedores !== "" &&
                                             fornecedores.map(fornecedor =>(
                                                 <tr key={fornecedor.id || ""} id="alterando">
                                                     <td onClick={e=>alterarFornecedor(fornecedor)}>{fornecedor.nome || ""}</td>
@@ -455,7 +408,7 @@ function Formulario() {
                 </div>
             </div>
 
-            {msg != "" &&
+            {msg !== "" &&
                 <div className='formulario'>
                     <p id='msgSistema'>Mensagem do Sistema</p>
                     <p id='msgSistema'>{msg}</p>
@@ -467,13 +420,13 @@ function Formulario() {
                     <button type="button" onClick={limpar}>Limpar</button>
                     <button className={(salvando ? "disabled": "")} 
                         type="submit" id="btnForm" onClick={confirmarDados}>
-                        {salvando == false && button}
+                        {salvando === false && button}
                     </button>
-                    {  salvando == true &&
+                    {  salvando === true &&
                         
                         <button className='salvando' type="button">
                         {
-                            salvando == true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
+                            salvando === true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
                         }
                         </button>
                     }
@@ -488,7 +441,7 @@ function Formulario() {
                             <p>Este fornecedor está presente em alguns produtos, não é possível deletar!!</p>                       
                         }           
                         {
-                            msgProcurar <=0 &&
+                            msgProcurar <= 0 &&
                             <p>Fornecedor será deletado, deseja continuar?</p>
                         }
 

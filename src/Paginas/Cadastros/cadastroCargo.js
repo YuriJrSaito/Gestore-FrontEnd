@@ -5,6 +5,7 @@ import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
+import Validar from '../../servicos/validar';
 
 function Formulario() {
     const [tituloCargo, setTituloCargo] = useState('');
@@ -18,37 +19,18 @@ function Formulario() {
     const [msg, setMsg] = useState('');
 
     const [salvando, setSalvando] = useState(false);
-    const [excluindo, setExcluindo] = useState(false);
+    const [requisicao, setRequisicao] = useState(false);
 
     const [excCargo, setExcCargo] = useState('');
     const [msgProcurar, setMsgProcurar] = useState(0);
 
-    async function validarDesc()
-    {
-        var msg = document.querySelector("#msgTitulo");
-        if(tituloCargo == "")
-        {
-            msg.innerHTML = "<p>Digite o Título do cargo</p>";
-            return false;
-        }
-        if(tituloCargo.length > 30)
-        {
-            msg.innerHTML = "<p>Título deve ter no máximo 30 caracteres</p>"
-            return false;
-        }
-           
-        return true;
-    }
-
     async function validar()
     {
-        let validar;
+        var val = new Validar();
 
-        validar = await validarDesc();
-        if(!validar)
-            return false;
-
-        return true;
+        if(await val.validarDescObrigatoria(tituloCargo, document.querySelector("#msgTitulo"), "<p>Digite o Título do Cargo</p>", "<p>Título deve ter no máximo 30 caracteres</p>"))
+            return true;
+        return false;
     }
 
     function limparAvisos()
@@ -59,7 +41,7 @@ function Formulario() {
     async function limpar()
     {
         setSalvando(false);
-        setExcluindo(false);
+        setRequisicao(false);
         setMsg('');
 
         setTituloCargo('');
@@ -72,13 +54,14 @@ function Formulario() {
     {
         e.preventDefault();
         
-        if(salvando === false)
+        if(requisicao === false)
         {
-            setSalvando(true);
+            setRequisicao(true);
             setMsg('');
 
             if(await validar())
             {
+                setSalvando(true);
                 await api.post('/cadCargo',{
                     descricao: tituloCargo,
                 }).then(
@@ -86,19 +69,25 @@ function Formulario() {
                        setMsg(response.data);
                     }
                 )
+                setSalvando(false);
                 await carregarCargos();
                 await limpar();
             }
-            setSalvando(false);
+            setRequisicao(false);
         }
     }
 
     async function carregarCargos()
     {
-        await api.get('/buscarCargos')
-        .then((response)=>{
-            setCargos(response.data);
-        });
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get('/buscarCargos')
+            .then((response)=>{
+                setCargos(response.data);
+            });
+            setRequisicao(false);
+        }
     }
 
     useEffect(()=>{
@@ -107,40 +96,55 @@ function Formulario() {
 
     async function filtrarCargos()
     {
-        if(filtro != "")
+        if(requisicao === false)
         {
-            await api.get(`/filtrarCargos/${filtro}`)
-            .then((response)=>{
-                setCargos(response.data);
-            })   
-        }
-        else
-        {
-            carregarCargos();
-        }        
+            setRequisicao(true);
+            if(filtro !== "")
+            {
+                await api.get(`/filtrarCargos/${filtro}`)
+                .then((response)=>{
+                    setCargos(response.data);
+                })   
+            }
+            else
+            {
+                await carregarCargos();
+            }    
+            setRequisicao(false);
+        }    
     }
 
     async function delCargo(idCargo)
     {
-        if(idCargo != "" && idCargo != null)
+        if(idCargo !== "" && idCargo !== null)
         {
-            await api.delete(`/deletarCargo/${idCargo}`)
-            .then((response)=>{
-                setMsg(response.data);
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarCargo/${idCargo}`)
+                .then((response)=>{
+                    setMsg(response.data);
+                })
+                setRequisicao(false);
+            }
         }   
     }
 
     async function buscarCargoEmUsuarios(idCargo)
     {
-        if(idCargo != "" && idCargo != null)
+        if(idCargo !== "" && idCargo !== null)
         {
-            return await api.get(`/buscarCargoUs/${idCargo}`)
-            .then((response)=>{
-                setMsgProcurar(response.data.length);
-                //console.log(response.data.length);
-                return response.data.length;
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                return await api.get(`/buscarCargoUs/${idCargo}`)
+                .then((response)=>{
+                    setMsgProcurar(response.data.length);
+                    //console.log(response.data.length);
+                    setRequisicao(false);
+                    return response.data.length;
+                })
+            }
         }   
     }
 
@@ -156,18 +160,18 @@ function Formulario() {
 
     async function excluirCargo()
     {
-        if(excluindo === false)
+        if(requisicao === false)
         {
-            setExcluindo(true);
+            setRequisicao(true);
 
-            if(msgProcurar == 0)
+            if(msgProcurar === 0)
             {
                 await delCargo(excCargo);
                 await carregarCargos();
             }
 
             document.getElementById('id01').style.display='none';
-            setExcluindo(false);
+            setRequisicao(false);
         } 
     }
 
@@ -231,7 +235,7 @@ function Formulario() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {cargos != "" &&
+                                    {cargos !== "" &&
                                         cargos.map(cargo =>(
                                             <tr key={cargo.id || ""} id="alterando">
                                                 <td>{cargo.descricao || ""}</td>
@@ -252,7 +256,7 @@ function Formulario() {
             </div> 
 
 
-            {msg != "" &&
+            {msg !== "" &&
                 <div className='formulario'>
                     <p id='msgSistema'>Mensagem do Sistema</p>
                     <p id='msgSistema'>{msg}</p>
@@ -264,13 +268,13 @@ function Formulario() {
                     <button type="button" onClick={limpar}>Limpar</button>
                     <button className={(salvando ? "disabled": "")} 
                         type="submit" id="btnForm" onClick={confirmarDados}>
-                        {salvando == false && button}
+                        {salvando === false && button}
                     </button>
-                    {  salvando == true &&
+                    {  salvando === true &&
                         
                         <button className='salvando' type="button">
                         {
-                            salvando == true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
+                            salvando === true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
                         }
                         </button>
                     }
@@ -285,7 +289,7 @@ function Formulario() {
                             <p>Este cargo está presente em alguns usuários, não é possível deletar!!</p>                       
                         }           
                         {
-                            msgProcurar <=0 &&
+                            msgProcurar <= 0 &&
                             <p>Cargo será deletado, deseja continuar?</p>
                         }
 

@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
+import Validar from '../../servicos/validar';
 
 function Formulario() {
     const [nome, setNome] = useState('');
@@ -39,7 +40,7 @@ function Formulario() {
     const [verContatos, setContatos] = useState([]);
     const [telefone, setTelefone] = useState([]);
 
-    const [isOpen, setIsOpen] = useState(true);
+    const [telefoneForm, setTelefoneForm] = useState(true);
     const [button, setButton] = useState('Salvar');
     const [titulo, setTitulo] = useState('Cadastrar Usuário');
     const [EnderecoOpen, setEnderecoOpen] = useState(false);
@@ -47,14 +48,14 @@ function Formulario() {
     const [filtro, setFiltro] = useState('');
     const [usuarios, setUsuarios] = useState('');
     const [msg, setMsg] = useState('');
+    const [msgCor, setMsgCor] = useState("green");
 
     const [altCA, setCA] = useState('');
     const [altEnd, setAltEnd] = useState('');
     const [altTel, setAltTel] = useState('');
     const [altUs, setAltUs] = useState('');
+    const [requisicao, setRequisicao] = useState(false);
     const [salvando, setSalvando] = useState(false);
-    const [alterando, setAlterando] = useState(false);
-    const [excluindo, setExcluindo] = useState(false);
 
     const [excAcesso, setExcAcesso] = useState('');
     const [excTel, setExcTel] = useState('');
@@ -121,63 +122,6 @@ function Formulario() {
         return valor;
     }
 
-    async function validarEmail(valor)
-    {
-        if(email === "")
-            return true;
-        var exp = /^[a-z0-9-_]+@[a-z0-9]+\.com/;
-        if(exp.test(valor))
-            return true;
-
-        document.querySelector("#msgEmail").innerHTML = "<p>Email inválido</p>"
-        return false;
-    }
-
-    async function validarCPF(valor)
-    {
-        var exp = /(\d{3})\.(\d{3})\.(\d{3})-(\d{2})/;
-        if(exp.test(valor))
-            return true;
-
-        document.querySelector("#msgCPF").innerHTML = "<p>CPF inválido</p>";
-        return false;
-    }
-
-    async function formatarCPF()
-    {
-        var retorno = true;
-        if(cpf !== "")
-        {
-            if(cpf.length > 11)
-            {
-                document.querySelector("#msgCPF").innerHTML = "<p>CPF inválido</p>";
-                return false;
-            }
-            else
-            {
-                var val = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-                retorno = await validarCPF(val);
-            }
-
-        }
-        return retorno;
-    }
-
-    async function validarNome()
-    {
-        if(nome === "")
-        {
-            document.querySelector("#msgNome").innerHTML="<p>Digite um nome</p>"; 
-            return false;
-        }
-        if(nome.length > 50)
-        {
-            document.querySelector("#msgNome").innerHTML="<p>Nome deve ter no máximo 50 caracteres</p>";
-            return false;
-        }
-        return true;
-    }
-
     async function validarTelefoneExiste()
     {
         if(verContatos.length === 0)
@@ -189,211 +133,35 @@ function Formulario() {
         return true;
     }
 
-    async function mascaraNumero(valor)
-    {
-        var exp = /^\d+$/;
-        if(exp.test(parseInt(valor)))
-            return true; 
-        return false
-    }
-
-    async function validarNumero()
-    {
-        var retorno = true;
-        if(numero !== "")
-        {
-            if(parseInt(numero) < 0)
-            {
-                document.querySelector("#msgNumero").innerHTML = "<p>Número inválida</p>";
-                retorno = false;
-            }
-            if(await mascaraNumero(numero) === false)
-            {
-                document.querySelector("#msgNumero").innerHTML = "<p>Digite apenas Números</p>";
-                retorno = false;
-            }
-        }   
-        return retorno;
-    }
-
-    async function validarIdade()
-    {
-        var retorno = true;
-        if(idade !== "")
-        {
-            if(parseInt(idade) < 13 || parseInt(idade)>100)
-            {
-                document.querySelector("#msgIdade").innerHTML = "<p>Idade inválida</p>";
-                retorno = false;
-            }
-            if(await mascaraNumero(idade) === false)
-            {
-                document.querySelector("#msgIdade").innerHTML = "<p>Digite apenas Números</p>";
-                retorno = false;
-            }
-        }
-
-        return retorno;
-    }
-
-    async function formatarCep()
-    {
-        console.log(cep);
-        var retorno = true;
-        if(cep !== "")
-        {
-            var exp = /^\d+$/;
-            if(exp.test(parseInt(cep)))
-            {
-                var val = cep.replace(/(\d{5})(\d{3})/, "$1-$2");
-                setCep(val);
-                retorno = await validarCep(val);
-            }
-            else
-            {
-                document.querySelector("#msgCep").innerHTML = "<p>Digite apenas Números</p>";
-                return false;
-            }
-        }
-        return retorno;
-    }
-
-    async function validarCep(valor)
-    {
-        var exp = /(\d{5})-(\d{3})/;
-        if(exp.test(valor))
-            return true;
-
-        document.querySelector("#msgCep").innerHTML = "<p>CEP inválido</p>";
-        return false;
-    }
-
-    async function validarComplemento()
-    {
-        if(complemento !== "")
-        {
-            if(complemento.length > 30)
-            {
-                document.querySelector("#msgComplemento").innerHTML = "<p>Complemento deve ter no máximo 30 caracteres</p>";
-                return false;
-            }
-        }
-        return true;
-    }   
-
-    async function validarCidade()
-    {
-        if(cidade !== "")
-        {
-            if(cidade.length > 30)
-            {
-                document.querySelector("#msgCidade").innerHTML = "<p>Cidade deve ter no máximo 30 caracteres</p>";
-                return false;
-            }
-        }
-        return true;
-    }
-
-    async function validarBairro()
-    {
-        if(bairro !== "")
-        {
-            if(bairro.length > 30)
-            {
-                document.querySelector("#msgBairro").innerHTML = "<p>Bairro deve ter no máximo 30 caracteres</p>";
-                return false;
-            }
-        }
-        return true;
-    }
-
-    async function validarRua()
-    {
-        if(rua !== "")
-        {
-            if(rua.length > 50)
-            {
-                document.querySelector("#msgRua").innerHTML = "<p>Rua deve ter no máximo 50 caracteres</p>";
-                return false;
-            }
-        }
-        return true;
-    }
-
-    async function validarCargo()
-    {
-        if(idCargo === '')
-        {
-            document.querySelector("#msgCargo").innerHTML = "<p>Selecione um cargo</p>";
-            return false;
-        }
-        
-        return true;
-    }
-
-    async function validarNivel()
-    {
-        if(nivelAcesso === 0)
-        {
-            document.querySelector("#msgNivel").innerHTML = "<p>Selecione um nível</p>";
-            return false;
-        }
-        return true;
-    }
-
-    async function validarSalario()
-    {
-        if(salario === "")    
-        {
-            document.querySelector("#msgSalario").innerHTML = "<p>Digite um salário</p>";
-            return false;
-        }
-        return true;
-    }
-
-    async function validarDataEmissao()
-    {
-        if(dataEmissao === "")
-        {
-            document.querySelector("#msgEmissao").innerHTML = "<p>Selecione a data de emissão</p>";
-            return false;
-        }
-        return true;
-    }
-
-    async function validarDataDemissao()
-    {
-        if(dataDemissao !== "")
-        {
-            if(dataDemissao < dataEmissao)
-            {
-                document.querySelector("#msgDemissao").innerHTML = "<p>Data de demissão deve ser maior que Data de emissão</p>";
-                return false;
-            }
-        }
-        return true;
-    }
-
     async function delEndereco(idEndereco)
     {
         if(idEndereco !== null && idEndereco !== "")
         {
-
-            await api.delete(`/deletarEndereco/${idEndereco}`)
-            .then((response)=>{
-                console.log(response.data);
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarEndereco/${idEndereco}`)
+                .then((response)=>{
+                    console.log(response.data);
+                })
+                setRequisicao(false);
+            }
         }
     }
 
     async function delTelefone(idTelefone)
     {
-        if(idTelefone !== null && idTelefone !== "")
+        if(requisicao === false)
         {
-            await api.delete(`/deletarTelefone/${idTelefone}`)
-            .then((response)=>{
-                console.log(response.data);
-            })
+            setRequisicao(true);
+            if(idTelefone !== null && idTelefone !== "")
+            {
+                await api.delete(`/deletarTelefone/${idTelefone}`)
+                .then((response)=>{
+                    console.log(response.data);
+                })
+            }
+            setRequisicao(false);
         }
     }
 
@@ -401,10 +169,15 @@ function Formulario() {
     {
         if(idUSuario !== "" && idUSuario !== null)
         {
-            await api.delete(`/deletarUsuario/${idUSuario}`)
-            .then((response)=>{
-                setMsg(response.data);
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarUsuario/${idUSuario}`)
+                .then((response)=>{
+                    setMsg(response.data);
+                })
+                setRequisicao(false);
+            }
         }   
     }
 
@@ -412,20 +185,25 @@ function Formulario() {
     {
         if(idCA !== "" && idCA !== null)
         {
-            await api.delete(`/deletarAcesso/${idCA}`)
-            .then((response)=>{
-                setMsg(response.data);
-                console.log(response.data, "controle acesso deletado");
-            })
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.delete(`/deletarAcesso/${idCA}`)
+                .then((response)=>{
+                    setMsg(response.data);
+                    console.log(response.data, "controle acesso deletado");
+                })
+                setRequisicao(false);
+            }
         }   
     }
 
     async function excluirUsuario()
     {
         //procurar relações de usuarios em funções fundamentais posteriormente
-        if(excluindo === false)
+        if(requisicao === false)
         {
-            setExcluindo(true);
+            setRequisicao(true);
             await delEndereco(excEnd);
             await delTelefone(excTel);
             await delUsuario(excUs);
@@ -434,7 +212,7 @@ function Formulario() {
             await carregarUsuarios();
 
             document.getElementById('id01').style.display='none';
-            setExcluindo(false);
+            setRequisicao(false);
         }
     }
 
@@ -446,104 +224,51 @@ function Formulario() {
         setExcEnd(idEndereco);
         setExcUs(idUsuario);
     }
-
-    async function validarLogin()
-    {
-        if(login === "")
-        {
-            document.querySelector("#msgLogin").innerHTML = "<p>Digite o login</p>";
-            return false;
-        }
-        return true;
-    }
-
-    async function validarSenha()
-    {
-        if(senha === "")
-        {
-            document.querySelector("#msgSenha").innerHTML = "<p>Digite a senha</p>";
-            return false;
-        }
-        return true;
-    }
-
+    
     async function validar()
     {
-        let validar;
+        var val = new Validar();
 
-        validar = await validarNome();
-        if(!validar)
-            return false;
+        if(await val.validarNome(nome, 50, "#msgNome", "Nome") && 
+           await val.formatarCPF(cpf)&&
+           await val.validarIdade(idade)&&
+           await val.validarEmail(email)&&
+           await validarTelefoneExiste()&&
 
-        validar = await validarEmail(email);
-        if(!validar)
-            return false;
-        
-        validar = await formatarCPF(cpf);
-        if(!validar)
-            return false;
-            
-        validar = await validarTelefoneExiste();
-        if(!validar)
-            return false;
+           await val.validarCargo(idCargo)&&
+           await val.validarNivel(nivelAcesso)&&
+           await val.validarSalario(salario)&&
+           await val.validarDataEmissaoObrigatoria(dataEmissao)&&
+           await val.validarDataDemissao(dataDemissao, dataEmissao)&&
 
-        validar = await validarIdade();
-        if(!validar)
+           await val.validarLogin(login)&&
+           await val.validarSenha(senha)
+        )
+        {
+            if(EnderecoOpen === true)
+            {
+                if(
+                    await val.formatarCep(cep)&&
+                    await val.validarNumero(numero)&&
+                    await val.validarComplemento(complemento)&&
+                    await val.validarCidade(cidade)&&
+                    await val.validarBairro(bairro)&&
+                    await val.validarRua(rua)
+                )
+                    return true;
+                else
+                {
+                    document.body.scrollTop = document.documentElement.scrollTop = 0;
+                    return false;
+                }
+            }
+            return true;
+        }
+        else
+        {
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
             return false;
-
-        validar = await formatarCep(cep);
-        if(!validar)
-            return false;
-
-        validar = await validarNumero();
-        if(!validar)
-            return false;
-        
-        validar = await validarComplemento();
-        if(!validar)
-            return false;
-
-        validar = await validarCidade();
-        if(!validar)
-            return false;
-            
-        validar = await validarBairro();
-        if(!validar)
-            return false;
-
-        validar = await validarRua();
-        if(!validar)
-            return false;
-
-        validar = await validarCargo();
-        if(!validar)
-            return false;
-
-        validar = await validarNivel();
-        if(!validar)
-            return false;
-
-        validar = await validarSalario();
-        if(!validar)
-            return false;
-
-        validar = await validarDataEmissao();
-        if(!validar)
-            return false;
-
-        validar = await validarDataDemissao();
-        if(!validar)
-            return false;
-
-        validar = await validarLogin();
-        if(!validar)
-            return false;
-
-        validar = await validarSenha();
-        if(!validar)
-            return false;
-
-        return true;
+        }
     }    
 
     function limparAvisos()
@@ -554,7 +279,7 @@ function Formulario() {
         document.querySelector("#msgEmail").innerHTML = "";
         document.querySelector("#mensagemContato").innerHTML = "";
 
-        if(EnderecoOpen == true)
+        if(EnderecoOpen === true)
         {
             document.querySelector("#msgCep").innerHTML = "";
             document.querySelector("#msgCidade").innerHTML = "";
@@ -575,9 +300,9 @@ function Formulario() {
 
     async function limpar()
     {
+        setRequisicao(false);
         setSalvando(false);
-        setAlterando(false);
-        setExcluindo(false);
+
         setButton("Salvar");
 
         setMsg('');
@@ -618,9 +343,9 @@ function Formulario() {
     async function confirmarDados(e)
     {
         e.preventDefault();
-        if(salvando === false)
+        if(requisicao === false)
         {
-            setSalvando(true);
+            setRequisicao(true);
 
             var dataD = dataDemissao;
             if(dataDemissao === undefined)
@@ -628,6 +353,7 @@ function Formulario() {
 
             if(await validar())
             {
+                setSalvando(true);
                 if(button === "Salvar")
                 {
                     await api.post('/cadUsuario',{
@@ -690,27 +416,33 @@ function Formulario() {
                 }
                 await carregarTudo();
                 await limpar();
+                setSalvando(false);
             }
-            setSalvando(false);
+            setRequisicao(false);
         }
     }
 
     async function cadastrarCargo()
     {
-        await api.post('/cadCargo',{
-            descricao: cadDescCargo,
-        }).then(
-            response => {
-                setMsgCargo(response.data);
-                if(response.data.includes("sucesso"))
-                {
-                    setCargoMsgCor('green');
-                    carregarCargos();
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.post('/cadCargo',{
+                descricao: cadDescCargo,
+            }).then(
+                response => {
+                    setMsgCargo(response.data);
+                    if(response.data.includes("sucesso"))
+                    {
+                        setCargoMsgCor('green');
+                        carregarCargos();
+                    }
+                    else
+                        setCargoMsgCor('red');
                 }
-                else
-                    setCargoMsgCor('red');
-            }
-        )
+            )
+            setRequisicao(false);
+        }
     }
 
     async function carregarTudo()
@@ -721,17 +453,27 @@ function Formulario() {
 
     async function carregarUsuarios()
     {
-        await api.get('/listarTodosUsuarios')
-        .then((response)=>{
-            setUsuarios(response.data);
-        });
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get('/listarTodosUsuarios')
+            .then((response)=>{
+                setUsuarios(response.data);
+            });
+            setRequisicao(false);
+        }
     }
 
     async function carregarCargos()
     {
-        await api.get('/buscarCargos').then((resp)=>{
-            setCargos(resp.data);
-        });
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get('/buscarCargos').then((resp)=>{
+                setCargos(resp.data);
+            });
+            setRequisicao(false);
+        }
     }
 
     useEffect(()=>{
@@ -753,29 +495,103 @@ function Formulario() {
         setCadDescCargo('');
     }
 
-    async function filtrarUsuarios()
+    async function filtrarUsuariosVazio()
     {
-        if(filtro !== "")
+        if(requisicao === false)
         {
+            setRequisicao(true);
             await api.get(`/filtrarUsuarios/${filtro}`)
             .then((response)=>{
                 setUsuarios(response.data);
-            })   
-        }
-        else
+            })
+            setRequisicao(false);
+        }   
+    }
+
+    async function filtrarUsuariosFiltro()
+    {
+        if(requisicao === false)
         {
+            setRequisicao(true);
             await api.get('/listarTodosUsuarios')
             .then((response)=>{
                 setUsuarios(response.data);
             });
+            setRequisicao(false);
+        }   
+    }
+
+    async function filtrarUsuarios()
+    {
+        if(filtro !== "")
+        {
+            await filtrarUsuariosVazio();
+        }
+        else
+        {
+            await filtrarUsuariosFiltro();
         }        
+    }
+
+    async function carregarTelefones(idTelefone)
+    {
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get(`/buscarTelefones/${idTelefone}`)
+            .then((response)=>{
+                var telefonesVet = [response.data[0].telefone1, response.data[0].telefone2, response.data[0].telefone3];
+                var vet2 = [];
+                for(var x=0; x<telefonesVet.length; x++)
+                {
+                    if(telefonesVet[x] !== null)
+                    {
+                        const data = {
+                            codigo: x,
+                            telefone: telefonesVet[x],
+                        };
+                        vet2[x] = data;
+                    } 
+                }
+                setContatos(vet2);
+            })   
+            setRequisicao(false);
+        }
+    }
+
+    async function carregarControleAcesso(idCA)
+    {
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get(`/buscarControleAcesso/${idCA}`)
+            .then((response)=>{
+                setLogin(response.data[0].login);
+                setSenha(response.data[0].senha);
+                setNivelAcesso(response.data[0].nivel_acesso);
+            })  
+            setRequisicao(false);
+        }
+    }
+
+    async function carregarCargo(idCargo)
+    {
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get(`/buscarCargo/${idCargo}`)
+            .then((response)=>{
+                setIdcargo(response.data[0].id);
+            })  
+            setRequisicao(false);
+        }
     }
 
     async function alterarUsuario(usuario)
     {
-        if(alterando === false)
+        if(requisicao === false)
         {
-            setAlterando(true);
+            setRequisicao(true);
             verContatos.length = 0;
 
             if(usuario.idade === null)
@@ -804,71 +620,70 @@ function Formulario() {
             if(usuario.sexo === "Feminino")
                 definirF();
 
-            await api.get(`/buscarEndereco/${usuario.id_endereco}`)
-            .then((response)=>{
-                if(response.data[0].cep === null)
-                    setCep('');
-                else
-                    setCep(response.data[0].cep);
+            if(EnderecoOpen === true)
+            {
+                await definirEnderecoOpen();
+            }
 
-                if(response.data[0].cidade === null)
-                    setCidade('');
-                else
-                    setCidade(response.data[0].cidade);
-
-                if(response.data[0].rua === null)
-                    setRua('');
-                else
-                    setRua(response.data[0].rua);
-
-                if(response.data[0].numero === null)
-                    setNumero('');
-                else
-                    setNumero(response.data[0].numero);
-
-                if(response.data[0].bairro === null)
-                    setBairro('');
-                else
-                    setBairro(response.data[0].bairro);
-
-                if(response.data[0].complemento === null)
-                    setComplemento('');
-                else
-                    setComplemento(response.data[0].complemento);
-            })   
-
-            await api.get(`/buscarTelefones/${usuario.id_telefone}`)
-            .then((response)=>{
-                var telefonesVet = [response.data[0].telefone1, response.data[0].telefone2, response.data[0].telefone3];
-                var vet2 = [];
-                for(var x=0; x<telefonesVet.length; x++)
-                {
-                    if(telefonesVet[x] !== null)
-                    {
-                        const data = {
-                            codigo: x,
-                            telefone: telefonesVet[x],
-                        };
-                        vet2[x] = data;
-                    } 
-                }
-                setContatos(vet2);
-            })   
-
-            await api.get(`/buscarControleAcesso/${usuario.id_controle_acesso}`)
-            .then((response)=>{
-                setLogin(response.data[0].login);
-                setSenha(response.data[0].senha);
-                setNivelAcesso(response.data[0].nivel_acesso);
-            })  
-
-            await api.get(`/buscarCargo/${usuario.id_cargo}`)
-            .then((response)=>{
-                setIdcargo(response.data[0].id);
-            })  
+            await carregarTelefones(usuario.id_telefone);
+            await carregarControleAcesso(usuario.id_controle_acesso);
+            await carregarCargo(usuario.id_cargo);
 
             setButton("Alterar");
-            setAlterando(false);
+            setRequisicao(false);
+        }
+    }
+
+    async function definirEnderecoOpen()
+    {
+        await carregarEnd();
+        if(EnderecoOpen === false)
+            setEnderecoOpen(true);
+        else
+            setEnderecoOpen(false);
+    }
+
+    async function carregarEnd()
+    {
+        if(button === "Alterar" && requisicao === false)
+        {
+            setRequisicao(true);
+            await api.get(`/buscarEndereco/${altEnd}`)
+            .then((response)=>{
+                if(response.data.length > 0)
+                {
+                    if(response.data[0].cep === null || response.data[0].cep === [])
+                        setCep('');
+                    else
+                        setCep(response.data[0].cep);
+    
+                    if(response.data[0].cidade === null)
+                        setCidade('');
+                    else
+                        setCidade(response.data[0].cidade);
+    
+                    if(response.data[0].rua === null)
+                        setRua('');
+                    else
+                        setRua(response.data[0].rua);
+    
+                    if(response.data[0].numero === null)
+                        setNumero('');
+                    else
+                        setNumero(response.data[0].numero);
+    
+                    if(response.data[0].bairro === null)
+                        setBairro('');
+                    else
+                        setBairro(response.data[0].bairro);
+    
+                    if(response.data[0].complemento === null)
+                        setComplemento('');
+                    else
+                        setComplemento(response.data[0].complemento);
+                }
+            })  
+            setRequisicao(false);
         }
     }
 
@@ -888,14 +703,6 @@ function Formulario() {
             document.querySelector("#SexoF").checked = false;
 
         document.querySelector("#SexoM").checked = true;
-    }
-
-    async function definirEnderecoOpen()
-    {
-        if(EnderecoOpen === false)
-            setEnderecoOpen(true);
-        else
-            setEnderecoOpen(false);
     }
 
     return (
@@ -951,7 +758,7 @@ function Formulario() {
                         <div className="mensagemCli"></div>
 
                         <div className='formulario-padrao'>
-                            {isOpen &&
+                            {telefoneForm &&
                                 <div className="formulario-telefone">
                                     <h1>Cadastrar Contato*</h1>
 
@@ -1173,7 +980,7 @@ function Formulario() {
             {msg !== "" &&
                 <div className='formulario'>
                     <p id='msgSistema'>Mensagem do Sistema</p>
-                    <p id='msgSistema'>{msg}</p>
+                    <p id='msgSistema' style={{color: msgCor}}>{msg}</p>
                 </div>    
             }
 

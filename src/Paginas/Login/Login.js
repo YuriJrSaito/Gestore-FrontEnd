@@ -40,8 +40,9 @@ function Login(){
         var res=await validarUsuario();
         if(res.usuario_ativo === true && res !== undefined && res !== [])
         {
-            localStorage.setItem('login',res.login);
-            localStorage.setItem('nivelAcesso',res.nivel_acesso);
+            localStorage.setItem('acessoid', res.id);
+            localStorage.setItem('login', res.login);
+            localStorage.setItem('nivelAcesso', res.nivel_acesso);
             history.push("/home");
             window.location.reload();
         }

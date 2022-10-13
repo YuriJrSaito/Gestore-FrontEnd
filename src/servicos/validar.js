@@ -321,7 +321,7 @@ class Validar{
         return true;        
     }
 
-    async validarQuantidadeObrigatorio(qtde, doc, max, msgAviso1, msgAviso2, msgAviso3, msgAviso4) //cadastroProduto //contaPagar
+    async validarQuantidadeObrigatorio(qtde, doc, max, msgAviso1, msgAviso2, msgAviso3, msgAviso4) //cadastroProduto //contaPagar //realizarVenda
     {
         if(qtde == "")
         {
@@ -411,7 +411,25 @@ class Validar{
         return true;
     }
 
-    async validarDataVencimento(dataVencimento, dataEmissao) //contaPagar
+    async validarDataEmissaoObrigatorio(dataEmissao) //realizarVenda
+    {
+        if(dataEmissao == "")
+        {
+            document.querySelector("#msgDataVenda").innerHTML = "<p>Selecione a data da Venda</p>";
+            return false;
+        }
+        /*else
+        {
+            if(dataEmissao > dataVencimento)
+            {
+                document.querySelector("#msgDataVenda").innerHTML = "<p>Data da venda deve ser menor que a data de vencimento</p>";
+                return false;
+            }
+        }*/
+        return true;
+    }
+
+    async validarDataVencimento(dataVencimento, dataEmissao) //contaPagar //realizarVenda
     {
         if(dataVencimento == "")
         {
@@ -460,6 +478,26 @@ class Validar{
             }
         }
         return true; 
+    }
+
+    async validarClienteSelecionado(idCliente) //realizarVenda
+    {
+        if(idCliente == "")
+        {
+            document.querySelector("#msgSelCliente").innerHTML = "<p>Selecione o Cliente</p>";
+            return false;
+        }
+        return true;
+    }
+
+    async validarProdutosSel(produtosSel) //realizarVenda
+    {
+        if(produtosSel.length == 0)
+        {
+            document.querySelector("#msgProdutos").innerHTML = "<p>Nenhum Produto Selecionado</p>";
+            return false;
+        }
+        return true;
     }
 }
 

@@ -5,20 +5,155 @@ import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch, faLessThanEqual} from '@fortawesome/free-solid-svg-icons';
+import moment from 'moment/moment';
+import Validar from '../../servicos/validar';
 
 function Formulario() {
 
     const [produtos, setProdutos] = useState([]);
     const [produtosSel, setProdutosSel] = useState([]);
     const [clientes, setClientes] = useState('');
-    const [valorTotal, setValorTotal] = useState(0);
-    const [dataVenda, setDataVenda] = useState('');
-    const [idContaReceber, setIdContaReceber] = useState('');
-    const [idCliente, setIdCliente] = useState('');
-    const [requisicao, setRequisicao] = useState(false);
-    const [produtosAlterados, setProdutosAlterados] = useState([]);
 
+    const [dataVenda, setDataVenda] = useState(moment().format('YYYY-MM-DD'));
+
+    const [idCliente, setIdCliente] = useState("");
     const [nomeCliente, setNomeCliente] = useState('');
+
+    const [qtdeParcelas, setQtdeParcelas] = useState('');
+    const [valorTotal, setValorTotal] = useState(0);
+    const [dataPrimeiroVencimento, setDataPrimeiroVencimento] = useState('');
+
+    const [filtro, setFiltro] = useState('');
+
+    const [selecionado, setSelecionado] = useState(false);
+    const [requisicao, setRequisicao] = useState(false);
+    const [salvando, setSalvando] = useState(false);
+    const [button, setButton] = useState('Salvar');
+    const [msg, setMsg] = useState('');
+
+
+    async function limparAvisos()
+    {
+        document.querySelector('#msgProdutos').innerHTML = "";
+        document.querySelector('#msgSelCliente').innerHTML = "";
+        document.querySelector('#msgDataVenda').innerHTML = "";
+        document.querySelector('#msgVencimento').innerHTML = "";
+        document.querySelector('#msgQtdeParcelas').innerHTML = "";
+    }
+
+    async function limpar()
+    {
+        setSalvando(false);
+        setSelecionado(false);
+        setRequisicao(false);
+        setMsg("");
+        setProdutosSel([]);
+        setDataVenda(moment().format('YYYY-MM-DD'));
+        setIdCliente("");
+        setNomeCliente("");
+        setQtdeParcelas("");
+        setValorTotal(0);
+        setDataPrimeiroVencimento("")
+        setFiltro("");
+
+        await limparAvisos();
+    }
+
+    async function validar()
+    {
+        var val = new Validar();
+
+        if(await val.validarProdutosSel(produtosSel) &&
+           await val.validarClienteSelecionado(idCliente) &&
+           await val.validarDataEmissaoObrigatorio(dataVenda) &&
+           await val.validarDataVencimento(dataPrimeiroVencimento, dataVenda) &&
+           await val.validarQuantidadeObrigatorio(qtdeParcelas, "#msgQtdeParcelas", 12, "<p>Digite a quantidade</p>", "<p>Quantidade deve ser maior ou  igual a 0 (zero)</p>", "<p>Digite apenas Números</p>", "<p>Quantidade deve ser menor que 12</p>") 
+        )
+        {
+            return true;
+        }
+        else
+        {
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
+            return false;
+        }
+    }
+
+    async function gravarContaReceber()
+    {
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+
+            let resp = await api.post('/cadContaReceber',{
+                qtdeParcelas: qtdeParcelas,
+                valorTotal: valorTotal,
+                dataEmissao: dataVenda,
+                dataPrimeiroVencimento: dataPrimeiroVencimento,
+            }).then(
+                response => {
+                    return response.data[0];
+                }
+            )
+
+            setRequisicao(false);
+            return resp;
+        }
+    }
+
+    async function gravarVenda(idCR)
+    {
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+
+            let resp = await api.post('/cadVenda',{
+                dataVenda: dataVenda,
+                idContaReceber: idCR,
+                idAcesso: localStorage.getItem('acessoid'),
+                idCliente: idCliente,
+            }).then(
+                response => {
+                    return response.data[0];
+                }
+            )
+
+            setRequisicao(false);
+            return resp;
+        }
+    }
+
+    async function gravarItemVenda(idVenda)
+    {
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+
+            await api.post('/cadItemVenda',{
+                produtos: produtosSel,
+                idVenda: idVenda
+            }).then(
+                response => {
+                    setMsg(response.data);
+                }
+            )
+
+            setRequisicao(false);
+        }
+    }
+
+    async function confirmarDados()
+    {
+        if(await validar())
+        {
+            if(button === "Salvar")
+            {
+                let idCR = await gravarContaReceber();
+                let idVenda = await gravarVenda(idCR);
+                await gravarItemVenda(idVenda);
+            }
+        }
+    }
 
     async function buscarClientes()
     {
@@ -35,6 +170,7 @@ function Formulario() {
 
     async function definirClientes()
     {
+        document.querySelector('#msgSelCliente').innerHTML = "";
         document.getElementById('id01').style.display ='block';
         await buscarClientes();
     }
@@ -65,17 +201,11 @@ function Formulario() {
     {
         var prod = {
             id: produto.id,
-            codigoReferencia: produto.codigoReferencia,
-            qtdeEstoque: 1,
             titulo: produto.titulo,
-            descricao: produto.descricao,
+            codigoReferencia: produto.codigoReferencia,
+            qtdeEstoque: produto.qtdeEstoque,
+            qtdeSelecionado: 1,
             valorUnitario: produto.valorUnitario,
-            valorDeCompra: produto.valorDeCompra,
-            id_categoria: produto.id_categoria,
-            id_fornecedor: produto.id_fornecedor,
-            img1: produto.img1,
-            img2: produto.img2,
-            img3: produto.img3,
         }
         return prod;
     }
@@ -97,17 +227,18 @@ function Formulario() {
     async function selProduto(produto)
     {
         var prod = await copiarProd(produto);
-
+        document.querySelector("#msgProdutos").innerHTML = "";
         if(produto.qtdeEstoque > 0)
         {
             var valor;
             produto.qtdeEstoque -= 1;
+            if(selecionado === false)
+                setSelecionado(true);
             if(await produtoExiste(prod) === false)
             {
                 setProdutosSel([...produtosSel, prod]);
+                //setProdutosAlterados([...produtosAlterados, produto]);
                 valor = parseFloat(valorTotal) + parseFloat(prod.valorUnitario);
-                valor = valor.toFixed(2);
-                setValorTotal(parseFloat(valor));
             }
             else
             {
@@ -116,19 +247,32 @@ function Formulario() {
                 {
                     if(prod.id === produtosSel[x].id)
                     {
-                        produtosSel[x].qtdeEstoque += 1;
+                        var a  = parseInt(produtosSel[x].qtdeSelecionado);
+                        a += 1;
+                        produtosSel[x].qtdeSelecionado = a;
                         valor = parseFloat(valor) + parseFloat(prod.valorUnitario);
                     }
                 }
-                valor = valor.toFixed(2);
-                setValorTotal(parseFloat(valor));
+            }
+            valor = valor.toFixed(2);
+            setValorTotal(parseFloat(valor));
+        }
+    }
+
+    async function buscarQuantidadeProdutoSelecionado(idProd)
+    {
+        for(var x=0; x<produtosSel.length; x++)
+        {
+            if(produtosSel[x].id === idProd)
+            {
+                return produtosSel[x].qtdeEstoque;
             }
         }
     }
 
     async function alterarEstoqueProdutos(idProd, quant, devolver)
     {
-        produtos.map(produto =>{
+        produtos.forEach(produto => {
             if(produto.id === idProd)
             {
                 if(devolver === true)
@@ -137,52 +281,105 @@ function Formulario() {
                 }
                 else
                 {
-                    //verificar quantidade menor
                     produto.qtdeEstoque -= quant;
                 }
             }
-        })
+        });
     }
 
-    async function verificarEstoque(prod, quant)
+    async function verificarEstoqueSuficiente(idProd, quant, qtdeSelecionado)
     {
-        if(prod.qtdeEstoque > quant)
+        for (let x=0; x<produtos.length; x++) 
         {
-            await alterarEstoqueProdutos(prod.id, parseInt(prod.qtdeEstoque - quant), true);
+            if(produtos[x].id === idProd)
+            {
+                if((parseInt(produtos[x].qtdeEstoque) + parseInt(qtdeSelecionado)) < quant)
+                {
+                    //document.querySelector('#msgProdutosSel').innerHTML = `<p>${produtos[x].titulo}: Quantidade no estoque não é suficiente</p>`;
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    async function mudarEstoque(prod, quant)
+    {
+        if(prod.qtdeSelecionado > quant)
+        {
+            await alterarEstoqueProdutos(prod.id, parseInt(prod.qtdeSelecionado - quant), true);
         }
         else
         {
-            await alterarEstoqueProdutos(prod.id, parseInt(quant - prod.qtdeEstoque), false);
+            await alterarEstoqueProdutos(prod.id, parseInt(quant - prod.qtdeSelecionado), false);
         }
     }
 
     async function definirProdutoQuantidade(prod, quant)
     {
-        if(quant === '')
+        //document.querySelector('#msgProdutosSel').innerHTML = '';
+        if(quant === '' || quant < 0)
             quant = 0;
-
-        await verificarEstoque(prod, quant);
         
-        var valorVet;
-        var valorFinal = 0;
-        valorVet = produtosSel.map(produto => {
-            var val=0;
-
-            if(produto.id === prod.id)
-            {
-                produto.qtdeEstoque = quant;
-            }
-
-            val += (parseFloat(produto.valorUnitario) * parseFloat(produto.qtdeEstoque));
-            return val;
-        })
-        for(var x=0; x<valorVet.length; x++)
+        if(quant > 0)
         {
-            valorFinal += valorVet[x];
+            var separar = quant.split('');
+            if(separar[0] === "0")
+            {
+                var a = "";
+                for(let x=1; x<separar.length; x++)
+                {
+                    a += separar[x];
+                }
+                quant = parseInt(a);
+            }
         }
-        var valorFinal = valorFinal.toFixed(2);
-        setValorTotal(parseFloat(valorFinal));
-        
+
+        if(await verificarEstoqueSuficiente(prod.id, quant, prod.qtdeSelecionado) === false)
+            quant = await buscarQuantidadeProdutoSelecionado(prod.id);
+        else
+        {
+            await mudarEstoque(prod, quant);
+           
+            var valorFinal = 0;
+            var valorVet = produtosSel.map(produto => {
+                var val=0;
+
+                if(produto.id === prod.id)
+                {
+                    produto.qtdeSelecionado = quant;
+                }
+
+                val += (parseFloat(produto.valorUnitario) * parseFloat(produto.qtdeSelecionado));
+                return val;
+            })
+            for(var x=0; x<valorVet.length; x++)
+            {
+                valorFinal += valorVet[x];
+            }
+            valorFinal = valorFinal.toFixed(2);
+            setValorTotal(parseFloat(valorFinal));
+        }
+    }
+
+    async function filtrarProdutos()
+    {
+        if(requisicao === false)
+        {
+            setRequisicao(true);
+            if(filtro !== "")
+            {
+                await api.get(`/filtrarProdutos/${filtro}`)
+                .then((response)=>{
+                    setProdutos(response.data);
+                })   
+            }
+            else
+            {
+                await carregarTodosProdutos();
+            }   
+            setRequisicao(false);
+        }
     }
 
     return (
@@ -200,8 +397,8 @@ function Formulario() {
                         </div>
                         <div className='formulario-padrao-tabela'>
                             <div className='inputs-buscar-fornecedores'>
-                                <input type="search" placeholder='Pesquisar'></input>
-                                <button>OK</button>   
+                                <input type="search" value={filtro} onChange={e=>{setFiltro(e.target.value)}} placeholder='Pesquisar'></input>
+                                <button onClick={filtrarProdutos}>OK</button>   
                             </div> 
 
                             <div className='div-tabela'>
@@ -228,8 +425,10 @@ function Formulario() {
                                     </tbody>
                                 </table>
                             </div>
+                            <div className='msg' id='msgProdutos'></div>
                         </div>
                     </div>     
+                    {selecionado === true &&
                     <div className="formulario-tabela-fornecedores">
                         <div className='titulo'>
                             <h1>Produtos Selecionados</h1>
@@ -253,16 +452,18 @@ function Formulario() {
                                                     <td onClick={e=>selProduto(produto)}>{produto.titulo}</td>   
                                                     <td onClick={e=>selProduto(produto)}>{produto.codigoReferencia}</td>                                           
                                                     <td onClick={e=>selProduto(produto)}>R${produto.valorUnitario}</td>                                                 
-                                                    <td><input type="number" value={produto.qtdeEstoque} onChange={e=>{definirProdutoQuantidade(produto, e.target.value)}}/></td>
-                                                    <td onClick={e=>selProduto(produto)}>R${(produto.valorUnitario * produto.qtdeEstoque).toFixed(2)}</td>
+                                                    <td><input type="number" value={produto.qtdeSelecionado} onChange={e=>{definirProdutoQuantidade(produto, e.target.value)}}/></td>
+                                                    <td onClick={e=>selProduto(produto)}>R${(produto.valorUnitario * produto.qtdeSelecionado).toFixed(2)}</td>
                                                 </tr>
                                             ))
                                         }
                                     </tbody>
                                 </table>
+                                <div className='msg' id='msgProdutosSel'></div>
                             </div>
                         </div>
-                    </div>        
+                    </div>    
+                    }    
                 </div>
             </div>
             <div className="formulario">
@@ -271,50 +472,69 @@ function Formulario() {
                 </div>
 
                 <div className="formulario-padrao" id="clienteSel">
-                    <label>Selecionar Cliente</label>
+                    <label>Selecionar Cliente*</label>
+                    
                     <button onClick={e=>definirClientes()}>Selecionar cliente</button>
                     {
                         idCliente !== "" &&
                         <>
                             <label>Cliente Selecionado</label>
-                            <p>Nome: {nomeCliente}</p>
-                            <p>Id: {idCliente}</p>
+                            <h1>Nome: {nomeCliente}</h1>
+                            <h1>Id: {idCliente}</h1>
                         </>
                     }
+                    <div className="msg" id='msgSelCliente'></div>
+                    
                 </div>
-
                 <div className="formulario-padrao">
                     <label>Valor Total</label>
                     <input type="text" name="valorTotal" id="valorTotal" placeholder="Valor Total" value={valorTotal} disabled/>
                 </div>
 
                 <div className="formulario-padrao">
-                    <label>Data da Venda</label>
-                    <input type="date" placeholder="dd/mm/yyyy" required />
+                    <label>Data da Venda*</label>
+                    <input type="date" value={dataVenda} onChange={e=>{setDataVenda(e.target.value);document.querySelector("#msgDataVenda").innerHTML = ""}} placeholder="dd/mm/yyyy" required />
+                    <div className='msg' id='msgDataVenda'></div>
                 </div>
 
                 <div className="formulario-padrao">
-                    <label>Quantidade de parcelas</label>
-                    <input type="value" placeholder="Digite a quantidade parcelas"/>
+                    <label>Vencimento da primeira parcela*</label>
+                    <input type="date" value={dataPrimeiroVencimento} onChange={e=>{setDataPrimeiroVencimento(e.target.value);document.querySelector("#msgVencimento").innerHTML = ""}} placeholder="dd/mm/yyyy"/>
+                    <div className='msg' id='msgVencimento'></div>
                 </div>
 
                 <div className="formulario-padrao">
-                    <label>Descrição</label>
-                    <input type="value" placeholder="Digite a descrição"/>
+                    <label>Quantidade de parcelas*</label>
+                    <input type="value" value={qtdeParcelas} onChange={e=>{setQtdeParcelas(e.target.value);document.querySelector("#msgQtdeParcelas").innerHTML = ""}} placeholder="Digite a quantidade de parcelas"/>
+                    <div className='msg' id='msgQtdeParcelas'></div>
                 </div>
-
-                <div className="formulario-padrao">
-                    <label>Forma de pagamento</label>
-                    <input type="email" name="email" id="email" placeholder="Digite a forma de pagamento"/>
+                <div className='titulo-bottom'>
+                    <h2>( * ) Campos obrigatórios</h2>
                 </div>
             </div>
 
+            {msg !== "" &&
+                <div className='formulario'>
+                    <p id='msgSistema'>Mensagem do Sistema</p>
+                    <p id='msgSistema'>{msg}</p>
+                </div>    
+            }
+
             <div className='formulario'>
                 <div className='div-botoes'>
-                    <button type="button">Limpar</button>
-                    <button> 
-                        Salvar
+                    <button type="button" onClick={limpar}>Limpar</button>
+                    <button className={(salvando ? "disabled": "")} 
+                        type="submit" id="btnForm" onClick={confirmarDados}>
+                        {salvando === false && button}
                     </button>
+                    {  salvando === true &&
+                        
+                        <button className='salvando' type="button">
+                        {
+                            salvando === true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
+                        }
+                        </button>
+                    }
                 </div>
             </div>
 

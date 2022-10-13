@@ -115,6 +115,41 @@
     color: white;
 }
 
+.formulario-alert{
+    width: 100%;
+    height: 100%;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+  
+    border-radius: 10px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.formulario-alert-number input[type=number]{
+    background-color: white;
+    border-color:blue;;
+}
+
+#input-extra{
+    padding: 10px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+   
+    background-color: blue;
+    color: white;
+
+    cursor: pointer;
+
+    border-radius: 4px;
+
+    box-sizing: border-box;
+}
+
 @media screen and (max-width: 900px){
     .formulario-tabela{
         width: 90%;

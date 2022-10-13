@@ -9,6 +9,8 @@ import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
 import Validar from '../../servicos/validar';
 import * as FcIcons from 'react-icons/fc';
 
+//todo: gravar dados para o pagamento não completo das parcelas
+
 function Formulario() {
     const [qtdeParcelas, setQtdeParcelas] = useState('');
     const [valorTotal, setValorTotal] = useState('');
@@ -30,6 +32,7 @@ function Formulario() {
     const [pNumParcela, setPNumParcela] = useState('');
     const [pIDFP, setPIDFP] = useState('');
     const [pNaoPago, setNaoPago] = useState(false);
+    const [valorParcelado, setValorParcelado] = useState(0);
 
     const [excConta, setExcConta] = useState('');
 
@@ -42,6 +45,12 @@ function Formulario() {
     const [salvando, setSalvando] = useState(false);
     const [button, setButton] = useState('Salvar');
     const [tituloPagina, setTituloPagina] = useState('Contas a Pagar');
+
+    const [buttonPagarParcela, setButtonPagarParcela] = useState('Pagar Inteiro');
+    const [pagarParcelado, setPagarParcelado] = useState(false);
+    const showPagarParcelado = () => {setPagarParcelado(!pagarParcelado); 
+        {if(pagarParcelado===true)setButtonPagarParcela('Pagar Inteiro');
+        else setButtonPagarParcela('Finalizar');}}
 
     async function limpar()
     {
@@ -271,7 +280,6 @@ function Formulario() {
 
     async function quitarParcela()
     {
-        console.log(pIDFP);
         if(requisicao === false)
         {
             setRequisicao(true);
@@ -282,6 +290,71 @@ function Formulario() {
             setRequisicao(false); 
             document.getElementById('id02').style.display='none';
             await definirParcelas(idContaPagar);
+        }
+    }
+
+    async function pagarParcela()
+    {
+        if(parseFloat(valorParcelado) > parseFloat(pValor))
+        {
+            document.querySelector('#msgQuitarParcela').innerHTML = "<p>Valor Excede o Total Devido</p>";
+        }
+        else
+        {
+            if(parseFloat(pValor) > parseFloat(valorParcelado))
+            {
+                var valor = parseFloat(pValor) - parseFloat(valorParcelado);
+                if(requisicao === false)
+                {
+                    setRequisicao(true);
+                    await api.put(`/pagarParceladoCP/${pIDFP}/${valor}`)
+                    .then((response)=>{
+                        setMsg(response.data);
+                    })
+                    setRequisicao(false); 
+                    document.getElementById('id02').style.display='none';
+                }
+            }
+            else
+            {
+                if(parseFloat(pValor) === parseFloat(valorParcelado))
+                {
+                    await quitarParcela();
+                }
+            }
+            setValorParcelado(0);
+            setPagarParcelado(false);
+            setButtonPagarParcela("Pagar Inteiro")
+            document.querySelector('#msgQuitarParcela').innerHTML = "";
+            await definirParcelas(idContaPagar);
+        }
+    }
+
+    async function ordenarParcelas()
+    {
+        console.log(parcelas.sort(function (x, y){
+            return x.numParcela - y.numParcela;
+        }));
+    }
+
+    async function filtrarContas()
+    {
+        if(filtro !== "")
+        {
+            if(requisicao === false)
+            {
+                setRequisicao(true);
+                await api.get(`/filtrarContasPagar/${filtro}`)
+                .then((response)=>{
+                    setMsg(response.data[0]);
+                    setContasPagar(response.data[1]);
+                })
+                setRequisicao(false);
+            }
+        }
+        else
+        {
+            await carregarContas();
         }
     }
 
@@ -367,8 +440,8 @@ function Formulario() {
                         </div>
                         <div className='formulario-padrao-tabela'>
                             <div className='inputs-buscar'>
-                                <input type="search" placeholder='Pesquisar por Título'></input>
-                                <button>OK</button>   
+                                <input type="search" value={filtro} onChange={e => {setFiltro(e.target.value)}} placeholder='Pesquisar por Título'></input>
+                                <button onClick={filtrarContas}>OK</button>   
                             </div> 
 
                             <div className='div-tabela'>
@@ -411,17 +484,19 @@ function Formulario() {
                                             <tr>
                                                 <th>Número da Parcela</th>
                                                 <th>Data Vencimento</th>
-                                                <th>Valor(R$)</th>
+                                                <th>Valor Total(R$)</th>
+                                                <th>Não Pago(R$)</th>
                                                 <th>Situação</th>
                                                 <th>Pagar</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {parcelas !== "" &&
+                                            {parcelas !== "" && ordenarParcelas() &&
                                                 parcelas.map(parcela =>(
                                                     <tr key={parcela.id} id="alterando">
                                                         <td>{parcela.numParcela}</td>
                                                         <td>{moment.utc(parcela.dataVencimento).format('DD-MM-YYYY')}</td>
+                                                        <td>R$ {parcela.valorTotal}</td>
                                                         <td>R$ {parcela.valor}</td>
                                                         <td>{parcela.situacao}</td>
                                                         {
@@ -497,12 +572,32 @@ function Formulario() {
                             <>
                                 <h1>Confira as informações</h1>
                                 <p>Parcela: {pNumParcela}</p>
-                                <p>Valor: R${pValor}</p>
+                                <p>Valor a ser pago: R${pValor}</p>
                                 <p>Data de Pagamento: {pDataPagamento}</p>
                                 <p>Data de Vencimento: {pDataVencimento}</p>
+
+                                <input type='button' id="input-extra" value="Descontar Valor" onClick={showPagarParcelado}></input>
+                                {pagarParcelado === true &&
+                                    <>
+                                        <div className='formulario-alert'>
+                                            <div className="formulario-alert-number">
+                                                <p>Descontar: (R$)</p>
+                                                <input type="number" placeholder="Pagar parcelado" value={valorParcelado} onChange={e=>{{setValorParcelado(e.target.value);document.querySelector("#msgQuitarParcela").innerHTML=""}}}></input>
+                                            </div>
+                                            <div className='msg' id='msgQuitarParcela'></div>
+                                        </div>
+                                    </>
+                                }
+
                                 <div className="clearfix">
                                     <button type="button" className="cancelbtn" onClick={e => document.getElementById('id02').style.display='none'}>Cancelar</button>
-                                    <button type="button" className="deletebtn" onClick={()=>quitarParcela()}>Quitar</button>
+                                    {buttonPagarParcela === "Pagar Inteiro" &&
+                                        <button type="button" className="deletebtn" onClick={quitarParcela}>{buttonPagarParcela}</button>
+                                    }
+                                    {buttonPagarParcela === "Finalizar" &&
+                                        <button type="button" className="deletebtn" onClick={pagarParcela}>{buttonPagarParcela}</button>
+                                    }
+
                                 </div>
                             </>
                         }

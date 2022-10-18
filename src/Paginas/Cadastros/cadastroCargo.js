@@ -19,7 +19,6 @@ function Formulario() {
     const [msg, setMsg] = useState('');
 
     const [salvando, setSalvando] = useState(false);
-    const [requisicao, setRequisicao] = useState(false);
 
     const [excCargo, setExcCargo] = useState('');
     const [msgProcurar, setMsgProcurar] = useState(0);
@@ -41,7 +40,6 @@ function Formulario() {
     async function limpar()
     {
         setSalvando(false);
-        setRequisicao(false);
         setMsg('');
 
         setTituloCargo('');
@@ -54,40 +52,42 @@ function Formulario() {
     {
         e.preventDefault();
         
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-            setMsg('');
+        setMsg('');
 
-            if(await validar())
-            {
-                setSalvando(true);
+        if(await validar())
+        {
+            setSalvando(true);
+            try{
                 await api.post('/cadCargo',{
                     descricao: tituloCargo,
                 }).then(
                     response => {
-                       setMsg(response.data);
+                        setMsg(response.data);
                     }
                 )
-                setSalvando(false);
-                await carregarCargos();
-                await limpar();
             }
-            setRequisicao(false);
+            catch(err){
+                console.log(err);
+            }
+  
+            setSalvando(false);
+            await carregarCargos();
+            await limpar();
         }
     }
 
     async function carregarCargos()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/buscarCargos')
             .then((response)=>{
                 setCargos(response.data);
             });
-            setRequisicao(false);
         }
+        catch(err){
+            console.log(err);
+        }
+
     }
 
     useEffect(()=>{
@@ -96,21 +96,21 @@ function Formulario() {
 
     async function filtrarCargos()
     {
-        if(requisicao === false)
+        if(filtro !== "")
         {
-            setRequisicao(true);
-            if(filtro !== "")
-            {
+            try{
                 await api.get(`/filtrarCargos/${filtro}`)
                 .then((response)=>{
                     setCargos(response.data);
                 })   
             }
-            else
-            {
-                await carregarCargos();
-            }    
-            setRequisicao(false);
+            catch(err){
+                console.log(err);
+            }
+        }
+        else
+        {
+            await carregarCargos();
         }    
     }
 
@@ -118,14 +118,14 @@ function Formulario() {
     {
         if(idCargo !== "" && idCargo !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarCargo/${idCargo}`)
                 .then((response)=>{
                     setMsg(response.data);
                 })
-                setRequisicao(false);
+            }
+            catch(err){
+                console.log(err);
             }
         }   
     }
@@ -134,16 +134,15 @@ function Formulario() {
     {
         if(idCargo !== "" && idCargo !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 return await api.get(`/buscarCargoUs/${idCargo}`)
                 .then((response)=>{
                     setMsgProcurar(response.data.length);
-                    //console.log(response.data.length);
-                    setRequisicao(false);
                     return response.data.length;
                 })
+            }
+            catch(err){
+                console.log(err);
             }
         }   
     }
@@ -160,19 +159,12 @@ function Formulario() {
 
     async function excluirCargo()
     {
-        if(requisicao === false)
+        if(msgProcurar === 0)
         {
-            setRequisicao(true);
-
-            if(msgProcurar === 0)
-            {
-                await delCargo(excCargo);
-                await carregarCargos();
-            }
-
-            document.getElementById('id01').style.display='none';
-            setRequisicao(false);
-        } 
+            await delCargo(excCargo);
+            await carregarCargos();
+        }
+        document.getElementById('id01').style.display='none';
     }
 
     async function definirExclusao(idCargo)

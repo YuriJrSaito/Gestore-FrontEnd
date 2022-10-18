@@ -19,7 +19,6 @@ function Formulario() {
     const [msg, setMsg] = useState('');
 
     const [salvando, setSalvando] = useState(false);
-    const [requisicao, setRequisicao] = useState(false);
 
     const [excCategoria, setExcCategoria] = useState('');
     const [msgProcurar, setMsgProcurar] = useState(0);
@@ -41,7 +40,6 @@ function Formulario() {
     async function limpar()
     {
         setSalvando(false);
-        setRequisicao(false);
         setMsg('');
 
         setCategoria('');
@@ -54,40 +52,41 @@ function Formulario() {
     {
         e.preventDefault();
         
-        if(requisicao === false)
+        setMsg('');
+        if(await validar())
         {
-            setRequisicao(true);
-            setMsg('');
-
-            if(await validar())
-            {
-                setSalvando(true);
+            setSalvando(true);
+            try{
                 await api.post('/cadCategoria',{
                     descricao: categoria,
                 }).then(
                     response => {
-                       setMsg(response.data);
+                        setMsg(response.data);
                     }
                 )
-                await carregarCategorias();
-                await limpar();
-                setSalvando(false);
             }
-            setRequisicao(false);
+            catch(err){
+                console.log(err);
+            }
+            await carregarCategorias();
+            await limpar();
+            setSalvando(false);
         }
+
     }
 
     async function carregarCategorias()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/buscarCategorias')
             .then((response)=>{
                 setCategorias(response.data);
             });
-            setRequisicao(false);
         }
+        catch(err){
+            console.log(err);
+        }
+
     }
 
     useEffect(()=>{
@@ -96,36 +95,38 @@ function Formulario() {
 
     async function filtrarCategoria()
     {
-        if(requisicao === false)
+
+        if(filtro !== "")
         {
-            setRequisicao(true);
-            if(filtro !== "")
-            {
+            try{
                 await api.get(`/filtrarCategorias/${filtro}`)
                 .then((response)=>{
                     setCategorias(response.data);
                 })   
             }
-            else
-            {
-                await carregarCategorias();
-            }       
-            setRequisicao(false); 
+            catch(err){
+                console.log(err);
+            }
         }
+        else
+        {
+            await carregarCategorias();
+        }       
+
     }
 
     async function delCategoria(idCategoria)
     {
         if(idCategoria !== "" && idCategoria !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarCategoria/${idCategoria}`)
                 .then((response)=>{
                     setMsg(response.data);
                 })
-                setRequisicao(false);
+            }
+            catch(err){
+                console.log(err);
             }
         }   
     }
@@ -134,16 +135,15 @@ function Formulario() {
     {
         if(idCategoria !== "" && idCategoria !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 return await api.get(`/buscarCategoriaProd/${idCategoria}`)
                 .then((response)=>{
                     setMsgProcurar(response.data.length);
-                    //console.log(response.data.length);
-                    setRequisicao(false);
                     return response.data.length;
                 })
+            }
+            catch(err){
+                console.log(err);
             }
         }   
     }
@@ -160,19 +160,13 @@ function Formulario() {
 
     async function excluirCategoria()
     {
-        if(requisicao === false)
+        if(msgProcurar === 0)
         {
-            setRequisicao(true);
+            await delCategoria(excCategoria);
+            await carregarCategorias();
+        }
 
-            if(msgProcurar === 0)
-            {
-                await delCategoria(excCategoria);
-                await carregarCategorias();
-            }
-
-            document.getElementById('id01').style.display='none';
-            setRequisicao(false);
-        } 
+        document.getElementById('id01').style.display='none';
     }
 
     async function definirExclusao(idCategoria)

@@ -37,7 +37,6 @@ function Formulario() {
     const [excProd, setExcProd] = useState('');
 
     const [salvando, setSalvando] = useState(false);
-    const [requisicao, setRequisicao] = useState(false);
 
     const [msg, setMsg] = useState('');
     const [button, setButton] = useState('Salvar');
@@ -46,7 +45,6 @@ function Formulario() {
     async function limpar()
     {
         setSalvando(false);
-        setRequisicao(false);
         setButton("Salvar");
         setMsg('');
 
@@ -98,63 +96,79 @@ function Formulario() {
         }
     }
 
+    async function gravarProduto()
+    {
+        try{
+            await api.post('/cadProduto',{
+                titulo: titulo,
+                codigoRef: codigoRef,
+                qtdeEstoque: qtdeEstoque,
+                descricao: descricao,
+                valorUnitario: parseFloat(valorUnitario),
+                valorCompra: parseFloat(valorCompra),
+                idFornecedor: idFornecedor,
+                idCategoria: idCategoria,
+                img1: img1,
+                img2: img2,
+                img3: img3,
+            }).then(
+                response => {
+                    setMsg(response.data);
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
+        
+    }
+
+    async function editarProduto()
+    {
+        try{
+            await api.put('/altProduto',{
+                idProduto: altProd,
+                titulo: titulo,
+                codigoRef: codigoRef,
+                qtdeEstoque: qtdeEstoque,
+                descricao: descricao,
+                valorUnitario: parseFloat(valorUnitario),
+                valorCompra: parseFloat(valorCompra),
+                idFornecedor: idFornecedor,
+                idCategoria: idCategoria,
+                img1: img1,
+                img2: img2,
+                img3: img3,
+            }).then(
+                response => {
+                    setMsg(response.data); 
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
     async function confirmarDados(e)
     {
         e.preventDefault();
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-            setMsg('');
+        setMsg('');
 
-            if(await validar())
+        if(await validar())
+        {
+            setSalvando(true);
+            if(button === "Salvar")
             {
-                setSalvando(true);
-                if(button === "Salvar")
-                {
-                    await api.post('/cadProduto',{
-                        titulo: titulo,
-                        codigoRef: codigoRef,
-                        qtdeEstoque: qtdeEstoque,
-                        descricao: descricao,
-                        valorUnitario: parseFloat(valorUnitario),
-                        valorCompra: parseFloat(valorCompra),
-                        idFornecedor: idFornecedor,
-                        idCategoria: idCategoria,
-                        img1: img1,
-                        img2: img2,
-                        img3: img3,
-                    }).then(
-                        response => {
-                            setMsg(response.data);
-                        }
-                    )
-                }
-                else
-                {
-                    await api.put('/altProduto',{
-                        idProduto: altProd,
-                        titulo: titulo,
-                        codigoRef: codigoRef,
-                        qtdeEstoque: qtdeEstoque,
-                        descricao: descricao,
-                        valorUnitario: parseFloat(valorUnitario),
-                        valorCompra: parseFloat(valorCompra),
-                        idFornecedor: idFornecedor,
-                        idCategoria: idCategoria,
-                        img1: img1,
-                        img2: img2,
-                        img3: img3,
-                    }).then(
-                        response => {
-                            setMsg(response.data); 
-                        }
-                    )
-                }
-                await carregarTodosProdutos();
-                await limpar();
-                setSalvando(false);
+                await gravarProduto();
             }
-            setRequisicao(false);
+            else
+            {
+                await editarProduto();
+            }
+            await carregarTodosProdutos();
+            await limpar();
+            setSalvando(false);
         }
     }
     
@@ -171,123 +185,121 @@ function Formulario() {
 
     async function carregarTodosProdutos()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarTodosProdutos')
             .then((response)=>{
                 setProdutos(response.data);
             });
-            setRequisicao(false);
         }
+        catch(err){
+            console.log(err);
+        }
+
     }
 
     async function carregarFornecedores()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarFornecedores')
             .then((response)=>{
                 setFornecedores(response.data);
             });
-            setRequisicao(false);
         }
+        catch(err){
+            console.log(err);
+        }
+
     }
 
     async function filtrarProdutos()
     {
-        if(requisicao === false)
+        if(filtro !== "")
         {
-            setRequisicao(true);
-            if(filtro !== "")
-            {
+            try{
                 await api.get(`/filtrarProdutos/${filtro}`)
                 .then((response)=>{
                     setProdutos(response.data);
                 })   
             }
-            else
-            {
-                await carregarTodosProdutos();
-            }   
-            setRequisicao(false);
+            catch(err){
+                console.log(err);
+            }
         }
+        else
+        {
+            await carregarTodosProdutos();
+        }   
     }
 
     async function buscarCategoria(id)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get(`/buscarCategoria/${id}`)
             .then((response)=>{
                 setCategoria(response.data[0].id);
             })
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function alterarProduto(produto)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-            setButton('Alterar');
-            limparAvisos();
+        setButton('Alterar');
+        limparAvisos();
 
-            setAltProd(produto.id);
-            setCodigoRef(produto.codigoReferencia);
-            setQtdeEstoque(produto.qtdeEstoque);
-            setTitulo(produto.titulo);
-            setDescricao(produto.descricao);
-            setValorUnitario(produto.valorUnitario);
-            setValorCompra(produto.valorDeCompra);
-            setCategoria(produto.id_categoria);
-            setFornecedor(produto.id_fornecedor);
+        setAltProd(produto.id);
+        setCodigoRef(produto.codigoReferencia);
+        setQtdeEstoque(produto.qtdeEstoque);
+        setTitulo(produto.titulo);
+        setDescricao(produto.descricao);
+        setValorUnitario(produto.valorUnitario);
+        setValorCompra(produto.valorDeCompra);
+        setCategoria(produto.id_categoria);
+        setFornecedor(produto.id_fornecedor);
 
-            if(produto.img1 !== null)
-                setImg1(produto.img1);
+        if(produto.img1 !== null)
+            setImg1(produto.img1);
 
-            if(produto.img2 !== null)
-                setImg2(produto.img2);
+        if(produto.img2 !== null)
+            setImg2(produto.img2);
 
-            if(produto.img3 !== null)
-                setImg3(produto.img3);
+        if(produto.img3 !== null)
+            setImg3(produto.img3);
 
-            await buscarCategoria(produto.id_categoria);
-            setRequisicao(false);  
-        }
+        await buscarCategoria(produto.id_categoria);
     }
 
     async function delProduto(idProduto)
     {
         if(idProduto !== "" && idProduto !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarProduto/${idProduto}`)
                 .then((response)=>{
                     setMsg(response.data);
                 })
-                setRequisicao(false);
+                await limpar();
+            }
+            catch(err){
+                console.log(err);
             }
         }   
     }
 
     async function excluirProduto()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-
+        try{
             await delProduto(excProd);
             await carregarTodosProdutos();
 
             document.getElementById('id01').style.display='none';
-            setRequisicao(false);
         }
+        catch(err){
+            console.log(err);
+        }
+
     }
 
     async function definirExclusao(idProduto)
@@ -332,21 +344,19 @@ function Formulario() {
 
     async function carregarCategorias()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/buscarCategorias').then((resp)=>{
                 setCategorias(resp.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function cadastrarCategoria()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.post('/cadCategoria',{
                 descricao: cadDescCategoria,
             }).then(
@@ -361,7 +371,9 @@ function Formulario() {
                         setCategoriaCor('red');
                 }
             )
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 

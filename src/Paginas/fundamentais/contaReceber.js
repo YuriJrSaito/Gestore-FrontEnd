@@ -16,7 +16,6 @@ function Formulario() {
     const [idContaReceber, setIdContaReceber] = useState('');
     const [contasReceber, setContasReceber] = useState([]);
     const [parcelas, setParcelas] = useState([]);
-    const [clientes, setClientes] = useState([]);
 
     const [parcelaForm, setParcelaform] = useState(false);
     const [pValor, setPValor] = useState('');
@@ -54,7 +53,6 @@ function Formulario() {
             await api.get('/listarContasReceber')
             .then((response)=>{
                 setContasReceber(response.data);
-                console.log(response.data);
             });
             setRequisicao(false);
         }
@@ -65,33 +63,53 @@ function Formulario() {
         await carregarContas();
     }
 
-    /*async function buscarTodosClientes()
-    {
-        for(let x=0; x<contasReceber.length; x++)
-        {
-            let resp = await buscarClienteNome(contasReceber[x].id);
-            setClientes([...clientes, resp]);
-        }
-    }*/
+    useEffect(()=>{
+        carregarTudo();
+    },[]);
 
-    /*async function buscarClienteNome(idConta)
+    function filtrarClientes()
+    {
+        setParcelaform(false);
+        setParcelas('');
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("tabelaContas");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
+        {
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }
+    }
+
+    async function buscarContaEmVendas(idConta)
     {
         if(requisicao === false)
         {
             setRequisicao(true);
-            let resp = await api.get(`/buscarClienteNome/${idConta}`)
+            return await api.get(`/buscarContaEmVendas/${idConta}`)
             .then((response)=>{
-                console.log(response.data);
+                setMsgProcurar(response.data[0]);
+                setRequisicao(false);
                 return response.data[0];
-            });
-            setRequisicao(false);
-            return resp;
+            })
         }
-    }*/
-
-    useEffect(()=>{
-        carregarTudo();
-    },[]);
+    }
 
     async function definirExclusao(idConta)
     {
@@ -145,6 +163,16 @@ function Formulario() {
             document.getElementById('id01').style.display='none'; 
             setRequisicao(false);
         }
+    }
+
+    async function cancelar()
+    {   
+        var a = document.querySelector(".deletebtn");
+        document.getElementById('id01').style.display='none';
+        setExcConta('');
+        setMsgProcurar('');
+        if(a.classList.contains("disabled"))
+            a.classList.remove("disabled");
     }
 
     async function delConta(idConta)
@@ -235,12 +263,12 @@ function Formulario() {
 
     async function ordenarParcelas()
     {
-        console.log(parcelas.sort(function (x, y){
+        parcelas.sort(function (x, y){
             return x.numParcela - y.numParcela;
-        }));
+        });
     }
 
-    async function filtrarContas()
+    /*async function filtrarContas()
     {
         if(filtro !== "")
         {
@@ -259,7 +287,7 @@ function Formulario() {
         {
             await carregarContas();
         }
-    }
+    }*/
 
     return (
         <>
@@ -275,12 +303,12 @@ function Formulario() {
                 </div>
                 <div className='formulario-padrao-tabela'>
                     <div className='inputs-buscar'>
-                        <input type="search" value={filtro} onChange={e => {setFiltro(e.target.value)}} placeholder='Pesquisar por Título'></input>
-                        <button onClick={filtrarContas}>OK</button>   
+                        <input type="search" value={filtro} onChange={e => {setFiltro(e.target.value);filtrarClientes()}} id="filtro" placeholder='Pesquisar por Título'></input>
+                        <button onClick={filtrarClientes}>OK</button>   
                     </div> 
 
                     <div className='div-tabela'>
-                        <table className='tabela'>
+                        <table className='tabela' id='tabelaContas'>
                             <thead>
                                 <tr>
                                     <th>Cliente</th>
@@ -374,13 +402,19 @@ function Formulario() {
                 <form className="modal-content">
                     <div className="container">
                         <h1>Deletar Conta</h1>
-                        <p>Esta conta esta vinculada a uma venda, não será possivel excluir!</p>
-                        
+                        {msgProcurar > 0 &&
+                            <p>Esta conta esta vinculada a uma venda, não é possível deletar!!</p>                       
+                        }           
+                        {
+                            msgProcurar <= 0 &&
+                            <p>Conta será deletada, deseja continuar?</p>
+                        }
+
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={e => document.getElementById('id01').style.display='none'}>Cancelar</button>
+                            <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
                             <button type="button" className="deletebtn" onClick={()=>excluirConta()}>Deletar</button>
                         </div>
-            
+                        
                     </div>
                 </form>
             </div>

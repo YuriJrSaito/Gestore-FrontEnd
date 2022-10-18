@@ -8,6 +8,8 @@ import {faCircleNotch, faLessThanEqual} from '@fortawesome/free-solid-svg-icons'
 import moment from 'moment/moment';
 import Validar from '../../servicos/validar';
 
+import TabelaVenda from './Vendas.js';
+
 function Formulario() {
 
     const [produtos, setProdutos] = useState([]);
@@ -177,14 +179,13 @@ function Formulario() {
 
     async function carregarTodosProdutos()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarTodosProdutos')
             .then((response)=>{
                 setProdutos(response.data);
-            });
-            setRequisicao(false);
+            })
+        }catch(err){
+            console.log(err);
         }
     }
 
@@ -389,6 +390,7 @@ function Formulario() {
             <div className='titulo-pagina'>
                 <h1>Realizar Venda</h1>
             </div>
+            <TabelaVenda />
             <div className='formulario-duplo'>
                 <div className='main-row'>           
                     <div className="formulario-tabela">

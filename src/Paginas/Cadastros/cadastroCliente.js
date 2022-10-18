@@ -29,7 +29,6 @@ function Formulario() {
     const [button, setButton] = useState('Salvar');
     const [titulo, setTitulo] = useState('Cadastrar Cliente');
     const [salvando, setSalvando] = useState(false);
-    const [requisicao, setRequisicao] = useState(false); 
 
     const [msg, setMsg] = useState('');
 
@@ -81,7 +80,6 @@ function Formulario() {
             document.querySelector("#mensagemContato").innerHTML = "<p>Insira pelo menos 1 Telefone</p>";
             return false;
         }
-
         return true;
     }
 
@@ -129,7 +127,7 @@ function Formulario() {
         var valor = telefone;
         if(verContatos.length < 3)
         {
-            valor = await formatarTelefone();
+            valor = await formatarTelefone(valor);
             if(validarTelefone(valor))
             {
                 setTelefone(valor);
@@ -177,8 +175,6 @@ function Formulario() {
     async function limpar()
     {
         setSalvando(false);
-        setRequisicao(false);
-        
         setButton("Salvar");
 
         setNome('');
@@ -207,66 +203,82 @@ function Formulario() {
         limparAvisos();
     }
 
+    async function gravarCliente()
+    {
+        try{
+            await api.post('/cadCliente',{
+                nome: nome,
+                email: email,
+                idade: idade,
+                sexo: sexo,
+                cpf: cpf,
+                telefones: verContatos,
+                cep: cep,
+                cidade: cidade,
+                rua: rua,
+                bairro: bairro,
+                numero: numero,
+                complemento: complemento
+            }).then(
+                response => {
+                    setMsg(response.data);
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
+    async function editarCliente()
+    {
+        try{
+            await api.put('/altCliente',{
+                idCliente: altCli,
+                nome: nome,
+                email: email,
+                idade: idade,
+                sexo: sexo,
+                cpf: cpf,
+                idTelefone: altTel,
+                telefones: verContatos,
+                idEndereco: altEnd,
+                cep: cep,
+                cidade: cidade,
+                rua: rua,
+                bairro: bairro,
+                numero: numero,
+                complemento: complemento
+            }).then(
+                response => {
+                    setMsg(response.data); 
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
     async function confirmarDados(e)
     {
         e.preventDefault();
         setMsg('');
-        if(requisicao === false)
+
+        if(await validar())
         {
-            setRequisicao(true);
-            if(await validar())
+            setSalvando(true);
+            if(button === "Salvar")
             {
-                setSalvando(true);
-                if(button === "Salvar")
-                {
-                    await api.post('/cadCliente',{
-                        nome: nome,
-                        email: email,
-                        idade: idade,
-                        sexo: sexo,
-                        cpf: cpf,
-                        telefones: verContatos,
-                        cep: cep,
-                        cidade: cidade,
-                        rua: rua,
-                        bairro: bairro,
-                        numero: numero,
-                        complemento: complemento
-                    }).then(
-                        response => {
-                            setMsg(response.data);
-                        }
-                    )
-                }
-                else
-                {
-                    await api.put('/altCliente',{
-                        idCliente: altCli,
-                        nome: nome,
-                        email: email,
-                        idade: idade,
-                        sexo: sexo,
-                        cpf: cpf,
-                        idTelefone: altTel,
-                        telefones: verContatos,
-                        idEndereco: altEnd,
-                        cep: cep,
-                        cidade: cidade,
-                        rua: rua,
-                        bairro: bairro,
-                        numero: numero,
-                        complemento: complemento
-                    }).then(
-                        response => {
-                            setMsg(response.data); 
-                        }
-                    )
-                }
-                await carregarTodosClientes();
-                await limpar();
-                setSalvando(false);
+                await gravarCliente();
             }
-            setRequisicao(false);
+            else
+            {
+                await editarCliente();
+            }
+            await carregarTodosClientes();
+            await limpar();
+            setSalvando(false);
         }
     }
 
@@ -276,34 +288,34 @@ function Formulario() {
 
     async function carregarTodosClientes()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarTodosClientes')
             .then((response)=>{
                 setClientes(response.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function filtrarClientes()
     {
-        if(requisicao === false)
+        if(filtro !== "")
         {
-            setRequisicao(true);
-            if(filtro !== "")
-            {
+            try{
                 await api.get(`/filtrarClientes/${filtro}`)
                 .then((response)=>{
                     setClientes(response.data);
                 })   
             }
-            else
-            {
-                await carregarTodosClientes();
+            catch(err){
+                console.log(err);
             }
-            setRequisicao(false);
+        }
+        else
+        {
+            await carregarTodosClientes();
         }
     }
 
@@ -311,14 +323,14 @@ function Formulario() {
     {
         if(idEndereco !== null && idEndereco !== "")
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarEndereco/${idEndereco}`)
                 .then((response)=>{
                     console.log(response.data);
                 })
-                setRequisicao(false);
+            }
+            catch(err){
+                console.log(err);
             }
         }
     }
@@ -327,14 +339,14 @@ function Formulario() {
     {
         if(idTelefone !== null && idTelefone !== "")
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarTelefone/${idTelefone}`)
                 .then((response)=>{
                     console.log(response.data);
                 })
-                setRequisicao(false);
+            }
+            catch(err){
+                console.log(err);
             }
         }
     }
@@ -343,31 +355,27 @@ function Formulario() {
     {
         if(idCliente !== "" && idCliente !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarCliente/${idCliente}`)
                 .then((response)=>{
                     setMsg(response.data);
                 })
-                setRequisicao(false);
             }
+            catch(err){
+                console.log(err);
+            }
+            await limpar();
         }   
     }
 
     async function excluirCliente()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-            await delEndereco(excEnd);
-            await delTelefone(excTel);
-            await delCliente(excCli);
-            await carregarTodosClientes();
+        await delEndereco(excEnd);
+        await delTelefone(excTel);
+        await delCliente(excCli);
+        await carregarTodosClientes();
 
-            document.getElementById('id01').style.display='none';
-            setRequisicao(false);
-        }
+        document.getElementById('id01').style.display='none';
     }
 
     async function definirExclusao(idCliente, idTelefone, idEndereco)
@@ -380,9 +388,7 @@ function Formulario() {
 
     async function carregarTelefones(cliente)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get(`/buscarTelefones/${cliente.id_telefone}`)
             .then((response)=>{
                 var telefonesVet = [response.data[0].telefone1, response.data[0].telefone2, response.data[0].telefone3];
@@ -400,54 +406,51 @@ function Formulario() {
                 }
                 setContatos(vet2);
             })
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function alterarCliente(cliente)
     {   
-        if(requisicao === false)
+        limpar();
+
+        verContatos.length = 0;
+        /*if(cliente.cpf != "")
         {
-            limpar();
-            setRequisicao(true);
-
-            verContatos.length = 0;
-            /*if(cliente.cpf != "")
-            {
-                var val = cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-                console.log(val);
-                setCpf(val);
-            }
-            else*/
-            setCpf(cliente.cpf);
-
-            if(cliente.idade === null)
-                setIdade('');
-            else
-                setIdade(cliente.idade);
-
-            setNome(cliente.nome);
-            setEmail(cliente.email);
-            setAltEnd(cliente.id_endereco);
-            setAltTel(cliente.id_telefone);
-            setAltCli(cliente.id);
-            setSexo(cliente.sexo);
-
-            if(cliente.sexo === "Masculino")
-                definirM();
-            else
-                if(cliente.sexo === "Feminino")
-                    definirF(); 
-
-            if(EnderecoOpen === true)
-            {
-                await definirEnderecoOpen();
-            }
-            await carregarTelefones(cliente);
-
-            setRequisicao(false);
-            setButton("Alterar");
+            var val = cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+            console.log(val);
+            setCpf(val);
         }
+        else*/
+        setCpf(cliente.cpf);
+
+        if(cliente.idade === null)
+            setIdade('');
+        else
+            setIdade(cliente.idade);
+
+        setNome(cliente.nome);
+        setEmail(cliente.email);
+        setAltEnd(cliente.id_endereco);
+        setAltTel(cliente.id_telefone);
+        setAltCli(cliente.id);
+        setSexo(cliente.sexo);
+
+        if(cliente.sexo === "Masculino")
+            definirM();
+        else
+            if(cliente.sexo === "Feminino")
+                definirF(); 
+
+        if(EnderecoOpen === true)
+        {
+            await definirEnderecoOpen();
+        }
+        await carregarTelefones(cliente);
+
+        setButton("Alterar");
     }
 
     async function definirF()
@@ -481,10 +484,7 @@ function Formulario() {
     {
         if(button === "Alterar")
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
-
+            try{
                 await api.get(`/buscarEndereco/${altEnd}`)
                 .then((response)=>{
                     if(response.data.length > 0)
@@ -519,9 +519,11 @@ function Formulario() {
                         else
                             setComplemento(response.data[0].complemento);
                     }
-                })  
-                setRequisicao(false);
+                }) 
             }
+            catch(err){
+                console.log(err);
+            } 
         }
     }
 

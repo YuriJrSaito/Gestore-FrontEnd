@@ -25,7 +25,6 @@ function Formulario() {
 
     const [altFor, setAltFor] = useState('');
     const [salvando, setSalvando] = useState(false);
-    const [requisicao, setRequisicao] = useState(false);
 
     const [excFor, setExcFor] = useState('');
     const [msgProcurar, setMsgProcurar] = useState(0);
@@ -111,8 +110,7 @@ function Formulario() {
     async function limpar()
     {
         setSalvando(false);
-        setRequisicao(false);
-        
+
         setButton('Salvar');
         setNome('');
         setCnpj('');
@@ -125,66 +123,81 @@ function Formulario() {
         limparAvisos();
     }
 
+    async function gravarFornecedor()
+    {
+        try{
+            await api.post('/cadFornecedor',{
+                descricao: descricao,
+                email: email,
+                telefone1: telefone1,
+                telefone2: telefone2,
+                cnpj: cnpj,
+                nome: nome,
+            }).then(
+                response => {
+                    setMsg(response.data);
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
+    async function editarFornecedor()
+    {
+        try{
+            await api.put('/altFornecedor',{
+                idFornecedor: altFor,
+                descricao: descricao,
+                email: email,
+                telefone1: telefone1,
+                telefone2: telefone2,
+                cnpj: cnpj,
+                nome: nome,
+            }).then(
+                response => {
+                    setMsg(response.data); 
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
     async function confirmarDados(e)
     {
         e.preventDefault();
-        
-        if(requisicao === false)
+        setMsg('');
+
+        if(await validar())
         {
-            setMsg('');
-            setRequisicao(true);
-            if(await validar())
+            setSalvando(true);
+            if(button === "Salvar")
             {
-                setSalvando(true);
-                if(button === "Salvar")
-                {
-                    await api.post('/cadFornecedor',{
-                        descricao: descricao,
-                        email: email,
-                        telefone1: telefone1,
-                        telefone2: telefone2,
-                        cnpj: cnpj,
-                        nome: nome,
-                    }).then(
-                        response => {
-                            setMsg(response.data);
-                        }
-                    )
-                }
-                else
-                {
-                    await api.put('/altFornecedor',{
-                        idFornecedor: altFor,
-                        descricao: descricao,
-                        email: email,
-                        telefone1: telefone1,
-                        telefone2: telefone2,
-                        cnpj: cnpj,
-                        nome: nome,
-                    }).then(
-                        response => {
-                            setMsg(response.data); 
-                        }
-                    )   
-                }
-                await carregarFornecedores();
-                await limpar();
-                setSalvando(false);
+                await gravarFornecedor();
             }
-            setRequisicao(false);
+            else
+            {
+                await editarFornecedor();
+            }
+            await carregarFornecedores();
+            await limpar();
+            setSalvando(false);
         }
     }
 
     async function carregarFornecedores()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarFornecedores')
             .then((response)=>{
                 setFornecedores(response.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -194,21 +207,21 @@ function Formulario() {
 
     async function filtrarFornecedores()
     {
-        if(requisicao === false)
+        if(filtro !== "")
         {
-            setRequisicao(true);
-            if(filtro !== "")
-            {
+            try{
                 await api.get(`/filtrarFornecedores/${filtro}`)
                 .then((response)=>{
                     setFornecedores(response.data);
                 })   
             }
-            else
-            {
-                await carregarFornecedores();
+            catch(err){
+                console.log(err);
             }
-            setRequisicao(false);
+        }
+        else
+        {
+            await carregarFornecedores();
         }
     }
 
@@ -216,15 +229,16 @@ function Formulario() {
     {
         if(idFornecedor !== "" && idFornecedor !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarFornecedor/${idFornecedor}`)
                 .then((response)=>{
                     setMsg(response.data);
                 })
-                setRequisicao(false);
             }
+            catch(err){
+                console.log(err);
+            }
+            await limpar();
         }   
     }
 
@@ -232,15 +246,15 @@ function Formulario() {
     {
         if(idFornecedor !== "" && idFornecedor !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 return await api.get(`/buscarFornecedor/${idFornecedor}`)
                 .then((response)=>{
                     setMsgProcurar(response.data.length);
-                    setRequisicao(false);
                     return response.data.length;
                 })
+            }
+            catch(err){
+                console.log(err);
             }
         }   
     }
@@ -257,19 +271,13 @@ function Formulario() {
 
     async function excluirFornecedor()
     {
-        if(requisicao === false)
+        if(msgProcurar === 0)
         {
-            setRequisicao(true);
+            await delFornecedor(excFor);
+            await carregarFornecedores();
+        }
 
-            if(msgProcurar === 0)
-            {
-                await delFornecedor(excFor);
-                await carregarFornecedores();
-            }
-
-            document.getElementById('id01').style.display='none';
-            setRequisicao(false);
-        } 
+        document.getElementById('id01').style.display='none';
     }
 
     async function definirExclusao(idFornecedor)
@@ -286,29 +294,20 @@ function Formulario() {
 
     async function alterarFornecedor(fornecedor)
     {
-        if(requisicao === false)
+        /*if(fornecedor.CNPJ != null)
         {
-            setRequisicao(true);
-            /*if(fornecedor.CNPJ != null)
-            {
-                var val = fornecedor.CNPJ.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
-                setCnpj(val);
-            }*/
-
-            setCnpj(fornecedor.CNPJ);
-
-            setMsg('');
-
-            setButton('Alterar');
-            setNome(fornecedor.nome);
-            setEmail(fornecedor.email);
-            setDescricao(fornecedor.descricao);
-            setTelefone1(await formatarTelefone(fornecedor.telefone1));
-            setTelefone2(await formatarTelefone(fornecedor.telefone2));
-            
-            setAltFor(fornecedor.id);
-            setRequisicao(false);
-        }
+            var val = fornecedor.CNPJ.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+            setCnpj(val);
+        }*/
+        setMsg('');
+        setCnpj(fornecedor.CNPJ);
+        setButton('Alterar');
+        setNome(fornecedor.nome);
+        setEmail(fornecedor.email);
+        setDescricao(fornecedor.descricao);
+        setTelefone1(await formatarTelefone(fornecedor.telefone1));
+        setTelefone2(await formatarTelefone(fornecedor.telefone2));
+        setAltFor(fornecedor.id);
     }
 
     return (

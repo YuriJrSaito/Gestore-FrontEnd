@@ -54,7 +54,6 @@ function Formulario() {
     const [altEnd, setAltEnd] = useState('');
     const [altTel, setAltTel] = useState('');
     const [altUs, setAltUs] = useState('');
-    const [requisicao, setRequisicao] = useState(false);
     const [salvando, setSalvando] = useState(false);
 
     const [excAcesso, setExcAcesso] = useState('');
@@ -129,7 +128,6 @@ function Formulario() {
             document.querySelector("#mensagemContato").innerHTML = "<p>Insira pelo menos 1 Telefone</p>";
             return false;
         }
-
         return true;
     }
 
@@ -137,23 +135,21 @@ function Formulario() {
     {
         if(idEndereco !== null && idEndereco !== "")
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarEndereco/${idEndereco}`)
                 .then((response)=>{
                     console.log(response.data);
                 })
-                setRequisicao(false);
+            }
+            catch(err){
+                console.log(err);
             }
         }
     }
 
     async function delTelefone(idTelefone)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             if(idTelefone !== null && idTelefone !== "")
             {
                 await api.delete(`/deletarTelefone/${idTelefone}`)
@@ -161,7 +157,9 @@ function Formulario() {
                     console.log(response.data);
                 })
             }
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -169,15 +167,16 @@ function Formulario() {
     {
         if(idUSuario !== "" && idUSuario !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarUsuario/${idUSuario}`)
                 .then((response)=>{
                     setMsg(response.data);
                 })
-                setRequisicao(false);
             }
+            catch(err){
+                console.log(err);
+            }
+            await limpar();
         }   
     }
 
@@ -185,15 +184,15 @@ function Formulario() {
     {
         if(idCA !== "" && idCA !== null)
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarAcesso/${idCA}`)
                 .then((response)=>{
                     setMsg(response.data);
                     console.log(response.data, "controle acesso deletado");
                 })
-                setRequisicao(false);
+            }
+            catch(err){
+                console.log(err);
             }
         }   
     }
@@ -201,19 +200,14 @@ function Formulario() {
     async function excluirUsuario()
     {
         //procurar relações de usuarios em funções fundamentais posteriormente
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-            await delEndereco(excEnd);
-            await delTelefone(excTel);
-            await delUsuario(excUs);
-            await delAcesso(excAcesso);
+        await delEndereco(excEnd);
+        await delTelefone(excTel);
+        await delUsuario(excUs);
+        await delAcesso(excAcesso);
 
-            await carregarUsuarios();
+        await carregarUsuarios();
 
-            document.getElementById('id01').style.display='none';
-            setRequisicao(false);
-        }
+        document.getElementById('id01').style.display='none';
     }
 
     async function definirExclusao(idUsuario, idTelefone, idEndereco, idCA)
@@ -300,11 +294,8 @@ function Formulario() {
 
     async function limpar()
     {
-        setRequisicao(false);
         setSalvando(false);
-
         setButton("Salvar");
-
         setMsg('');
 
         setNome('');
@@ -340,93 +331,105 @@ function Formulario() {
         limparAvisos();
     }
 
+    async function gravarUsuario(dataD)
+    {
+        try{
+            await api.post('/cadUsuario',{
+                nome: nome,
+                email: email,
+                idade: idade,
+                sexo: sexo,
+                cpf: cpf,
+                telefones: verContatos,
+                cep: cep,
+                cidade: cidade,
+                rua: rua,
+                bairro: bairro,
+                numero: numero,
+                complemento: complemento,
+                login: login,
+                senha: senha,
+                nivelAcesso: nivelAcesso,
+                idCargo: idCargo,
+                dataDemissao: dataD,
+                dataEmissao: dataEmissao,
+                salario: salario,
+            }).then(
+                response => {
+                    setMsg(response.data);
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
+    async function editarUsuario(dataD)
+    {
+        try{
+            await api.put('/altUsuario',{
+                idUsuario: altUs,
+                nome: nome,
+                email: email,
+                idade: idade,
+                sexo: sexo,
+                cpf: cpf,
+                telefones: verContatos,
+                cep: cep,
+                cidade: cidade,
+                rua: rua,
+                bairro: bairro,
+                numero: numero,
+                complemento: complemento,
+                login: login,
+                senha: senha,
+                nivelAcesso: nivelAcesso,
+                idCargo: idCargo,
+                dataDemissao: dataD,
+                dataEmissao: dataEmissao,
+                salario: salario,
+                idTelefone: altTel,
+                idEndereco: altEnd,
+                idCA: altCA,
+            }).then(
+                response => {
+                    setMsg(response.data); 
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
     async function confirmarDados(e)
     {
         e.preventDefault();
-        if(requisicao === false)
+        var dataD = dataDemissao;
+        if(dataDemissao === undefined)
+            dataD = null;
+
+        if(await validar())
         {
-            setRequisicao(true);
-
-            var dataD = dataDemissao;
-            if(dataDemissao === undefined)
-                dataD = null;
-
-            if(await validar())
+            setSalvando(true);
+            if(button === "Salvar")
             {
-                setSalvando(true);
-                if(button === "Salvar")
-                {
-                    await api.post('/cadUsuario',{
-                        nome: nome,
-                        email: email,
-                        idade: idade,
-                        sexo: sexo,
-                        cpf: cpf,
-                        telefones: verContatos,
-                        cep: cep,
-                        cidade: cidade,
-                        rua: rua,
-                        bairro: bairro,
-                        numero: numero,
-                        complemento: complemento,
-                        login: login,
-                        senha: senha,
-                        nivelAcesso: nivelAcesso,
-                        idCargo: idCargo,
-                        dataDemissao: dataD,
-                        dataEmissao: dataEmissao,
-                        salario: salario,
-                    }).then(
-                        response => {
-                            setMsg(response.data);
-                        }
-                    )
-                }
-                else
-                {
-                    await api.put('/altUsuario',{
-                        idUsuario: altUs,
-                        nome: nome,
-                        email: email,
-                        idade: idade,
-                        sexo: sexo,
-                        cpf: cpf,
-                        telefones: verContatos,
-                        cep: cep,
-                        cidade: cidade,
-                        rua: rua,
-                        bairro: bairro,
-                        numero: numero,
-                        complemento: complemento,
-                        login: login,
-                        senha: senha,
-                        nivelAcesso: nivelAcesso,
-                        idCargo: idCargo,
-                        dataDemissao: dataD,
-                        dataEmissao: dataEmissao,
-                        salario: salario,
-                        idTelefone: altTel,
-                        idEndereco: altEnd,
-                        idCA: altCA,
-                    }).then(
-                        response => {
-                            setMsg(response.data); 
-                        }
-                    )
-                }
-                await carregarTudo();
-                await limpar();
-                setSalvando(false);
+                await gravarUsuario(dataD);
             }
-            setRequisicao(false);
+            else
+            {  
+                await editarUsuario(dataD);
+            }
+            await carregarTudo();
+            await limpar();
+            setSalvando(false);
         }
     }
 
     async function cadastrarCargo()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.post('/cadCargo',{
                 descricao: cadDescCargo,
             }).then(
@@ -441,7 +444,9 @@ function Formulario() {
                         setCargoMsgCor('red');
                 }
             )
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -453,26 +458,26 @@ function Formulario() {
 
     async function carregarUsuarios()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarTodosUsuarios')
             .then((response)=>{
                 setUsuarios(response.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function carregarCargos()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/buscarCargos').then((resp)=>{
                 setCargos(resp.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -497,28 +502,28 @@ function Formulario() {
 
     async function filtrarUsuariosVazio()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get(`/filtrarUsuarios/${filtro}`)
             .then((response)=>{
                 setUsuarios(response.data);
             })
-            setRequisicao(false);
         }   
+        catch(err){
+            console.log(err);
+        }
     }
 
     async function filtrarUsuariosFiltro()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarTodosUsuarios')
             .then((response)=>{
                 setUsuarios(response.data);
             });
-            setRequisicao(false);
         }   
+        catch(err){
+            console.log(err);
+        }
     }
 
     async function filtrarUsuarios()
@@ -535,9 +540,7 @@ function Formulario() {
 
     async function carregarTelefones(idTelefone)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get(`/buscarTelefones/${idTelefone}`)
             .then((response)=>{
                 var telefonesVet = [response.data[0].telefone1, response.data[0].telefone2, response.data[0].telefone3];
@@ -555,83 +558,80 @@ function Formulario() {
                 }
                 setContatos(vet2);
             })   
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function carregarControleAcesso(idCA)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get(`/buscarControleAcesso/${idCA}`)
             .then((response)=>{
                 setLogin(response.data[0].login);
                 setSenha(response.data[0].senha);
                 setNivelAcesso(response.data[0].nivel_acesso);
             })  
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function carregarCargo(idCargo)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get(`/buscarCargo/${idCargo}`)
             .then((response)=>{
                 setIdcargo(response.data[0].id);
             })  
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function alterarUsuario(usuario)
     {
-        if(requisicao === false)
+        verContatos.length = 0;
+
+        if(usuario.idade === null)
+            setIdade('');
+        else
+            setIdade(usuario.idade);
+
+        setNome(usuario.nome);
+        setCpf(usuario.cpf);
+        setEmail(usuario.email);
+        setAltEnd(usuario.id_endereco);
+        setAltTel(usuario.id_telefone);
+        setAltUs(usuario.id);
+        setCA(usuario.id_controle_acesso);
+        setDataEmissao(moment.utc(usuario.dataEmissao).format('YYYY-MM-DD'));
+        setSalario(usuario.salario);
+        setSexo(usuario.sexo);
+
+        if(usuario.dataDemissao === null)
+            setDataDemissao("");  
+        else
+            setDataDemissao(moment.utc(usuario.dataDemissao).format('YYYY-MM-DD'));
+
+        if(usuario.sexo === "Masculino")
+            definirM();
+        if(usuario.sexo === "Feminino")
+            definirF();
+
+        if(EnderecoOpen === true)
         {
-            setRequisicao(true);
-            verContatos.length = 0;
-
-            if(usuario.idade === null)
-                setIdade('');
-            else
-                setIdade(usuario.idade);
-
-            setNome(usuario.nome);
-            setCpf(usuario.cpf);
-            setEmail(usuario.email);
-            setAltEnd(usuario.id_endereco);
-            setAltTel(usuario.id_telefone);
-            setAltUs(usuario.id);
-            setCA(usuario.id_controle_acesso);
-            setDataEmissao(moment.utc(usuario.dataEmissao).format('YYYY-MM-DD'));
-            setSalario(usuario.salario);
-            setSexo(usuario.sexo);
-
-            if(usuario.dataDemissao === null)
-                setDataDemissao("");  
-            else
-                setDataDemissao(moment.utc(usuario.dataDemissao).format('YYYY-MM-DD'));
-
-            if(usuario.sexo === "Masculino")
-                definirM();
-            if(usuario.sexo === "Feminino")
-                definirF();
-
-            if(EnderecoOpen === true)
-            {
-                await definirEnderecoOpen();
-            }
-
-            await carregarTelefones(usuario.id_telefone);
-            await carregarControleAcesso(usuario.id_controle_acesso);
-            await carregarCargo(usuario.id_cargo);
-
-            setButton("Alterar");
-            setRequisicao(false);
+            await definirEnderecoOpen();
         }
+
+        await carregarTelefones(usuario.id_telefone);
+        await carregarControleAcesso(usuario.id_controle_acesso);
+        await carregarCargo(usuario.id_cargo);
+
+        setButton("Alterar");
     }
 
     async function definirEnderecoOpen()
@@ -645,45 +645,48 @@ function Formulario() {
 
     async function carregarEnd()
     {
-        if(button === "Alterar" && requisicao === false)
+        if(button === "Alterar")
         {
-            setRequisicao(true);
-            await api.get(`/buscarEndereco/${altEnd}`)
-            .then((response)=>{
-                if(response.data.length > 0)
-                {
-                    if(response.data[0].cep === null || response.data[0].cep === [])
-                        setCep('');
-                    else
-                        setCep(response.data[0].cep);
-    
-                    if(response.data[0].cidade === null)
-                        setCidade('');
-                    else
-                        setCidade(response.data[0].cidade);
-    
-                    if(response.data[0].rua === null)
-                        setRua('');
-                    else
-                        setRua(response.data[0].rua);
-    
-                    if(response.data[0].numero === null)
-                        setNumero('');
-                    else
-                        setNumero(response.data[0].numero);
-    
-                    if(response.data[0].bairro === null)
-                        setBairro('');
-                    else
-                        setBairro(response.data[0].bairro);
-    
-                    if(response.data[0].complemento === null)
-                        setComplemento('');
-                    else
-                        setComplemento(response.data[0].complemento);
-                }
-            })  
-            setRequisicao(false);
+            try{
+                await api.get(`/buscarEndereco/${altEnd}`)
+                .then((response)=>{
+                    if(response.data.length > 0)
+                    {
+                        if(response.data[0].cep === null || response.data[0].cep === [])
+                            setCep('');
+                        else
+                            setCep(response.data[0].cep);
+        
+                        if(response.data[0].cidade === null)
+                            setCidade('');
+                        else
+                            setCidade(response.data[0].cidade);
+        
+                        if(response.data[0].rua === null)
+                            setRua('');
+                        else
+                            setRua(response.data[0].rua);
+        
+                        if(response.data[0].numero === null)
+                            setNumero('');
+                        else
+                            setNumero(response.data[0].numero);
+        
+                        if(response.data[0].bairro === null)
+                            setBairro('');
+                        else
+                            setBairro(response.data[0].bairro);
+        
+                        if(response.data[0].complemento === null)
+                            setComplemento('');
+                        else
+                            setComplemento(response.data[0].complemento);
+                    }
+                })  
+            }
+            catch(err){
+                console.log(err);
+            }
         }
     }
 

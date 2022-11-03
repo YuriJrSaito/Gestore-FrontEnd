@@ -6,6 +6,8 @@ import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
 import Validar from '../../servicos/validar';
+import * as BsIcons from 'react-icons/bs';
+import '../../tabela/styleTabela.css';
 
 function Formulario() {
 
@@ -35,12 +37,17 @@ function Formulario() {
 
     const [altProd, setAltProd] = useState('');
     const [excProd, setExcProd] = useState('');
+    const [msgProcurar, setMsgProcurar] = useState('');
 
     const [salvando, setSalvando] = useState(false);
 
     const [msg, setMsg] = useState('');
     const [button, setButton] = useState('Salvar');
     const [tituloPagina, setTituloPagina] = useState('Cadastrar Produto');
+
+    const [tabela, setTabela] = useState(true);   
+    const [form, setForm] = useState(false);   
+    const [defExclusao, setDefExclusao] = useState(false);
 
     async function limpar()
     {
@@ -169,6 +176,8 @@ function Formulario() {
             await carregarTodosProdutos();
             await limpar();
             setSalvando(false);
+            setForm(false);
+            setTabela(true);
         }
     }
     
@@ -208,27 +217,34 @@ function Formulario() {
         catch(err){
             console.log(err);
         }
-
     }
 
     async function filtrarProdutos()
     {
-        if(filtro !== "")
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("table");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
         {
-            try{
-                await api.get(`/filtrarProdutos/${filtro}`)
-                .then((response)=>{
-                    setProdutos(response.data);
-                })   
-            }
-            catch(err){
-                console.log(err);
-            }
-        }
-        else
-        {
-            await carregarTodosProdutos();
-        }   
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
     }
 
     async function buscarCategoria(id)
@@ -246,6 +262,8 @@ function Formulario() {
 
     async function alterarProduto(produto)
     {
+        setTabela(false);
+        setForm(true);
         setButton('Alterar');
         limparAvisos();
 
@@ -288,24 +306,48 @@ function Formulario() {
         }   
     }
 
+    async function cancelar()
+    {   
+        setDefExclusao(false);
+        setExcProd('');
+        setMsgProcurar('');
+    }
+
     async function excluirProduto()
     {
-        try{
+        if(msgProcurar === 0)
+        {
             await delProduto(excProd);
             await carregarTodosProdutos();
-
-            document.getElementById('id01').style.display='none';
         }
-        catch(err){
-            console.log(err);
-        }
+        setDefExclusao(false);
+    }
 
+    async function buscarProdutosEmVendas(idProduto)
+    {
+        if(idProduto !== "" && idProduto !== null)
+        {
+            try{
+                return await api.get(`/buscarProdVenda/${idProduto}`)
+                .then((response)=>{
+                    setMsgProcurar(response.data.length);
+                    return response.data.length;
+                })
+            }
+            catch(err){
+                console.log(err);
+            }
+        }  
     }
 
     async function definirExclusao(idProduto)
     {
-        document.getElementById('id01').style.display ='block';
+        const retorno = await buscarProdutosEmVendas(idProduto);
+        setDefExclusao(true);
+
         setExcProd(idProduto);
+        setMsgProcurar(retorno);
+        setDefExclusao(true);
     }
 
     function setarImg1(img)
@@ -381,15 +423,71 @@ function Formulario() {
         <>
         <Header />
         <div className="background-conteudo">
-            <div className='titulo-pagina'>
-                <h1>{tituloPagina}</h1>
-            </div>
+            {tabela === true &&
+            <div className='background-tabelas'>
+                <div className="formulario-tabela">
+                    <div className='titulo-cadastro'>
+                        <div className='titulo'>
+                            <h1>Produtos</h1>
+                        </div>
+                        <input type="button" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
+                    </div>
+                    <div className='formulario-padrao-tabela'>
+                        <div className='inputs-buscar'>
+                            <input type="search" id='filtro' placeholder='Pesquisar por Nome' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarProdutos()}}></input>
+                            <input type="button" value="Recarregar" onClick={carregarTodosProdutos}></input>   
+                        </div> 
+                    </div>
+                </div>
 
+                <div className='row'>
+                    <div className='div-tabela'>
+                        <table className='tabela' id='table'>
+                            <thead className='thead-dark'>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Imagens</th>
+                                    <th>Quantidade Estoque</th>
+                                    {localStorage.getItem("nivelAcesso") >= 60 &&
+                                        <th>&nbsp;</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {produtos !== "" &&
+                                    produtos.map(produto =>(
+                                        <tr key={produto.id}>
+                                            <td onClick={e=>alterarProduto(produto)}>{produto.titulo}</td>
+                                            {produto.img1 === "" && <td onClick={e=>alterarProduto(produto)}>Sem imagens</td>}
+                                            {produto.img1 !== "" && <td onClick={e=>alterarProduto(produto)} id="imgTabela"><img id='imgTable' src={`/img//${produto.img1}`} alt="Aqui fica a primeira imagem"></img></td>}
+                                            <td onClick={e=>alterarProduto(produto)}>{produto.qtdeEstoque}</td>
+                                            {localStorage.getItem("nivelAcesso") >= 60 &&
+                                                <td>
+                                                    <a className="close">
+                                                        <span aria-hidden="true" onClick={e => {definirExclusao(produto.id)}}>x</span>
+                                                    </a>
+                                                </td>
+                                            }
+                                        </tr>
+                                    ))
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>  
+            }
+
+            {form === true &&
+            <>
             <div className='formulario-duplo'>
                 <div className='main-row'>
                     <div className="formulario">
                         <div className='titulo'>
-                            <h1>Informações do Produto</h1>
+                            <div className='titulo-cont'>
+                                <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                                <h1>Informações</h1>
+                            </div>
                         </div>
 
                         <div className="formulario-padrao">
@@ -458,7 +556,7 @@ function Formulario() {
                             }
                             <input type="button" id='btnCargo' onClick={definirBotaoNovaCategoria} value="Nova Categoria"/> 
                             {btnNovaCategoria === true &&
-                            <div className='formulario-padrao'>
+                                <div className='formulario-padrao'>
                                     <label>Cadastrar Nova Categoria</label>
                                     <div className='adicionar-cargo'>
                                         <input type="text" name="cargo" id="cargo" value={cadDescCategoria || ""} onChange={e=>setDescCategoria(e.target.value)} placeholder="Digite a Categoria"/>
@@ -467,14 +565,13 @@ function Formulario() {
                                             <p style={{color: categoriaMsgCor}}>{msgCategoria}</p>
                                         }
                                     </div>
-                            </div>
+                                </div>
                             }
                         </div>
 
                         <div className='formulario-padrao'>
                             <label>Imagens</label>
                             <div id="arquivos">
-                                
                                 <div id="div-arquivos">
                                     <form>
                                         <label htmlFor="fileUpload1">+</label>
@@ -501,52 +598,10 @@ function Formulario() {
                         <div className='titulo-bottom'>
                             <h2>( * ) Campos obrigatórios</h2>
                         </div>
-                    </div>
-
-                    <div className="formulario-tabela-produtos">
-                        <div className='titulo'>
-                            <h1>Produtos Cadastrados</h1>
-                        </div>
-                        <div className='formulario-padrao-tabela-produtos'>
-                            <div className='inputs-buscar-produtos'>
-                                <input type="search" placeholder='Pesquisar por título' value={filtro} onChange={e=>setFiltro(e.target.value)}></input>
-                                <button onClick={filtrarProdutos}>OK</button>   
-                            </div> 
-
-                            <div className='div-tabela-produto'>
-                                <table className='tabela-produto'>
-                                    <thead>
-                                        <tr>
-                                            <th>Título</th>
-                                            <th>Quantidade Estoque</th>
-                                            {localStorage.getItem("nivelAcesso") >= 60 &&
-                                                <th>Ação</th>
-                                            }
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {produtos !== "" &&
-                                            produtos.map(produto =>(
-                                                <tr key={produto.id} id="alterando">
-                                                    <td onClick={e=>alterarProduto(produto)}>{produto.titulo}</td>
-                                                    <td onClick={e=>alterarProduto(produto)}>{produto.qtdeEstoque}</td>
-                                                    {localStorage.getItem("nivelAcesso") >= 60 &&
-                                                        <td>
-                                                            <button type="button" id='deletando' onClick={e => {definirExclusao(produto.id)}}>
-                                                                Excluir
-                                                            </button>
-                                                        </td>
-                                                    }
-                                                </tr>
-                                            ))
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>            
+                    </div>        
                 </div>
             </div>
+            
 
             <div className='main-row'>
 
@@ -569,13 +624,6 @@ function Formulario() {
                 }
             </div>
 
-            {msg !== "" &&
-                <div className='formulario'>
-                    <p id='msgSistema'>Mensagem do Sistema</p>
-                    <p id='msgSistema'>{msg}</p>
-                </div>    
-            }
-
             <div className='formulario'>
                 <div className='div-botoes'>
                     <button type="button" onClick={limpar}>Limpar</button>
@@ -593,22 +641,38 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </>
+            }
 
+            {msg !== "" &&
+                <div className='formulario'>
+                    <p id='msgSistema'>Mensagem do Sistema</p>
+                    <p id='msgSistema'>{msg}</p>
+                </div>    
+            }
+
+            {defExclusao === true &&
             <div id="id01" className="modal">
                 <form className="modal-content">
                     <div className="container">
                         <h1>Deletar Produto</h1>
-                        <p>Produto será deletado, deseja continuar?</p>
-                        
+                        {msgProcurar > 0 &&
+                            <p>Este produto está presente em algumas vendas, não é possível deletar!!</p>                       
+                        }           
+                        {msgProcurar <= 0 &&
+                            <p>Produto será deletado, deseja continuar?</p>
+                        }
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={e => document.getElementById('id01').style.display='none'}>Cancelar</button>
-                            <button type="button" className="deletebtn" onClick={()=>excluirProduto()}>Deletar</button>
+                            <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
+                            {msgProcurar <= 0 &&
+                                <button type="button" className="deletebtn" onClick={()=>excluirProduto()}>Deletar</button>
+                            }
                         </div>
-            
                     </div>
                 </form>
             </div>
-        </div>
+            }
+        </div>  
         </>
     )
 }

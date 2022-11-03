@@ -1,4 +1,4 @@
-import './ContaPagar.css';
+import './Conta.css';
 import '../../App.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
@@ -41,7 +41,6 @@ function Formulario() {
     const [msg, setMsg] = useState('');
     const [msgCor, setMsgCor] = useState('green');
 
-    const [requisicao, setRequisicao] = useState(false);
     const [salvando, setSalvando] = useState(false);
     const [button, setButton] = useState('Salvar');
     const [tituloPagina, setTituloPagina] = useState('Contas a Pagar');
@@ -54,7 +53,6 @@ function Formulario() {
 
     async function limpar()
     {
-        setRequisicao(false);
         setSalvando(false);
         setButton("Salvar");
 
@@ -119,70 +117,70 @@ function Formulario() {
 
     async function salvarContaPagar()
     {
-        await api.post('/cadContaPagar',{
-            valorTotal: valorTotal,
-            qtdeParcelas: qtdeParcelas,
-            titulo: titulo,
-            observacao: observacao,
-            dataEmissao: dataEmissao,
-            tipoDocumento: tipoDocumento,
-            idFornecedor: idFornecedor,
-            dataPrimeiroVencimento: dataPrimeiroVencimento
-        }).then(
-            response => {
-                setMsg(response.data[0]);
-                setIdContaPagar(response.data[1]);
-            }
-        )
+        try{
+            await api.post('/cadContaPagar',{
+                valorTotal: valorTotal,
+                qtdeParcelas: qtdeParcelas,
+                titulo: titulo,
+                observacao: observacao,
+                dataEmissao: dataEmissao,
+                tipoDocumento: tipoDocumento,
+                idFornecedor: idFornecedor,
+                dataPrimeiroVencimento: dataPrimeiroVencimento
+            }).then(
+                response => {
+                    setMsg(response.data[0]);
+                    setIdContaPagar(response.data[1]);
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
     }
 
     async function confirmarDados()
     {
-        if(requisicao === false)
+        if(await validar())
         {
-            setRequisicao(true);
-            if(await validar())
+            setSalvando(true);
+            if(button === "Salvar")
             {
-                setSalvando(true);
-                if(button === "Salvar")
-                {
-                    await salvarContaPagar();
-                    await carregarContas();
-                }
-                else
-                {
-                    
-                }
-                setSalvando(false);
-                limpar();
+                await salvarContaPagar();
+                await carregarContas();
             }
-            setRequisicao(false);
+            else
+            {
+                //fazer o editar
+            }
+            setSalvando(false);
+            limpar();
         }
     }
 
     async function carregarFornecedores()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarFornecedores')
             .then((response)=>{
                 setFornecedores(response.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function carregarContas()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarContasPagar')
             .then((response)=>{
                 setContasPagar(response.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -232,30 +230,24 @@ function Formulario() {
 
     async function excluirConta()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        await delConta(excConta);
+        await carregarContas();
 
-            await delConta(excConta);
-            await carregarContas();
-
-            document.getElementById('id01').style.display='none'; 
-            setRequisicao(false);
-        }
+        document.getElementById('id01').style.display='none'; 
     }
 
     async function delConta(idConta)
     {
         if(idConta !== "")
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarContaPagar/${idConta}`)
                 .then((response)=>{
                     setMsg(response.data);
                 })
-                setRequisicao(false);
+            }
+            catch(err){
+                console.log(err);
             }
             setParcelas('');
             setParcelaform(false);
@@ -265,31 +257,31 @@ function Formulario() {
 
     async function definirParcelas(idConta)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get(`/buscarParcelasCP/${idConta}`)
             .then((response)=>{
                 setIdContaPagar(idConta);
                 setParcelaform(true);
                 setParcelas(response.data);
             })
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function quitarParcela()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.post(`/quitarParcelaCP/${pIDFP}`)
             .then((response)=>{
                 setMsg(response.data);
             })
-            setRequisicao(false); 
             document.getElementById('id02').style.display='none';
             await definirParcelas(idContaPagar);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -304,15 +296,15 @@ function Formulario() {
             if(parseFloat(pValor) > parseFloat(valorParcelado))
             {
                 var valor = parseFloat(pValor) - parseFloat(valorParcelado);
-                if(requisicao === false)
-                {
-                    setRequisicao(true);
+                try{
                     await api.put(`/pagarParceladoCP/${pIDFP}/${valor}`)
                     .then((response)=>{
                         setMsg(response.data);
                     })
-                    setRequisicao(false); 
                     document.getElementById('id02').style.display='none';
+                }
+                catch(err){
+                    console.log(err);
                 }
             }
             else
@@ -332,24 +324,24 @@ function Formulario() {
 
     async function ordenarParcelas()
     {
-        console.log(parcelas.sort(function (x, y){
+        parcelas.sort(function (x, y){
             return x.numParcela - y.numParcela;
-        }));
+        });
     }
 
     async function filtrarContas()
     {
         if(filtro !== "")
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.get(`/filtrarContasPagar/${filtro}`)
                 .then((response)=>{
                     setMsg(response.data[0]);
                     setContasPagar(response.data[1]);
                 })
-                setRequisicao(false);
+            }
+            catch(err){
+                console.log(err);
             }
         }
         else
@@ -458,13 +450,13 @@ function Formulario() {
                                     <tbody>
                                         {contasPagar !== "" &&
                                             contasPagar.map(conta =>(
-                                                <tr key={conta.id} id="alterando">
+                                                <tr key={conta.id}>
                                                     <td onClick={e=>definirParcelas(conta.id)}>{conta.titulo}</td>
                                                     <td onClick={e=>definirParcelas(conta.id)}>{conta.qtdeParcelas}</td>
                                                     <td onClick={e=>definirParcelas(conta.id)}>R$ {conta.valorTotal}</td>
                                                     <td onClick={e=>definirParcelas(conta.id)}>{moment.utc(conta.dataPrimeiroVencimento).format('DD-MM-YYYY')}</td>
                                                     <td>
-                                                        <button type="button" id='deletando' onClick={e => {definirExclusao(conta.id)}}>
+                                                        <button type="button" onClick={e => {definirExclusao(conta.id)}}>
                                                             Excluir
                                                         </button>
                                                     </td>
@@ -493,7 +485,7 @@ function Formulario() {
                                         <tbody>
                                             {parcelas !== "" && ordenarParcelas() &&
                                                 parcelas.map(parcela =>(
-                                                    <tr key={parcela.id} id="alterando">
+                                                    <tr key={parcela.id}>
                                                         <td>{parcela.numParcela}</td>
                                                         <td>{moment.utc(parcela.dataVencimento).format('DD-MM-YYYY')}</td>
                                                         <td>R$ {parcela.valorTotal}</td>
@@ -507,7 +499,7 @@ function Formulario() {
                                                         }
                                                         {parcela.situacao === "Não pago" &&
                                                             <td>
-                                                                <button type="button" id='deletando' onClick={e => {definirQuitarParcela(parcela)}}>
+                                                                <button type="button" onClick={e => {definirQuitarParcela(parcela)}}>
                                                                     Quitar
                                                                 </button>
                                                             </td>

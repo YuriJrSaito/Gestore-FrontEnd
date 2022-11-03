@@ -1,12 +1,9 @@
-import './ContaPagar.css';
+import './Conta.css';
 import '../../App.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
-import Validar from '../../servicos/validar';
 import * as FcIcons from 'react-icons/fc';
 
 //todo: gravar dados para o pagamento não completo das parcelas
@@ -29,13 +26,8 @@ function Formulario() {
     const [excConta, setExcConta] = useState('');
 
     const [filtro, setFiltro] = useState('');
-    const [fornecedores, setFornecedores] = useState([]);
     const [msg, setMsg] = useState('');
-    const [msgCor, setMsgCor] = useState('green');
 
-    const [requisicao, setRequisicao] = useState(false);
-    const [salvando, setSalvando] = useState(false);
-    const [button, setButton] = useState('Salvar');
     const [tituloPagina, setTituloPagina] = useState('Contas a Receber');
 
     const [msgProcurar, setMsgProcurar] = useState(0);
@@ -47,14 +39,14 @@ function Formulario() {
 
     async function carregarContas()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarContasReceber')
             .then((response)=>{
                 setContasReceber(response.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -99,15 +91,15 @@ function Formulario() {
 
     async function buscarContaEmVendas(idConta)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             return await api.get(`/buscarContaEmVendas/${idConta}`)
             .then((response)=>{
                 setMsgProcurar(response.data[0]);
-                setRequisicao(false);
                 return response.data[0];
             })
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -127,7 +119,7 @@ function Formulario() {
     {
         for(var a=0; a<parcelas.length; a++)
         {
-            if(num > parcelas[a].numParcela && parcelas[a].situacao == "Não pago")
+            if(num > parcelas[a].numParcela && parcelas[a].situacao === "Não pago")
             {
                 setNaoPago(true);
                 return false;
@@ -153,16 +145,10 @@ function Formulario() {
 
     async function excluirConta()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        await delConta(excConta);
+        await carregarContas();
 
-            await delConta(excConta);
-            await carregarContas();
-
-            document.getElementById('id01').style.display='none'; 
-            setRequisicao(false);
-        }
+        document.getElementById('id01').style.display='none'; 
     }
 
     async function cancelar()
@@ -179,14 +165,14 @@ function Formulario() {
     {
         if(idConta !== "")
         {
-            if(requisicao === false)
-            {
-                setRequisicao(true);
+            try{
                 await api.delete(`/deletarContaReceber/${idConta}`)
                 .then((response)=>{
                     setMsg(response.data);
                 })
-                setRequisicao(false);
+            }
+            catch(err){
+                console.log(err);
             }
             setParcelas('');
             setParcelaform(false);
@@ -196,31 +182,31 @@ function Formulario() {
 
     async function definirParcelas(idConta)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get(`/buscarParcelasCR/${idConta}`)
             .then((response)=>{
                 setIdContaReceber(idConta);
                 setParcelaform(true);
                 setParcelas(response.data);
             })
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function quitarParcela()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.post(`/quitarParcelaCR/${pIDFP}`)
             .then((response)=>{
                 setMsg(response.data);
             })
-            setRequisicao(false); 
             document.getElementById('id02').style.display='none';
             await definirParcelas(idContaReceber);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -235,15 +221,15 @@ function Formulario() {
             if(parseFloat(pValor) > parseFloat(valorParcelado))
             {
                 var valor = parseFloat(pValor) - parseFloat(valorParcelado);
-                if(requisicao === false)
-                {
-                    setRequisicao(true);
+                try{
                     await api.put(`/pagarParceladoCR/${pIDFP}/${valor}`)
                     .then((response)=>{
                         setMsg(response.data);
                     })
-                    setRequisicao(false); 
                     document.getElementById('id02').style.display='none';
+                }
+                catch(err){
+                    console.log(err);
                 }
             }
             else
@@ -324,7 +310,7 @@ function Formulario() {
                             <tbody>
                                 {contasReceber !== [] &&
                                     contasReceber.map(conta =>(
-                                        <tr key={conta.id} id="alterando">
+                                        <tr key={conta.id}>
                                             <td onClick={e=>definirParcelas(conta.id)}>{conta.nomeCliente}</td>
                                             <td onClick={e=>definirParcelas(conta.id)}>{conta.titulo}</td>
                                             <td onClick={e=>definirParcelas(conta.id)}>{conta.qtdeParcelas}</td>
@@ -332,7 +318,7 @@ function Formulario() {
                                             <td onClick={e=>definirParcelas(conta.id)}>{moment.utc(conta.dataPrimeiroVencimento).format('DD-MM-YYYY')}</td>
                                             {localStorage.getItem('nivelAcesso') >= 60 &&
                                                 <td>
-                                                    <button type="button" id='deletando' onClick={e => {definirExclusao(conta.id)}}>
+                                                    <button type="button" onClick={e => {definirExclusao(conta.id)}}>
                                                         Excluir
                                                     </button>
                                                 </td>
@@ -362,7 +348,7 @@ function Formulario() {
                                 <tbody>
                                     {parcelas !== "" && ordenarParcelas() &&
                                         parcelas.map(parcela =>(
-                                            <tr key={parcela.id} id="alterando">
+                                            <tr key={parcela.id}>
                                                 <td>{parcela.numParcela}</td>
                                                 <td>{moment.utc(parcela.dataVencimento).format('DD-MM-YYYY')}</td>
                                                 <td>R$ {parcela.valorTotal}</td>
@@ -376,7 +362,7 @@ function Formulario() {
                                                 }
                                                 {parcela.situacao === "Não pago" &&
                                                     <td>
-                                                        <button type="button" id='deletando' onClick={e => {definirQuitarParcela(parcela)}}>
+                                                        <button type="button" onClick={e => {definirQuitarParcela(parcela)}}>
                                                             Quitar
                                                         </button>
                                                     </td>

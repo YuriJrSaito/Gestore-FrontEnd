@@ -17,6 +17,7 @@ export const sidebarDados = [
         icone: <AiIcons.AiFillHome/>,
         cNome: 'nav-text',
         nivel: 20,
+        categoria: "home",
     },
     {
         titulo: 'Produtos',
@@ -24,6 +25,7 @@ export const sidebarDados = [
         icone: <GrIcons.GrProductHunt/>,
         cNome: 'nav-text',
         nivel: 20,
+        categoria: "Produto",
     },
     {
         titulo: 'Fornecedor',
@@ -31,6 +33,7 @@ export const sidebarDados = [
         icone: <FaIcons.FaHandshake/>,
         cNome: 'nav-text',
         nivel: 60,
+        categoria: "Cadastro",
     },
     {
         titulo: 'Usuário',
@@ -38,6 +41,7 @@ export const sidebarDados = [
         icone: <FaIcons.FaUserCog/>,
         cNome: 'nav-text',
         nivel: 60,
+        categoria: "Usuário",
     },
     {
         titulo: 'Cliente',
@@ -45,6 +49,7 @@ export const sidebarDados = [
         icone: <FaIcons.FaUserTag/>,
         cNome: 'nav-text',
         nivel: 20,
+        categoria: "Cadastro",
     },
     {
         titulo: 'Cargo',
@@ -52,6 +57,7 @@ export const sidebarDados = [
         icone: <FaIcons.FaUsers/>,
         cNome: 'nav-text',
         nivel: 60,
+        categoria: "Usuário",
     },
     {
         titulo: 'Categoria Produto',
@@ -59,6 +65,7 @@ export const sidebarDados = [
         icone: <MdIcons.MdOutlineCategory/>,
         cNome: 'nav-text',
         nivel: 20,
+        categoria: "Produto",
     },
     {
         titulo: 'Realizar Venda',
@@ -66,6 +73,7 @@ export const sidebarDados = [
         icone: <MdIcons.MdLocalGroceryStore/>,
         cNome: 'nav-text',
         nivel: 20,
+        categoria: "Venda",
     },
     {
         titulo: 'Venda Condicional',
@@ -73,6 +81,7 @@ export const sidebarDados = [
         icone: <MdIcons.MdOutlineProductionQuantityLimits/>,
         cNome: 'nav-text',
         nivel: 20,
+        categoria: "VendaCondicional",
     },
     {
         titulo: 'Devolver Condicional',
@@ -80,6 +89,7 @@ export const sidebarDados = [
         icone: <MdIcons.MdProductionQuantityLimits/>,
         cNome: 'nav-text',
         nivel: 20,
+        categoria: "VendaCondicional",
     },
     {
         titulo: 'Contas a Pagar',
@@ -87,6 +97,7 @@ export const sidebarDados = [
         icone: <GiIcons.GiPayMoney/>,
         cNome: 'nav-text',
         nivel: 60,
+        categoria: "Conta",
     },
     {
         titulo: 'Ver Contas a Receber',
@@ -94,6 +105,7 @@ export const sidebarDados = [
         icone: <GiIcons.GiReceiveMoney/>,
         cNome: 'nav-text',
         nivel: 60,
+        categoria: "Conta",
     },
     {
         titulo: 'Ver Estoque',
@@ -108,6 +120,7 @@ export const sidebarDados = [
         icone: <HiIcons.HiDocumentReport/>,
         cNome: 'nav-text',
         nivel: 60,
+        categoria: "relatório",
     },
     {
         titulo: 'Ajuda',

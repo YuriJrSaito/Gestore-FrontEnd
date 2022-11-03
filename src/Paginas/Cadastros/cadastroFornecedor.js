@@ -1,11 +1,12 @@
-import './cadastroFornecedor.css';
 import '../../App.css';
+import '../../tabela/styleTabela.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
 import Validar from '../../servicos/validar';
+import * as BsIcons from 'react-icons/bs';
 
 function Formulario() {
     const [nome, setNome] = useState('');
@@ -28,6 +29,10 @@ function Formulario() {
 
     const [excFor, setExcFor] = useState('');
     const [msgProcurar, setMsgProcurar] = useState(0);
+
+    const [form, setForm] = useState(false);
+    const [tabela, setTabela] = useState(true);
+    const [defExclusao, setDefExclusao] = useState(false);
 
     async function validarTelefone(valor)
     {
@@ -100,11 +105,14 @@ function Formulario() {
 
     function limparAvisos()
     {
-        document.querySelector("#msgNome").innerHTML = "";
-        document.querySelector("#msgEmail").innerHTML = "";
-        document.querySelector("#msgTel1").innerHTML = "";
-        document.querySelector("#msgTel2").innerHTML = "";
-        document.querySelector("#msgCnpj").innerHTML = "";
+        if(form === true)
+        {
+            document.querySelector("#msgNome").innerHTML = "";
+            document.querySelector("#msgEmail").innerHTML = "";
+            document.querySelector("#msgTel1").innerHTML = "";
+            document.querySelector("#msgTel2").innerHTML = "";
+            document.querySelector("#msgCnpj").innerHTML = "";
+        }
     }
 
     async function limpar()
@@ -185,6 +193,8 @@ function Formulario() {
             await carregarFornecedores();
             await limpar();
             setSalvando(false);
+            setForm(false);
+            setTabela(true);
         }
     }
 
@@ -205,7 +215,36 @@ function Formulario() {
         carregarFornecedores();
     },[]);
 
+
     async function filtrarFornecedores()
+    {
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("table");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
+        {
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
+    }
+
+    async function recarregarFornecedores()
     {
         if(filtro !== "")
         {
@@ -261,12 +300,9 @@ function Formulario() {
 
     async function cancelar()
     {   
-        var a = document.querySelector(".deletebtn");
-        document.getElementById('id01').style.display='none';
+        setDefExclusao(false);
         setExcFor('');
         setMsgProcurar('');
-        if(a.classList.contains("disabled"))
-            a.classList.remove("disabled");
     }
 
     async function excluirFornecedor()
@@ -276,20 +312,16 @@ function Formulario() {
             await delFornecedor(excFor);
             await carregarFornecedores();
         }
-
-        document.getElementById('id01').style.display='none';
+        setDefExclusao(false);
     }
 
     async function definirExclusao(idFornecedor)
     {
         const retorno = await buscarFornecedoremProdutos(idFornecedor);
-        document.getElementById('id01').style.display ='block';
+        setDefExclusao(true);
 
         setExcFor(idFornecedor);
         setMsgProcurar(retorno);
-
-        if(retorno > 0)
-            document.querySelector('.deletebtn').classList.toggle('disabled');
     }
 
     async function alterarFornecedor(fornecedor)
@@ -299,6 +331,9 @@ function Formulario() {
             var val = fornecedor.CNPJ.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
             setCnpj(val);
         }*/
+
+        setTabela(false);
+        setForm(true);
         setMsg('');
         setCnpj(fornecedor.CNPJ);
         setButton('Alterar');
@@ -314,106 +349,103 @@ function Formulario() {
         <>
         <Header />
         <div className="background-conteudo">
-            <div className='titulo-pagina'>
-                <h1>{titulo}</h1>
-            </div>
-            <div className='formulario-duplo'>
-                <div className='main-row'>
-                    <div className="formulario">
-
+            {tabela === true &&
+            <div className="background-tabelas">
+                <div className="formulario-tabela">
+                    <div className='titulo-cadastro'>
                         <div className='titulo'>
-                            <h1>Informações</h1>
+                            <h1>Fornecedores</h1>
                         </div>
-
-                        <div className="formulario-padrao">
-                            <label>Nome*</label>
-                            <input type="text" name="nome" id="nome" value={nome || ""} placeholder="Digite o nome" onChange={e=>{setNome(e.target.value);document.querySelector("#msgNome").innerHTML = ""}} required />
-                            <div className='msg' id='msgNome'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>CNPJ</label>
-                            <input type="value" name="cnpj" id="cnpj" value={cnpj  || ""} placeholder="xx.xxx.xxx/xxxx-xx" onChange={e=>{setCnpj(e.target.value);document.querySelector("#msgCnpj").innerHTML = ""}}/>
-                            <div className='msg' id='msgCnpj'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Email</label>
-                            <input type="email" name="email" id="email" value={email  || ""} placeholder="exemplo@email.com" onChange={e=>{setEmail(e.target.value);document.querySelector("#msgEmail").innerHTML = ""}}/>
-                            <div className='msg' id='msgEmail'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Telefone</label>
-                            <input type="tel" name="telefone1" id="telefone1" value={telefone1  || ""} placeholder="(xx)xxxxx-xxxx" onChange={e=>{setTelefone1(e.target.value);document.querySelector("#msgTel1").innerHTML = ""}} required />
-                            <div className='msg' id='msgTel1'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Telefone</label>
-                            <input type="tel" name="telefone2" id="telefone2" value={telefone2  || ""} placeholder="(xx)xxxxx-xxxx" onChange={e=>{setTelefone2(e.target.value);document.querySelector("#msgTel2").innerHTML = ""}} required />
-                            <div className='msg' id='msgTel2'></div>
-                        </div>
-
-                        <div className="mensagemCli"></div>
-
-                        <div className='titulo-bottom'>
-                            <h2>( * ) Campos obrigatórios</h2>
-                        </div>
+                        <input type="button" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
                     </div>
 
-                    <div className="formulario-tabela-fornecedores">
-                        <div className='titulo'>
-                            <h1>Fornecedores Cadastrados</h1>
-                        </div>
-                        <div className='formulario-padrao-tabela-fornecedores'>
-                            <div className='inputs-buscar-fornecedores'>
-                                <input type="search" placeholder='Pesquisar por Nome' value={filtro} onChange={e=>setFiltro(e.target.value)}></input>
-                                <button onClick={filtrarFornecedores}>OK</button>   
-                            </div> 
-
-                            <div className='div-tabela-fornecedor'>
-                                <table className='tabela-fornecedor'>
-                                    <thead>
-                                        <tr>
-                                            <th>Nome</th>
-                                            <th>CNPJ</th>
+                    <div className='formulario-padrao-tabela'>
+                        <div className='inputs-buscar'>
+                            <input type="search" id='filtro' placeholder='Pesquisar por Nome' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarFornecedores()}}></input>
+                            <input type="button" onClick={recarregarFornecedores} value="Recarregar"></input>   
+                        </div> 
+                    </div>
+                </div>           
+                <div className='row'>
+                    <div className='div-tabela'>
+                        <table className='tabela' id='table'>
+                            <thead className='thead-dark'>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>CNPJ</th>
+                                    {localStorage.getItem("nivelAcesso") >= 60 &&
+                                        <th>&nbsp;</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {fornecedores !== "" &&
+                                    fornecedores.map(fornecedor =>(
+                                        <tr key={fornecedor.id}>
+                                            <td id='bold' onClick={e=>alterarFornecedor(fornecedor)}>{fornecedor.nome || ""}</td>
+                                            <td onClick={e=>alterarFornecedor(fornecedor)}>{fornecedor.CNPJ || ""}</td>
                                             {localStorage.getItem("nivelAcesso") >= 60 &&
-                                                <th>Ação</th>
+                                                <td>
+                                                    <a className="close">
+                                                        <span aria-hidden="true" onClick={e => {definirExclusao(fornecedor.id)}}>x</span>
+                                                    </a>
+                                                </td>
                                             }
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {fornecedores !== "" &&
-                                            fornecedores.map(fornecedor =>(
-                                                <tr key={fornecedor.id || ""} id="alterando">
-                                                    <td onClick={e=>alterarFornecedor(fornecedor)}>{fornecedor.nome || ""}</td>
-                                                    <td onClick={e=>alterarFornecedor(fornecedor)}>{fornecedor.CNPJ || ""}</td>
-                                                    {localStorage.getItem("nivelAcesso") >= 60 &&
-                                                        <td>
-                                                            <button type="button" id='deletando' onClick={e => {definirExclusao(fornecedor.id)}}>
-                                                                Excluir
-                                                            </button>
-                                                        </td>
-                                                    }
-                                                </tr>
-                                            ))
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>            
+                                    ))
+                                }
+                            </tbody>
+                        </table>
+                    </div> 
                 </div>
             </div>
-
-            {msg !== "" &&
-                <div className='formulario'>
-                    <p id='msgSistema'>Mensagem do Sistema</p>
-                    <p id='msgSistema'>{msg}</p>
-                </div>    
             }
+            {form === true &&
+            <>
+            <div className="formulario">
+                <div className='titulo'>
+                    <div className='titulo-cont'>
+                        <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                        <h1>Informações</h1>
+                    </div>
+                </div>
 
+                <div className="formulario-padrao">
+                    <label>Nome*</label>
+                    <input type="text" name="nome" id="nome" value={nome || ""} placeholder="Digite o nome" onChange={e=>{setNome(e.target.value);document.querySelector("#msgNome").innerHTML = ""}} required />
+                    <div className='msg' id='msgNome'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>CNPJ</label>
+                    <input type="value" name="cnpj" id="cnpj" value={cnpj  || ""} placeholder="xx.xxx.xxx/xxxx-xx" onChange={e=>{setCnpj(e.target.value);document.querySelector("#msgCnpj").innerHTML = ""}}/>
+                    <div className='msg' id='msgCnpj'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Email</label>
+                    <input type="email" name="email" id="email" value={email  || ""} placeholder="exemplo@email.com" onChange={e=>{setEmail(e.target.value);document.querySelector("#msgEmail").innerHTML = ""}}/>
+                    <div className='msg' id='msgEmail'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Telefone</label>
+                    <input type="tel" name="telefone1" id="telefone1" value={telefone1  || ""} placeholder="(xx)xxxxx-xxxx" onChange={e=>{setTelefone1(e.target.value);document.querySelector("#msgTel1").innerHTML = ""}} required />
+                    <div className='msg' id='msgTel1'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Telefone</label>
+                    <input type="tel" name="telefone2" id="telefone2" value={telefone2  || ""} placeholder="(xx)xxxxx-xxxx" onChange={e=>{setTelefone2(e.target.value);document.querySelector("#msgTel2").innerHTML = ""}} required />
+                    <div className='msg' id='msgTel2'></div>
+                </div>
+
+                <div className="mensagemCli"></div>
+
+                <div className='titulo-bottom'>
+                    <h2>( * ) Campos obrigatórios</h2>
+                </div>
+            </div>
             <div className='formulario'>
                 <div className='div-botoes'>
                     <button type="button" onClick={limpar}>Limpar</button>
@@ -421,8 +453,7 @@ function Formulario() {
                         type="submit" id="btnForm" onClick={confirmarDados}>
                         {salvando === false && button}
                     </button>
-                    {  salvando === true &&
-                        
+                    {salvando === true &&
                         <button className='salvando' type="button">
                         {
                             salvando === true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
@@ -431,7 +462,17 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </>
+            }
 
+            {msg !== "" &&
+                <div className='formulario'>
+                    <p id='msgSistema'>Mensagem do Sistema</p>
+                    <p id='msgSistema'>{msg}</p>
+                </div>    
+            }
+
+            {defExclusao === true &&
             <div id="id01" className="modal">
                 <form className="modal-content">
                     <div className="container">
@@ -446,12 +487,16 @@ function Formulario() {
 
                         <div className="clearfix">
                             <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
-                            <button type="button" className="deletebtn" onClick={()=>excluirFornecedor()}>Deletar</button>
+                            {
+                                msgProcurar <= 0 &&
+                                <button type="button" className="deletebtn" onClick={()=>excluirFornecedor()}>Deletar</button>
+                            }
                         </div>
                         
                     </div>
                 </form>
             </div>
+            }
         </div>
         </>
     )

@@ -17,6 +17,21 @@ function Header() {
     const [sidebar, setSidebar] = useState(false);
     const showSidebar = () => setSidebar(!sidebar)
 
+    const [sidebarProduto, setSidebarProduto] = useState(false);
+    const showSidebarProduto = () => setSidebarProduto(!sidebarProduto)
+
+    const [sidebarCadastro, setSidebarCadastro] = useState(false);
+    const showSidebarCadastro = () => setSidebarCadastro(!sidebarCadastro)
+
+    const [sidebarUsuario, setSidebarUsuario] = useState(false);
+    const showSidebarUsuario = () => setSidebarUsuario(!sidebarUsuario)
+
+    const [sidebarVenda, setSidebarVenda] = useState(false);
+    const showSidebarVenda = () => setSidebarVenda(!sidebarVenda)
+
+    const [sidebarVendaCond, setSidebarVendaCond] = useState(false);
+    const showSidebarVendaCond = () => setSidebarVendaCond(!sidebarVendaCond)
+
     const [areaUsuario, setAreaUsuario] = useState(false);
     const showArea = () => setAreaUsuario(!areaUsuario);
 
@@ -71,4 +86,5 @@ function Header() {
         </>
     );
 }
+
 export default Header;

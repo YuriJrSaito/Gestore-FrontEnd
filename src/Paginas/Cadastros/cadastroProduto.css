@@ -1,109 +1,3 @@
-.formulario-tabela-produtos{
-    margin-top: 25px;
-
-    width: 40%;
-    height: 100%;
-  
-    color: black;
-    background-color: #282828;
-    
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    align-content: center;
-    justify-content: center;
-  
-    border-radius: 10px;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-.formulario-padrao-tabela-produtos{
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: 10px 15px;
-}
-
-.div-tabela-produto{
-    height: 100%;
-    max-height: 470px;
-    width: 100%;
-    text-align: center;
-    margin-top: 10px;
-    overflow-y: auto;
-}
-
-.tabela-produto{
-    border-collapse: collapse;
-    width: 100%;
-}
-
-.tabela-produto td, th{
-    border: 1px solid #ddd;
-    padding: 5px;
-}
-
-.tabela-produto thead{
-    padding-top: 12px;
-    padding-bottom: 12px;
-    text-align: center;
-    background-color: #0C2D48;
-    color: white;
-}
-
-.tabela-produto td{    
-    padding-top: 5px;
-    padding-bottom: 5px;
-    text-align: left;
-    background-color: white;
-    color: black;
-    text-align: center;
-}
-
-.tabela-produto td:hover{
-    background-color: #ddd;
-}
-
-.inputs-buscar-produtos{
-    display: flex;
-    flex-direction: row;
-}
-
-.inputs-buscar-produtos input[type=search]{
-    height: 40px;
-    width: 100%;
-    padding: 10px 20px;
-    display: inline-block;
-    border: 1px solid #ccc;
-    background-color: hsl(0, 0%, 10%);
-    color: #afafaf;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-    
-    box-sizing: border-box;
-}
-
-.inputs-buscar-produtos button{
-    padding: 5px 20px;
-
-    display: inline-block;
-    border: 1px solid #ccc;
-   
-    background-color: blue;
-    color: white;
-  
-    cursor: pointer;
-  
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-  
-    box-sizing: border-box;
-}
-
-.tabela-produto tr{
-    cursor: pointer;
-}
-
 #arquivos{
     width: 100%;
     height: 100%;
@@ -162,42 +56,16 @@ form input[type="file"]{
     object-fit:cover;
     object-position:50% 50%;
 }
+
 .formulario{
     margin: 10px;
 }
 
-.tabela-produto button{
-    cursor: pointer;
-    width: 100%;
-    padding: 10px 6px;
-  
-    border: 1px solid #ccc;
-   
-    background-color: darkred;
-    color: white;
-}
 
 @media screen and (max-width: 900px){
     .formulario-img{
         width: 90%;
         min-width: 90%;
         margin-left: 15px;
-    }
-
-    .formulario-tabela-produtos{
-        width: 90%;
-        min-width: 90%;
-        margin-left: 15px;
-    }
-
-    .inputs-buscar-produtos input[type=search]{
-        height: 30px;
-    }
-
-    .inputs-buscar-produtos button{
-        width: 20%;
-        height: 30px;
-        border-radius: 4px;
-        padding: 2px 2px;
     }
 }

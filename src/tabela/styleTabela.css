@@ -1,0 +1,196 @@
+#light{
+  --body-bg: #fafafa;
+  --button-cadastro: blue;
+  /*--body-color: #555;
+  --link-color: #222;
+  --link-color-hover: #ec5840;*/
+}
+
+#dark{
+  --body-bg: #212529;
+  --button-cadastro: green;
+  /*--body-color: #899095;
+  --link-color: #dee2e6;
+  --link-color-hover: #3cc368;*/
+}
+
+.tabela tbody tr:hover{
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.row {
+  width: 60%;
+  height: 100%;
+  max-height: 400px;  
+  /*background-color: #343a40;*/
+  background-color: var(--body-bg);
+  overflow-y: auto;
+  overflow-x: auto;
+  /*border-radius: 10px;*/
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  z-index: 5;
+}
+
+thead{
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+tbody td:first-child, thead th:first-child{
+  position: -webkit-sticky;
+  position: sticky;
+  left: 0;
+  z-index: 0;
+}
+
+.thead-dark th{
+  border: none;
+  text-align: inherit; 
+  padding: 20px;
+  font-size: 14px;
+  color: #fff; 
+  background-color: #343a40;
+}
+
+.tabela tbody td{
+  padding: 15px;
+  font-size: 14px;
+  background: #fff; 
+}
+
+.tabela tbody td .close span{
+  font-size: 12px;
+  color: #dc3545; 
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.tabela tbody td .close span:hover{
+  color: red; 
+  border: 1px solid;
+  border-radius: 30px;
+}
+
+.tabela tbody td .see span{
+  font-size: 15px;
+  color: green; 
+  border-style: solid;
+  border-width: 1px;
+  border-color: green;
+  padding: 2px 2px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.tabela tbody td .see span:hover{
+  opacity: 0.9;
+  border-color: green;
+  color: white;
+  background: darkgreen;
+}
+
+#bold{
+  font-weight: bold;
+}
+
+.formulario-tabela{
+  margin-top: 25px;
+
+  width: 60%;
+  height: 100%;
+
+  color: black;
+  /*background-color: #282828;*/
+  background-color: var(--body-bg);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.formulario-padrao-tabela{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 15px;
+}
+
+.background-tabelas{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 20px;
+  /*background-color: #ECF0F1;*/
+  /*background-color: rgb(30, 30, 30);*/
+  background-color: var(--body-bg);
+}
+
+.row::-webkit-scrollbar{
+  height: 5px;
+} 
+
+.row::-webkit-scrollbar, ::-webkit-scrollbar{
+  width: 5px;
+}
+
+#imgTabela{
+  width: 100px;
+  height: 100px;
+}
+
+#imgTable{
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/*.row::-webkit-scrollbar-track, .sidebar::-webkit-scrollbar-track, ::-webkit-scrollbar-track{
+  background-color: rgb(130, 130, 130);
+  border-radius: 20px;
+} 
+
+.row::-webkit-scrollbar-thumb, .sidebar::-webkit-scrollbar-thumb, ::-webkit-scrollbar-thumb{
+  background-color: white;
+  border-radius: 20px; 
+}*/
+
+/*th:first-child, td:first-child{
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+th:last-child, td:last-child{
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}*/
+ 
+
+/*
+table thead th:first-child::before,
+table thead th:last-child::after{
+  width: 15px;
+  height: 15px;
+  background: #343a40;
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+}
+
+table thead th:first-child::before {
+  left: -1px;
+}
+table thead th:last-child::after {
+  right: -1px;
+}*/

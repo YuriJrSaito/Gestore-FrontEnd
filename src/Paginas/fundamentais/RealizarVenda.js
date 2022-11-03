@@ -1,5 +1,6 @@
 import './RealizarVenda.css';
 import '../../App.css';
+import '../../tabela/styleTabela.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
@@ -7,6 +8,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch, faLessThanEqual} from '@fortawesome/free-solid-svg-icons';
 import moment from 'moment/moment';
 import Validar from '../../servicos/validar';
+import * as BsIcons from 'react-icons/bs';
 
 import TabelaVenda from './Vendas.js';
 
@@ -18,36 +20,44 @@ function Formulario() {
 
     const [dataVenda, setDataVenda] = useState(moment().format('YYYY-MM-DD'));
 
-    const [idCliente, setIdCliente] = useState("");
+    const [idCliente, setIdCliente] = useState('');
     const [nomeCliente, setNomeCliente] = useState('');
+    const [cpfCliente, setCpfCliente] = useState('');
 
     const [qtdeParcelas, setQtdeParcelas] = useState('');
     const [valorTotal, setValorTotal] = useState(0);
     const [dataPrimeiroVencimento, setDataPrimeiroVencimento] = useState('');
 
     const [filtro, setFiltro] = useState('');
+    const [filtroCliente, setFiltroCliente] = useState('');
 
     const [selecionado, setSelecionado] = useState(false);
-    const [requisicao, setRequisicao] = useState(false);
     const [salvando, setSalvando] = useState(false);
     const [button, setButton] = useState('Salvar');
     const [msg, setMsg] = useState('');
 
+    const [formSelProdutos, setFormSelProdutos] = useState(false);
+    const [formularioCadastro, setFormularioCadastro] = useState(false);
+    const [tabela, setTabela] = useState(true);
+    const [defExclusao, setDefExclusao] = useState(false);
+    const [defClienteSel, setDefClienteSel] = useState(false);
 
     async function limparAvisos()
     {
-        document.querySelector('#msgProdutos').innerHTML = "";
-        document.querySelector('#msgSelCliente').innerHTML = "";
-        document.querySelector('#msgDataVenda').innerHTML = "";
-        document.querySelector('#msgVencimento').innerHTML = "";
-        document.querySelector('#msgQtdeParcelas').innerHTML = "";
+        if(formularioCadastro === true)
+        {
+            document.querySelector('#msgProdutos').innerHTML = "";
+            document.querySelector('#msgSelCliente').innerHTML = "";
+            document.querySelector('#msgDataVenda').innerHTML = "";
+            document.querySelector('#msgVencimento').innerHTML = "";
+            document.querySelector('#msgQtdeParcelas').innerHTML = "";
+        }
     }
 
     async function limpar()
     {
         setSalvando(false);
         setSelecionado(false);
-        setRequisicao(false);
         setMsg("");
         setProdutosSel([]);
         setDataVenda(moment().format('YYYY-MM-DD'));
@@ -61,12 +71,92 @@ function Formulario() {
         await limparAvisos();
     }
 
+    async function filtrarProdutos()
+    {
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro-produtos");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("table-produtos");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
+        {
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
+    }
+
+    async function filtrarClientes()
+    {
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro-clientes");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("table-clientes");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
+        {
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
+    }
+
+    async function proximoFormulario()
+    {
+        let resp = await validarSelProdutos();
+        if(resp === true)
+        {
+            setFormSelProdutos(false);
+            setFormularioCadastro(true);
+        }
+    }
+
+    async function validarSelProdutos()
+    {
+        var val = new Validar();
+
+        if(await val.validarProdutosSel(produtosSel))
+        {
+            return true;
+        }
+        else
+        {
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
+            return false;
+        }
+    }
+
     async function validar()
     {
         var val = new Validar();
 
-        if(await val.validarProdutosSel(produtosSel) &&
-           await val.validarClienteSelecionado(idCliente) &&
+        if(await val.validarClienteSelecionado(idCliente) &&
            await val.validarDataEmissaoObrigatorio(dataVenda) &&
            await val.validarDataVencimento(dataPrimeiroVencimento, dataVenda) &&
            await val.validarQuantidadeObrigatorio(qtdeParcelas, "#msgQtdeParcelas", 12, "<p>Digite a quantidade</p>", "<p>Quantidade deve ser maior ou  igual a 0 (zero)</p>", "<p>Digite apenas Números</p>", "<p>Quantidade deve ser menor que 12</p>") 
@@ -83,10 +173,7 @@ function Formulario() {
 
     async function gravarContaReceber()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-
+        try{
             let resp = await api.post('/cadContaReceber',{
                 qtdeParcelas: qtdeParcelas,
                 valorTotal: valorTotal,
@@ -97,18 +184,16 @@ function Formulario() {
                     return response.data[0];
                 }
             )
-
-            setRequisicao(false);
             return resp;
+        }
+        catch(err){
+            console.log(err); 
         }
     }
 
     async function gravarVenda(idCR)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-
+        try{
             let resp = await api.post('/cadVenda',{
                 dataVenda: dataVenda,
                 idContaReceber: idCR,
@@ -119,18 +204,16 @@ function Formulario() {
                     return response.data[0];
                 }
             )
-
-            setRequisicao(false);
             return resp;
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function gravarItemVenda(idVenda)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-
+        try{
             await api.post('/cadItemVenda',{
                 produtos: produtosSel,
                 idVenda: idVenda
@@ -139,8 +222,9 @@ function Formulario() {
                     setMsg(response.data);
                 }
             )
-
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -158,23 +242,31 @@ function Formulario() {
     }
 
     async function buscarClientes()
-    {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+    {   
+        try{
             await api.get('/listarTodosClientes')
             .then((response)=>{
                 setClientes(response.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function definirClientes()
     {
         document.querySelector('#msgSelCliente').innerHTML = "";
-        document.getElementById('id01').style.display ='block';
+        setDefClienteSel(true);
         await buscarClientes();
+    }
+
+    async function setarCliente(cliente)
+    {
+        setCpfCliente(cliente.cpf);
+        setIdCliente(cliente.id);
+        setNomeCliente(cliente.nome);
+        setDefClienteSel(false);
     }
 
     async function carregarTodosProdutos()
@@ -207,6 +299,7 @@ function Formulario() {
             qtdeEstoque: produto.qtdeEstoque,
             qtdeSelecionado: 1,
             valorUnitario: produto.valorUnitario,
+            img1: produto.img1,
         }
         return prod;
     }
@@ -238,7 +331,6 @@ function Formulario() {
             if(await produtoExiste(prod) === false)
             {
                 setProdutosSel([...produtosSel, prod]);
-                //setProdutosAlterados([...produtosAlterados, produto]);
                 valor = parseFloat(valorTotal) + parseFloat(prod.valorUnitario);
             }
             else
@@ -363,51 +455,39 @@ function Formulario() {
         }
     }
 
-    async function filtrarProdutos()
-    {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-            if(filtro !== "")
-            {
-                await api.get(`/filtrarProdutos/${filtro}`)
-                .then((response)=>{
-                    setProdutos(response.data);
-                })   
-            }
-            else
-            {
-                await carregarTodosProdutos();
-            }   
-            setRequisicao(false);
-        }
+    const childToParent = (childdata) => {
+        setFormSelProdutos(childdata);
+        setTabela(!childdata);
     }
 
     return (
         <>
         <Header />
         <div className="background-conteudo">
-            <div className='titulo-pagina'>
-                <h1>Realizar Venda</h1>
-            </div>
-            <TabelaVenda />
-            <div className='formulario-duplo'>
-                <div className='main-row'>           
-                    <div className="formulario-tabela">
-                        <div className='titulo'>
-                            <h1>Selecionar Podutos</h1>
-                        </div>
-                        <div className='formulario-padrao-tabela'>
-                            <div className='inputs-buscar-fornecedores'>
-                                <input type="search" value={filtro} onChange={e=>{setFiltro(e.target.value)}} placeholder='Pesquisar'></input>
-                                <button onClick={filtrarProdutos}>OK</button>   
-                            </div> 
+            {tabela === true &&
+                <TabelaVenda childToParent={childToParent}/>
+            }
 
+            {formSelProdutos === true &&
+            <>
+                <div className='formulario-tabela'>
+                    <div className='titulo'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setTabela(true);setFormSelProdutos(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Informações</h1>
+                        </div>
+                    </div>
+                    <div className='formulario-padrao-tabela'>
+                        <div className='inputs-buscar'>
+                            <input type="search" id='filtro-produtos' placeholder='Pesquisar por título' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarProdutos()}}></input>
+                        </div> 
+                        <div className='row-tabela'>
                             <div className='div-tabela'>
-                                <table className='tabela'>
+                                <table className='tabela' id='table-produtos'>
                                     <thead>
-                                        <tr>
+                                        <tr className='thead-dark'>
                                             <th>Título</th>
+                                            <th>Imagens</th>
                                             <th>Código</th>
                                             <th>Quantidade Estoque</th>
                                             <th>Valor Unitario(R$)</th>
@@ -416,8 +496,10 @@ function Formulario() {
                                     <tbody>
                                         {produtos !== "" &&
                                             produtos.map(produto =>(
-                                                <tr key={produto.id} id="alterando">
+                                                <tr key={produto.id}>
                                                     <td onClick={e=>selProduto(produto)}>{produto.titulo}</td>
+                                                    {produto.img1 === "" && <td onClick={e=>selProduto(produto)}>Sem imagens</td>}
+                                                    {produto.img1 !== "" && <td onClick={e=>selProduto(produto)} id="imgTabela"><img id='imgTable' src={`/img//${produto.img1}`} alt="Aqui fica a primeira imagem"></img></td>}
                                                     <td onClick={e=>selProduto(produto)}>{produto.codigoReferencia}</td>
                                                     <td onClick={e=>selProduto(produto)}>{produto.qtdeEstoque}</td>
                                                     <td onClick={e=>selProduto(produto)}>R${produto.valorUnitario}</td>
@@ -427,31 +509,39 @@ function Formulario() {
                                     </tbody>
                                 </table>
                             </div>
-                            <div className='msg' id='msgProdutos'></div>
                         </div>
-                    </div>     
-                    {selecionado === true &&
-                    <div className="formulario-tabela-fornecedores">
+                    <div className='msg' id='msgProdutos'></div>
+                    </div>   
+                </div>
+
+                {selecionado === true &&
+                <div className="formulario-tabela">
+                    <div className='titulo-cadastro'>
                         <div className='titulo'>
                             <h1>Produtos Selecionados</h1>
                         </div>
-                        <div className='formulario-padrao-tabela'>
+                    </div>
+                    <div className='formulario-padrao-tabela'>
+                        <div className='row-tabela'>
                             <div className='div-tabela'>
                                 <table className='tabela'>
                                     <thead>
-                                        <tr>
+                                        <tr className='thead-dark'>
                                             <th>Título</th>
+                                            <th>Imagens</th>
                                             <th>Código</th>
                                             <th>Valor Unitario(R$)</th>
                                             <th>Quantidade</th>
-                                            <th>Valor Total(R$)</th>
+                                            <th>Soma(R$)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {produtosSel !== "" &&
                                             produtosSel.map(produto =>(
-                                                <tr key={produto.id} id="alterando">
-                                                    <td onClick={e=>selProduto(produto)}>{produto.titulo}</td>   
+                                                <tr key={produto.id}>
+                                                    <td onClick={e=>selProduto(produto)}>{produto.titulo}</td> 
+                                                    {produto.img1 === "" && <td onClick={e=>selProduto(produto)}>Sem imagens</td>}
+                                                    {produto.img1 !== "" && <td onClick={e=>selProduto(produto)} id="imgTabela"><img id='imgTable' src={`/img//${produto.img1}`} alt="Aqui fica a primeira imagem"></img></td>}  
                                                     <td onClick={e=>selProduto(produto)}>{produto.codigoReferencia}</td>                                           
                                                     <td onClick={e=>selProduto(produto)}>R${produto.valorUnitario}</td>                                                 
                                                     <td><input type="number" value={produto.qtdeSelecionado} onChange={e=>{definirProdutoQuantidade(produto, e.target.value)}}/></td>
@@ -459,35 +549,62 @@ function Formulario() {
                                                 </tr>
                                             ))
                                         }
+                                        <tr>
+                                            <td id='bold'>Valor Total(R$)</td>
+                                            <td>&nbsp;</td>
+                                            <td>&nbsp;</td>
+                                            <td>&nbsp;</td>
+                                            <td>&nbsp;</td>
+                                            <td id='bold'>R${valorTotal}</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                                 <div className='msg' id='msgProdutosSel'></div>
                             </div>
                         </div>
-                    </div>    
-                    }    
+                    </div>  
+                </div>  
+                }   
+                <div className='formulario'>
+                    <div className='div-botoes'>
+                        <button id="btnForm" onClick={proximoFormulario}>Proximo</button>
+                    </div>
                 </div>
-            </div>
+                </>
+            }
+
+            {formularioCadastro === true &&
+            <>
             <div className="formulario">
                 <div className='titulo'>
-                    <h1>Informações da venda</h1>
+                    <div className='titulo-cont'>
+                        <button id="retornar" onClick={e=>{setFormSelProdutos(true);setFormularioCadastro(false)}}><BsIcons.BsArrowLeft/></button>
+                        <h1>Informações sobre a venda</h1>
+                    </div>
                 </div>
 
                 <div className="formulario-padrao" id="clienteSel">
                     <label>Selecionar Cliente*</label>
                     
-                    <button onClick={e=>definirClientes()}>Selecionar cliente</button>
-                    {
-                        idCliente !== "" &&
+                    <button className='clienteSelButton' onClick={e=>definirClientes()}>Buscar</button>
+
+                    {nomeCliente !== "" &&
                         <>
-                            <label>Cliente Selecionado</label>
-                            <h1>Nome: {nomeCliente}</h1>
-                            <h1>Id: {idCliente}</h1>
+                            <div className='cliente-area'>
+                                <label>Cliente Selecionado</label>
+                                <h1>Nome: {nomeCliente}</h1>
+                                {cpfCliente !== '' &&
+                                    <h1>CPF: {cpfCliente}</h1>
+                                }
+                                {cpfCliente === '' &&
+                                    <h1>CPF: Este Cliente não possui CPF cadastrado</h1>
+                                }
+                            </div>
                         </>
                     }
                     <div className="msg" id='msgSelCliente'></div>
-                    
                 </div>
+
                 <div className="formulario-padrao">
                     <label>Valor Total</label>
                     <input type="text" name="valorTotal" id="valorTotal" placeholder="Valor Total" value={valorTotal} disabled/>
@@ -514,14 +631,6 @@ function Formulario() {
                     <h2>( * ) Campos obrigatórios</h2>
                 </div>
             </div>
-
-            {msg !== "" &&
-                <div className='formulario'>
-                    <p id='msgSistema'>Mensagem do Sistema</p>
-                    <p id='msgSistema'>{msg}</p>
-                </div>    
-            }
-
             <div className='formulario'>
                 <div className='div-botoes'>
                     <button type="button" onClick={limpar}>Limpar</button>
@@ -539,43 +648,57 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </>
+            }
 
-            <div id="id01" className="modal">
-                <form className="modal-content">
-                    <div className="container">
+            {msg !== "" &&
+                <div className='formulario'>
+                    <p id='msgSistema'>Mensagem do Sistema</p>
+                    <p id='msgSistema'>{msg}</p>
+                </div>    
+            }
+
+            {defClienteSel === true &&
+            <div id="id01" className="modal-cliente">
+                <form className="modal-content-cliente">
+                    <div className="container-cliente"> 
                         <h1>Selecionar Cliente</h1>
-
-                        <div className='clearfix'>
-                            <div className='div-tabela'>
-                                <table className='tabela'>
-                                    <thead>
-                                        <tr>
-                                            <td>Nome</td>
-                                            <td>CPF</td>
-                                            <td>Idade</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {clientes !== "" && 
-                                            clientes.map(cliente => (
-                                                <tr key={cliente.id}>
-                                                    <td onClick={e=> {setIdCliente(cliente.id);setNomeCliente(cliente.nome);document.getElementById('id01').style.display='none'}}>{cliente.nome}</td>
-                                                    <td onClick={e=> {setIdCliente(cliente.id);setNomeCliente(cliente.nome);document.getElementById('id01').style.display='none'}}>{cliente.cpf}</td>
-                                                    <td onClick={e=> {setIdCliente(cliente.id);setNomeCliente(cliente.nome);document.getElementById('id01').style.display='none'}}>{cliente.idade}</td>
-                                                </tr> 
-                                            ))
-                                        }
-                                    </tbody>
-                                </table>
+                        <input className='inputs-buscar-cliente' type="search" id='filtro-clientes' placeholder='Pesquisar por Nome' value={filtroCliente} onChange={e=>{setFiltroCliente(e.target.value);filtrarClientes()}}></input>
+                        
+                        <div className='clearfix-clientes'>
+                            <div className='row'>
+                                <div className='div-tabela'>
+                                    <table id='table-clientes'>
+                                        <thead>
+                                            <tr>
+                                                <th>Nome</th>
+                                                <th>CPF</th>
+                                                <th>Idade</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {clientes !== "" && 
+                                                clientes.map(cliente => (
+                                                    <tr key={cliente.id}>
+                                                        <td onClick={e=> setarCliente(cliente)}>{cliente.nome}</td>
+                                                        <td onClick={e=> setarCliente(cliente)}>{cliente.cpf}</td>
+                                                        <td onClick={e=> setarCliente(cliente)}>{cliente.idade}</td>
+                                                    </tr> 
+                                                ))
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
+
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={e => document.getElementById('id01').style.display='none'}>Cancelar</button>
+                            <button type="button" className="cancelbtn" onClick={e => setDefClienteSel(false)}>Cancelar</button>
                         </div>
-            
                     </div>
                 </form>
             </div>
+            }
         </div>
         </>
     )

@@ -190,13 +190,11 @@ class Validar{
 
     async validarCargo(idCargo) //cadastroUsuario
     {
-        console.log(idCargo);
         if(idCargo == '' || idCargo == 0)
         {
             document.querySelector("#msgCargo").innerHTML = "<p>Selecione um cargo</p>";
             return false;
         }
-        
         return true;
     }
 

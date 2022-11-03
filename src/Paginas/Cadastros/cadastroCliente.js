@@ -1,11 +1,12 @@
-import './cadastroCliente.css';
 import '../../App.css';
+import '../../tabela/styleTabela.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
 import Validar from '../../servicos/validar';
+import * as BsIcons from 'react-icons/bs';
 
 function Formulario() {
     const [nome, setNome] = useState('');
@@ -42,6 +43,12 @@ function Formulario() {
     const [excTel, setExcTel] = useState('');
     const [excEnd, setExcEnd] = useState('');
     const [excCli, setExcCli] = useState('');
+
+    const [form, setForm] = useState(false);
+    const [tabela, setTabela] = useState(true);
+
+    const [defExclusao, setDefExclusao] = useState(false);
+    const [msgProcurar, setMsgProcurar] = useState(0);
 
     function validarTelefone(valor)
     {
@@ -152,14 +159,17 @@ function Formulario() {
 
     function limparAvisos()
     {
-        document.querySelector("#SexoF").checked = false;
-        document.querySelector("#SexoM").checked = false;
+        if(form === true)
+        {
+            document.querySelector("#SexoF").checked = false;
+            document.querySelector("#SexoM").checked = false;
 
-        document.querySelector("#msgNome").innerHTML = "";
-        document.querySelector("#msgCPF").innerHTML = "";
-        document.querySelector("#msgIdade").innerHTML = "";
-        document.querySelector("#msgEmail").innerHTML = "";
-        document.querySelector("#mensagemContato").innerHTML = "";
+            document.querySelector("#msgNome").innerHTML = "";
+            document.querySelector("#msgCPF").innerHTML = "";
+            document.querySelector("#msgIdade").innerHTML = "";
+            document.querySelector("#msgEmail").innerHTML = "";
+            document.querySelector("#mensagemContato").innerHTML = "";
+        }
 
         if(EnderecoOpen === true)
         {
@@ -197,8 +207,11 @@ function Formulario() {
         setContatos([]);
         setTelefone('');
 
-        document.querySelector("#SexoF").checked = false;
-        document.querySelector("#SexoM").checked = false;
+        if(form === true)
+        {
+            document.querySelector("#SexoF").checked = false;
+            document.querySelector("#SexoM").checked = false;
+        }
         
         limparAvisos();
     }
@@ -279,6 +292,8 @@ function Formulario() {
             await carregarTodosClientes();
             await limpar();
             setSalvando(false);
+            setForm(false);
+            setTabela(true);
         }
     }
 
@@ -301,22 +316,30 @@ function Formulario() {
 
     async function filtrarClientes()
     {
-        if(filtro !== "")
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("table");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
         {
-            try{
-                await api.get(`/filtrarClientes/${filtro}`)
-                .then((response)=>{
-                    setClientes(response.data);
-                })   
-            }
-            catch(err){
-                console.log(err);
-            }
-        }
-        else
-        {
-            await carregarTodosClientes();
-        }
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
     }
 
     async function delEndereco(idEndereco)
@@ -370,20 +393,51 @@ function Formulario() {
 
     async function excluirCliente()
     {
-        await delEndereco(excEnd);
-        await delTelefone(excTel);
-        await delCliente(excCli);
-        await carregarTodosClientes();
+        if(msgProcurar === 0)
+        {
+            await delEndereco(excEnd);
+            await delTelefone(excTel);
+            await delCliente(excCli);
+            await carregarTodosClientes();
+        }
+        setDefExclusao(false);
+    }
 
-        document.getElementById('id01').style.display='none';
+    async function cancelar()
+    {   
+        setDefExclusao(false);
+        setExcTel('');
+        setExcEnd('');
+        setExcCli('');
+        setMsgProcurar('');
+    }
+
+    async function buscarClienteEmVenda(idCliente)
+    {
+        if(idCliente !== "" && idCliente !== null)
+        {
+            try{
+                return await api.get(`/buscarClienteVenda/${idCliente}`)
+                .then((response)=>{
+                    setMsgProcurar(response.data.length);
+                    return response.data.length;
+                })
+            }
+            catch(err){
+                console.log(err);
+            }
+        }   
     }
 
     async function definirExclusao(idCliente, idTelefone, idEndereco)
     {
-        document.getElementById('id01').style.display ='block';
+        const retorno = await buscarClienteEmVenda(idCliente);
+        setDefExclusao(true);
+
         setExcTel(idTelefone);
         setExcEnd(idEndereco);
         setExcCli(idCliente);
+        setMsgProcurar(retorno);
     }
 
     async function carregarTelefones(cliente)
@@ -415,6 +469,8 @@ function Formulario() {
     async function alterarCliente(cliente)
     {   
         limpar();
+        setTabela(false);
+        setForm(true);
 
         verContatos.length = 0;
         /*if(cliente.cpf != "")
@@ -531,145 +587,152 @@ function Formulario() {
         <>
         <Header />
         <div className="background-conteudo">
-            <div className='titulo-pagina'>
-                <h1>{titulo}</h1>
-            </div>
-
-            <div className='formulario-duplo'>
-                <div className='main-row'>
-                    <div className="formulario">
+            {tabela === true &&
+            <div className="background-tabelas">
+                <div className='formulario-tabela'>
+                    <div className='titulo-cadastro'>
                         <div className='titulo'>
-                            <h1>Informações Pessoais</h1>
+                            <h1>Clientes</h1>
                         </div>
-
-                        <div className="formulario-padrao">
-                            <label>Nome completo*</label>
-                            <input type="text" name="nome" id="nome" value={nome || ""} placeholder="Digite o nome" onChange={e=>{setNome(e.target.value);document.querySelector("#msgNome").innerHTML = ""}} required />
-                            <div className='msg' id="msgNome"></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>CPF</label>
-                            <input type="text" name="cpf" id="cpf" value={cpf || ""} placeholder="xxx.xxx.xxx-xx" onChange={e=>{setCpf(e.target.value);document.querySelector("#msgCPF").innerHTML = ""}}/>
-                            <div className='msg' id="msgCPF"></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Idade</label>
-                            <input type="text" name="idade" id="idade" value={idade || ""} placeholder="Digite a idade" onChange={e=>{setIdade(e.target.value);document.querySelector("#msgIdade").innerHTML = ""}} required />
-                            <div className='msg' id='msgIdade'></div>
-                        </div>
-
-                        <div className='formulario-padrao-sexo'>
-                            <label>Sexo</label>
-
-                            <label>Feminino
-                                <input type="radio" name="SexoF" id="SexoF" value="Feminino" onClick={definirF} onChange={e=>setSexo(e.target.value)}/>
-                            </label>
-            
-                            <label>Masculino
-                                <input type="radio" name="SexoM" id="SexoM" value="Masculino"  onClick={definirM} onChange={e=>setSexo(e.target.value)}/>
-                            </label>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Email</label>
-                            <input type="text" name="email" id="email" value={email || ""} placeholder="exemplo@email.com" onChange={e=>{setEmail(e.target.value); document.querySelector("#msgEmail").innerHTML = ""}}/>
-                            <div className='mensagem' id="mensagemEmail"></div>
-                            <div className='msg' id="msgEmail"></div>
-                        </div>
-
-                        <div className="mensagemCli"></div>
-
-                        <div className='formulario-padrao'>
-                            {isOpen &&
-                                <div className="formulario-telefone">
-                                    <h1>Cadastrar Contato*</h1>
-
-                                    <div className="formulario-padrao">
-                                        <label htmlFor="telefone">Número de contato (mínimo 1, máximo 3 telefones)</label>
-                                        <div id="adicionar-contato">
-                                            <input type="tel" value={telefone} onChange={e=>{setTelefone(e.target.value);document.querySelector("#mensagemContato").innerHTML = ""}} placeholder="(xx)xxxxx-xxxx" required/> 
-                                            <input type="button" onClick={addLista} value="Adicionar"/>                           
-                                        </div>
-                                        <div id="mensagemContato"></div>
-                                    </div>
-
-                                    {verContatos.length > 0 && <div id="div-tabela">
-                                        <table id="tabela-contato">
-                                            <thead>
-                                                <tr>
-                                                    <th>Telefones</th>
-                                                    <th>Ação</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {verContatos.map(contato => (
-                                                    <tr key={contato.codigo}>
-                                                        <td>{contato.telefone}</td>
-                                                        <td>
-                                                            <button className="btnExcluirCont" onClick={()=>Excluir(contato.codigo)} type="button">
-                                                                Excluir
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>}
-                                </div>
-                            }
-                        </div>
-                        <div className='titulo-bottom'>
-                            <h2>( * ) Campos obrigatórios</h2>
-                            <a id='botaoEndereco' onClick={e=>definirEnderecoOpen()}>Cadastrar Endereço (Opcional)</a> 
-                        </div>
+                        <input type="button" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
                     </div>
-                    <div className="formulario-tabela-clientes">
-                        <div className='titulo'>
-                            <h1>Clientes Cadastrados</h1>
-                        </div>
-                        <div className='formulario-padrao-tabela-clientes'>
-                            <div className='inputs-buscar-clientes'>
-                                <input type="search" placeholder='Pesquisar por Nome' value={filtro} onChange={e=>setFiltro(e.target.value)}></input>
-                                <button onClick={filtrarClientes}>OK</button>   
-                            </div> 
-
-                            <div className='div-tabela-cliente'>
-                                <table className='tabela-cliente'>
-                                    <thead>
-                                        <tr>
-                                            <th>Nome</th>
-                                            <th>CPF</th>
+                    <div className='formulario-padrao-tabela'>
+                        <div className='inputs-buscar'>
+                            <input type="search" id='filtro' placeholder='Pesquisar por Nome' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarClientes()}}></input>
+                            <input type="button" onClick={carregarTodosClientes} value="Recarregar"></input> 
+                        </div> 
+                    </div>
+                </div>
+                <div className='row'>
+                    <div className='div-tabela'>
+                        <table className='tabela' id='table'>
+                            <thead className='thead-dark'>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>CPF</th>
+                                    {localStorage.getItem("nivelAcesso") >= 60 &&
+                                        <th>&nbsp;</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {clientes !== "" &&
+                                    clientes.map(cliente =>(
+                                        <tr key={cliente.id}>
+                                            <td onClick={e=>alterarCliente(cliente)}>{cliente.nome}</td>
+                                            <td onClick={e=>alterarCliente(cliente)}>{cliente.cpf}</td>
                                             {localStorage.getItem("nivelAcesso") >= 60 &&
-                                                <th>Ação</th>
+                                                <td>
+                                                    <a className="close">
+                                                        <span aria-hidden="true" onClick={e => {definirExclusao(cliente.id, cliente.id_telefone, cliente.id_endereco)}}>x</span>
+                                                    </a>
+                                                </td>
                                             }
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {clientes !== "" &&
-                                            clientes.map(cliente =>(
-                                                <tr key={cliente.id} id="alterando">
-                                                    <td onClick={e=>alterarCliente(cliente)}>{cliente.nome}</td>
-                                                    <td onClick={e=>alterarCliente(cliente)}>{cliente.cpf}</td>
-                                                    {localStorage.getItem("nivelAcesso") >= 60 &&
-                                                        <td>
-                                                            <button type="button" id='deletando' onClick={e => {definirExclusao(cliente.id, cliente.id_telefone, cliente.id_endereco)}}>
-                                                                Excluir
-                                                            </button>
-                                                        </td>
-                                                    }
-                                                </tr>
-                                            ))
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                                    ))
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
- 
+            }
+
+
+            {form === true &&
+            <>
+            <div className="formulario">
+                <div className='titulo'>
+                    <div className='titulo-cont'>
+                        <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                        <h1>Informações</h1>
+                    </div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Nome completo*</label>
+                    <input type="text" name="nome" id="nome" value={nome || ""} placeholder="Digite o nome" onChange={e=>{setNome(e.target.value);document.querySelector("#msgNome").innerHTML = ""}} required />
+                    <div className='msg' id="msgNome"></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>CPF</label>
+                    <input type="text" name="cpf" id="cpf" value={cpf || ""} placeholder="xxx.xxx.xxx-xx" onChange={e=>{setCpf(e.target.value);document.querySelector("#msgCPF").innerHTML = ""}}/>
+                    <div className='msg' id="msgCPF"></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Idade</label>
+                    <input type="text" name="idade" id="idade" value={idade || ""} placeholder="Digite a idade" onChange={e=>{setIdade(e.target.value);document.querySelector("#msgIdade").innerHTML = ""}} required />
+                    <div className='msg' id='msgIdade'></div>
+                </div>
+
+                <div className='formulario-padrao-sexo'>
+                    <label>Sexo</label>
+
+                    <label>Feminino
+                        <input type="radio" name="SexoF" id="SexoF" value="Feminino" onClick={definirF} onChange={e=>setSexo(e.target.value)}/>
+                    </label>
+    
+                    <label>Masculino
+                        <input type="radio" name="SexoM" id="SexoM" value="Masculino"  onClick={definirM} onChange={e=>setSexo(e.target.value)}/>
+                    </label>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Email</label>
+                    <input type="text" name="email" id="email" value={email || ""} placeholder="exemplo@email.com" onChange={e=>{setEmail(e.target.value); document.querySelector("#msgEmail").innerHTML = ""}}/>
+                    <div className='mensagem' id="mensagemEmail"></div>
+                    <div className='msg' id="msgEmail"></div>
+                </div>
+
+                <div className="mensagemCli"></div>
+
+                <div className='formulario-padrao'>
+                    {isOpen &&
+                        <div className="formulario-telefone">
+                            <h1>Cadastrar Contato*</h1>
+
+                            <div className="formulario-padrao">
+                                <label htmlFor="telefone">Número de contato (mínimo 1, máximo 3 telefones)</label>
+                                <div id="adicionar-contato">
+                                    <input type="tel" value={telefone} onChange={e=>{setTelefone(e.target.value);document.querySelector("#mensagemContato").innerHTML = ""}} placeholder="(xx)xxxxx-xxxx" required/> 
+                                    <input type="button" onClick={addLista} value="Adicionar"/>                           
+                                </div>
+                                <div id="mensagemContato"></div>
+                            </div>
+
+                            {verContatos.length > 0 && <div id="div-tabela">
+                                <table id="tabela-contato">
+                                    <thead>
+                                        <tr>
+                                            <th>Telefones</th>
+                                            <th>Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {verContatos.map(contato => (
+                                            <tr key={contato.codigo}>
+                                                <td>{contato.telefone}</td>
+                                                <td>
+                                                    <button className="btnExcluirCont" onClick={()=>Excluir(contato.codigo)} type="button">
+                                                        Excluir
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>}
+                        </div>
+                    }
+                </div>
+                <div className='titulo-bottom'>
+                    <h2>( * ) Campos obrigatórios</h2>
+                    <a id='botaoEndereco' onClick={e=>definirEnderecoOpen()}>Cadastrar Endereço (Opcional)</a> 
+                </div>
+            </div>
+
             {EnderecoOpen === true &&
                 <div className="formulario">
                     <div className='titulo'>
@@ -713,13 +776,6 @@ function Formulario() {
                 </div>
             }
 
-            {msg !== "" &&
-                <div className='formulario'>
-                    <p id='msgSistema'>Mensagem do Sistema</p>
-                    <p id='msgSistema'>{msg}</p>
-                </div>    
-            }
-
             <div className='formulario'>
                 <div className='div-botoes'>
                     <button type="button" onClick={limpar}>Limpar</button>
@@ -737,21 +793,40 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </>
+            }
 
+            {msg !== "" &&
+                <div className='formulario'>
+                    <p id='msgSistema'>Mensagem do Sistema</p>
+                    <p id='msgSistema'>{msg}</p>
+                </div>    
+            }
+
+            {defExclusao === true &&
             <div id="id01" className="modal">
                 <form className="modal-content">
                     <div className="container">
                         <h1>Deletar Cliente</h1>
-                        <p>Telefone e Endereço serão deletados juntamente com o Cliente deseja continuar?</p>
+                        {msgProcurar > 0 &&
+                            <p>Este cliente está presente em algumas vendas, não é possível deletar!!</p>                       
+                        }           
+                        {
+                            msgProcurar <= 0 &&
+                            <p>Cliente será deletado, deseja continuar?</p>
+                        }
 
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={e => document.getElementById('id01').style.display='none'}>Cancelar</button>
-                            <button type="button" className="deletebtn" onClick={()=>excluirCliente()}>Deletar</button>
+                            <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
+                            {msgProcurar <= 0 &&
+                                <button type="button" className="deletebtn" onClick={()=>excluirCliente()}>Deletar</button>
+                            }
                         </div>
                         
                     </div>
                 </form>
             </div>
+            }
         </div>
         </>
     )

@@ -1,11 +1,12 @@
-import './cadastroCargo.css';
 import '../../App.css';
+import '../../tabela/styleTabela.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
 import Validar from '../../servicos/validar';
+import * as BsIcons from 'react-icons/bs';
 
 function Formulario() {
     const [categoria, setCategoria] = useState('');
@@ -23,6 +24,10 @@ function Formulario() {
     const [excCategoria, setExcCategoria] = useState('');
     const [msgProcurar, setMsgProcurar] = useState(0);
 
+    const [form, setForm] = useState(false);
+    const [tabela, setTabela] = useState(true);
+    const [defExclusao, setDefExclusao] = useState(false);
+
     async function validar()
     {
         var val = new Validar();
@@ -34,7 +39,8 @@ function Formulario() {
 
     function limparAvisos()
     {
-        document.querySelector("#msgCategoria").innerHTML = "";
+        if(form === true)
+            document.querySelector("#msgCategoria").innerHTML = "";
     }
 
     async function limpar()
@@ -71,6 +77,8 @@ function Formulario() {
             await carregarCategorias();
             await limpar();
             setSalvando(false);
+            setForm(false);
+            setTabela(true);
         }
 
     }
@@ -95,24 +103,30 @@ function Formulario() {
 
     async function filtrarCategoria()
     {
+        var input, filter, table, tr, td, i, txtValue;
 
-        if(filtro !== "")
-        {
-            try{
-                await api.get(`/filtrarCategorias/${filtro}`)
-                .then((response)=>{
-                    setCategorias(response.data);
-                })   
-            }
-            catch(err){
-                console.log(err);
-            }
-        }
-        else
-        {
-            await carregarCategorias();
-        }       
+        input = document.getElementById("filtro");
+        filter = input.value.toUpperCase();
 
+        table = document.getElementById("table");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
+        {
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
     }
 
     async function delCategoria(idCategoria)
@@ -150,12 +164,9 @@ function Formulario() {
 
     async function cancelar()
     {   
-        var a = document.querySelector(".deletebtn");
-        document.getElementById('id01').style.display='none';
+        setDefExclusao(false);
         setExcCategoria('');
         setMsgProcurar('');
-        if(a.classList.contains("disabled"))
-            a.classList.remove("disabled");
     }
 
     async function excluirCategoria()
@@ -165,33 +176,80 @@ function Formulario() {
             await delCategoria(excCategoria);
             await carregarCategorias();
         }
-
-        document.getElementById('id01').style.display='none';
+        setDefExclusao(false);
     }
 
     async function definirExclusao(idCategoria)
     {
         const retorno = await buscarCategoriasEmUsuarios(idCategoria);
-        document.getElementById('id01').style.display ='block';
+        setDefExclusao(true);
 
         setExcCategoria(idCategoria);
         setMsgProcurar(retorno);
-
-        if(retorno > 0)
-            document.querySelector('.deletebtn').classList.toggle('disabled');
     }
 
     return (
         <>
         <Header />
         <div className="background-conteudo">
-            <div className='titulo-pagina'>
-                <h1>{titulo}</h1>
-            </div>
+            {tabela === true &&
+                <div className="background-tabelas">
+                    <div className='formulario-tabela'>
+                        <div className='titulo-cadastro'>
+                            <div className='titulo'>
+                                <h1>Categorias</h1>
+                            </div>
+                            <input type="button" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
+                        </div>
+                        <div className='formulario-padrao-tabela'>
+                            <div className='inputs-buscar'>
+                                <input type="search" id='filtro' placeholder='Pesquisar por título' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarCategoria()}}></input>
+                                <input type="button" onClick={carregarCategorias} value="Recarregar"></input> 
+                            </div> 
+                        </div>  
+                    </div>
 
+                    <div className='row'>
+                        <div className='div-tabela'>
+                            <table className='tabela' id='table'>
+                                <thead className='thead-dark'>
+                                    <tr>
+                                        <th>Categoria</th>
+                                        {localStorage.getItem("nivelAcesso") >= 60 &&
+                                            <th>&nbsp;</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {categorias !== "" &&
+                                        categorias.map(categoria =>(
+                                            <tr key={categoria.id || ""} >
+                                                <td>{categoria.descricao || ""}</td>
+                                                {localStorage.getItem("nivelAcesso") >= 60 &&
+                                                    <td>
+                                                        <a className="close">
+                                                            <span aria-hidden="true" onClick={e => {definirExclusao(categoria.id)}}>x</span>
+                                                        </a>
+                                                    </td>
+                                                }
+                                            </tr>
+                                        ))
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            } 
+
+            {form === true &&
+            <>
             <div className="formulario">
                 <div className='titulo'>
-                    <h1>Gerenciar Categoria</h1>
+                    <div className='titulo-cont'>
+                        <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                        <h1>Informações</h1>
+                    </div>
                 </div>
 
                 <div className="formulario-padrao">
@@ -206,56 +264,6 @@ function Formulario() {
                     <h2>( * ) Campos obrigatórios</h2>
                 </div>
             </div>
-
-            <div className='formulario'>
-
-                    <div className='titulo'>
-                        <h1>Categorias Cadastradas</h1>
-                    </div>
-                    <div className='formulario-padrao-tabela-cargos'>
-                        <div className='inputs-buscar-cargos'>
-                            <input type="search" placeholder='Pesquisar por título' value={filtro} onChange={e=>setFiltro(e.target.value)}></input>
-                            <button onClick={filtrarCategoria}>OK</button>   
-                        </div> 
-
-                        <div className='div-tabela-cargo'>
-                            <table className='tabela-cargo'>
-                                <thead>
-                                    <tr>
-                                        <th>Categoria</th>
-                                        {localStorage.getItem("nivelAcesso") >= 60 &&
-                                            <th>Ação</th>
-                                        }
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {categorias !== "" &&
-                                        categorias.map(categoria =>(
-                                            <tr key={categoria.id || ""} id="alterando">
-                                                <td>{categoria.descricao || ""}</td>
-                                                {localStorage.getItem("nivelAcesso") >= 60 &&
-                                                    <td>
-                                                        <button type="button" id='deletando' onClick={e => {definirExclusao(categoria.id)}}>
-                                                            Excluir
-                                                        </button>
-                                                    </td>
-                                                }
-                                            </tr>
-                                        ))
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>        
-            </div> 
-
-
-            {msg !== "" &&
-                <div className='formulario'>
-                    <p id='msgSistema'>Mensagem do Sistema</p>
-                    <p id='msgSistema'>{msg}</p>
-                </div>    
-            }
 
             <div className='formulario'>
                 <div className='div-botoes'>
@@ -274,7 +282,17 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </>
+            }
 
+            {msg !== "" &&
+                <div className='formulario'>
+                    <p id='msgSistema'>Mensagem do Sistema</p>
+                    <p id='msgSistema'>{msg}</p>
+                </div>    
+            }
+
+            {defExclusao === true &&
             <div id="id01" className="modal">
                 <form className="modal-content">
                     <div className="container">
@@ -289,12 +307,15 @@ function Formulario() {
 
                         <div className="clearfix">
                             <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
-                            <button type="button" className="deletebtn" onClick={()=>excluirCategoria()}>Deletar</button>
+                            {msgProcurar <= 0 &&
+                                <button type="button" className="deletebtn" onClick={()=>excluirCategoria()}>Deletar</button>
+                            }
                         </div>
                         
                     </div>
                 </form>
             </div>
+            }
         </div>
         </>
     )

@@ -28,6 +28,11 @@ function Formulario() {
     const [filtro, setFiltro] = useState('');
     const [msg, setMsg] = useState('');
 
+    const [form, setForm] = useState(false);
+    const [tabela, setTabela] = useState(true);
+    const [defExclusao, setDefExclusao] = useState(false);
+    const [defQuitarParcela, setDefQuitarParcela] = useState(false);
+
     const [tituloPagina, setTituloPagina] = useState('Contas a Receber');
 
     const [msgProcurar, setMsgProcurar] = useState(0);
@@ -59,36 +64,6 @@ function Formulario() {
         carregarTudo();
     },[]);
 
-    function filtrarClientes()
-    {
-        setParcelaform(false);
-        setParcelas('');
-        var input, filter, table, tr, td, i, txtValue;
-
-        input = document.getElementById("filtro");
-        filter = input.value.toUpperCase();
-
-        table = document.getElementById("tabelaContas");
-        tr = table.getElementsByTagName("tr");
-
-        for (i=0; i<tr.length; i++) 
-        {
-            td = tr[i].getElementsByTagName("td")[0];
-            if(td) 
-            {
-                txtValue = td.textContent || td.innerText;
-                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
-                {
-                    tr[i].style.display = "";
-                } 
-                else 
-                {
-                    tr[i].style.display = "none";
-                }
-            }       
-        }
-    }
-
     async function buscarContaEmVendas(idConta)
     {
         try{
@@ -106,13 +81,11 @@ function Formulario() {
     async function definirExclusao(idConta)
     {
         const retorno = await buscarContaEmVendas(idConta);
-        document.getElementById('id01').style.display ='block';
 
         setExcConta(idConta);
         setMsgProcurar(retorno);
 
-        if(retorno > 0)
-            document.querySelector('.deletebtn').classList.toggle('disabled');
+        setDefExclusao(true);
     }
 
     async function verificarParcelasPagas(num)
@@ -131,7 +104,7 @@ function Formulario() {
 
     async function definirQuitarParcela(parcela)
     {
-        document.getElementById('id02').style.display ='block';
+        setDefQuitarParcela(true);
         if(verificarParcelasPagas(parcela.numParcela))
         {
             setPIDFP(parcela.id);
@@ -148,17 +121,26 @@ function Formulario() {
         await delConta(excConta);
         await carregarContas();
 
-        document.getElementById('id01').style.display='none'; 
+        setDefExclusao(false);
     }
 
     async function cancelar()
     {   
-        var a = document.querySelector(".deletebtn");
-        document.getElementById('id01').style.display='none';
+        setDefExclusao(false);
         setExcConta('');
         setMsgProcurar('');
-        if(a.classList.contains("disabled"))
-            a.classList.remove("disabled");
+        setPagarParcelado(false);
+    }
+
+    async function cancelarDefQuitarParcela()
+    {   
+        setDefQuitarParcela(false);
+        setPagarParcelado(false);
+        setPIDFP('');
+        setPValor('');
+        setPDataPagamento('');
+        setPDataVencimento('');
+        setPNumParcela('');
     }
 
     async function delConta(idConta)
@@ -202,7 +184,8 @@ function Formulario() {
             .then((response)=>{
                 setMsg(response.data);
             })
-            document.getElementById('id02').style.display='none';
+            setDefQuitarParcela(false);
+            setPagarParcelado(false);
             await definirParcelas(idContaReceber);
         }
         catch(err){
@@ -226,7 +209,8 @@ function Formulario() {
                     .then((response)=>{
                         setMsg(response.data);
                     })
-                    document.getElementById('id02').style.display='none';
+                    setDefQuitarParcela(false);
+                    setPagarParcelado(false);
                 }
                 catch(err){
                     console.log(err);
@@ -254,117 +238,84 @@ function Formulario() {
         });
     }
 
-    /*async function filtrarContas()
+    async function filtrarContas()
     {
-        if(filtro !== "")
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("table");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
         {
-            if(requisicao === false)
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
             {
-                setRequisicao(true);
-                await api.get(`/filtrarContasReceber/${filtro}`)
-                .then((response)=>{
-                    setMsg(response.data[0]);
-                    setContasReceber(response.data[1]);
-                })
-                setRequisicao(false);
-            }
-        }
-        else
-        {
-            await carregarContas();
-        }
-    }*/
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
+    }
 
     return (
         <>
         <Header />
         <div className="background-conteudo">
-            <div className='titulo-pagina'>
-                <h1>{tituloPagina}</h1>
-            </div>
-
-            <div className="formulario-tabela">
-                <div className='titulo'>
-                    <h1>Selecionar Conta</h1>
-                </div>
-                <div className='formulario-padrao-tabela'>
-                    <div className='inputs-buscar'>
-                        <input type="search" value={filtro} onChange={e => {setFiltro(e.target.value);filtrarClientes()}} id="filtro" placeholder='Pesquisar por Título'></input>
-                        <button onClick={filtrarClientes}>OK</button>   
-                    </div> 
-
-                    <div className='div-tabela'>
-                        <table className='tabela' id='tabelaContas'>
-                            <thead>
-                                <tr>
-                                    <th>Cliente</th>
-                                    <th>Título</th>
-                                    <th>Parcelas</th>
-                                    <th>Valor Total(R$)</th>
-                                    <th>Vencimento (primeira parcela)</th>
-                                    {localStorage.getItem('nivelAcesso') >= 60 &&
-                                         <th>Ação</th>
-                                    }
-                                    </tr>
-                            </thead>
-                            <tbody>
-                                {contasReceber !== [] &&
-                                    contasReceber.map(conta =>(
-                                        <tr key={conta.id}>
-                                            <td onClick={e=>definirParcelas(conta.id)}>{conta.nomeCliente}</td>
-                                            <td onClick={e=>definirParcelas(conta.id)}>{conta.titulo}</td>
-                                            <td onClick={e=>definirParcelas(conta.id)}>{conta.qtdeParcelas}</td>
-                                            <td onClick={e=>definirParcelas(conta.id)}>R$ {conta.valorTotal}</td>
-                                            <td onClick={e=>definirParcelas(conta.id)}>{moment.utc(conta.dataPrimeiroVencimento).format('DD-MM-YYYY')}</td>
-                                            {localStorage.getItem('nivelAcesso') >= 60 &&
-                                                <td>
-                                                    <button type="button" onClick={e => {definirExclusao(conta.id)}}>
-                                                        Excluir
-                                                    </button>
-                                                </td>
-                                            }
-                                        </tr>
-                                    ))
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                    {parcelaForm &&
-                        <div className='div-tabela'>
+            <div className='background'>
+            {tabela === true &&
+            <>
+                <div className='background-tabelas'>
+                    <div className="formulario-tabela">
+                        <div className='titulo-cadastro'>
                             <div className='titulo'>
-                                <h1>Parcelas</h1>
+                                <h1>Contas a Receber</h1>
                             </div>
-                            <table className='tabela'>
-                                <thead>
+                        </div>
+                        <div className='formulario-padrao-tabela'>
+                            <div className='inputs-buscar'>
+                                <input type="search" id='filtro' placeholder='Pesquisar por cliente' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarContas()}}></input>
+                                <input type="button" value="Recarregar" onClick={carregarContas}></input>   
+                            </div> 
+                        </div>
+                    </div>
+                    <div className='row-conta'>
+                        <div className='div-tabela'>
+                            <table className='tabela' id='table'>
+                                <thead className='thead-dark'>
                                     <tr>
-                                        <th>Número da Parcela</th>
-                                        <th>Data Vencimento</th>
+                                        <th>Cliente</th>
+                                        <th>Título</th>
+                                        <th>Parcelas</th>
                                         <th>Valor Total(R$)</th>
-                                        <th>Não Pago(R$)</th>
-                                        <th>Situação</th>
-                                        <th>Pagar</th>
-                                    </tr>
+                                        <th>Vencimento (primeira parcela)</th>
+                                        {localStorage.getItem('nivelAcesso') >= 60 &&
+                                            <th>&nbsp;</th>
+                                        }
+                                        </tr>
                                 </thead>
                                 <tbody>
-                                    {parcelas !== "" && ordenarParcelas() &&
-                                        parcelas.map(parcela =>(
-                                            <tr key={parcela.id}>
-                                                <td>{parcela.numParcela}</td>
-                                                <td>{moment.utc(parcela.dataVencimento).format('DD-MM-YYYY')}</td>
-                                                <td>R$ {parcela.valorTotal}</td>
-                                                <td>R$ {parcela.valor}</td>
-                                                <td>{parcela.situacao}</td>
-                                                {
-                                                    parcela.situacao === "Pago" &&
+                                    {contasReceber !== [] &&
+                                        contasReceber.map(conta =>(
+                                            <tr key={conta.id}>
+                                                <td onClick={e=>definirParcelas(conta.id)}>{conta.nomeCliente}</td>
+                                                <td onClick={e=>definirParcelas(conta.id)}>{conta.titulo}</td>
+                                                <td onClick={e=>definirParcelas(conta.id)}>{conta.qtdeParcelas}</td>
+                                                <td onClick={e=>definirParcelas(conta.id)}>R$ {conta.valorTotal}</td>
+                                                <td onClick={e=>definirParcelas(conta.id)}>{moment.utc(conta.dataPrimeiroVencimento).format('DD-MM-YYYY')}</td>
+                                                {localStorage.getItem('nivelAcesso') >= 60 &&
                                                     <td>
-                                                        <FcIcons.FcCheckmark/>
-                                                    </td>
-                                                }
-                                                {parcela.situacao === "Não pago" &&
-                                                    <td>
-                                                        <button type="button" onClick={e => {definirQuitarParcela(parcela)}}>
-                                                            Quitar
-                                                        </button>
+                                                        <a className="close">
+                                                            <span aria-hidden="true" onClick={e => {definirExclusao(conta.id)}}>x</span>
+                                                        </a>
                                                     </td>
                                                 }
                                             </tr>
@@ -373,9 +324,61 @@ function Formulario() {
                                 </tbody>
                             </table>
                         </div>
-                    }
+                    </div>
+                    <div className='row-conta'>
+                        <div className='div-tabela'>
+                            {parcelaForm &&
+                                <div className='div-tabela'>
+                                    <div className='titulo'>
+                                        <h1>Parcelas</h1>
+                                    </div>
+                                    <table className='tabela'>
+                                        <thead className='thead-dark'>
+                                            <tr>
+                                                <th>Número da Parcela</th>
+                                                <th>Data Vencimento</th>
+                                                <th>Valor Total(R$)</th>
+                                                <th>Não Pago(R$)</th>
+                                                <th>Situação</th>
+                                                <th>Pagar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {parcelas !== "" && ordenarParcelas() &&
+                                                parcelas.map(parcela =>(
+                                                    <tr key={parcela.id}>
+                                                        <td>{parcela.numParcela}</td>
+                                                        <td>{moment.utc(parcela.dataVencimento).format('DD-MM-YYYY')}</td>
+                                                        <td>R$ {parcela.valorTotal}</td>
+                                                        <td>R$ {parcela.valor}</td>
+                                                        <td>{parcela.situacao}</td>
+                                                        {
+                                                            parcela.situacao === "Pago" &&
+                                                            <td>
+                                                                <a className="close-no">
+                                                                    <span><FcIcons.FcCheckmark/></span>
+                                                                </a>
+                                                            </td>
+                                                        }
+                                                        {parcela.situacao === "Não pago" &&
+                                                            <td>
+                                                                <a className="close">
+                                                                    <span aria-hidden="true" onClick={e => {definirQuitarParcela(parcela)}}>Quitar</span>
+                                                                </a>
+                                                            </td>
+                                                        }
+                                                    </tr>
+                                                ))
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
-            </div>            
+            </>
+            }        
 
             {msg !== "" &&
                 <div className='formulario'>
@@ -384,6 +387,7 @@ function Formulario() {
                 </div>    
             }
 
+            {defExclusao === true &&
             <div id="id01" className="modal">
                 <form className="modal-content">
                     <div className="container">
@@ -398,13 +402,16 @@ function Formulario() {
 
                         <div className="clearfix">
                             <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
-                            <button type="button" className="deletebtn" onClick={()=>excluirConta()}>Deletar</button>
+                            {msgProcurar <= 0 &&
+                                <button type="button" className="deletebtn" onClick={()=>excluirConta()}>Deletar</button>
+                            }
                         </div>
-                        
                     </div>
                 </form>
             </div>
+            }
 
+            {defQuitarParcela === true &&
             <div id="id02" className="modal">
                 <form className="modal-content">
                     <div className="container">
@@ -431,7 +438,7 @@ function Formulario() {
                                 }
 
                                 <div className="clearfix">
-                                    <button type="button" className="cancelbtn" onClick={e => document.getElementById('id02').style.display='none'}>Cancelar</button>
+                                    <button type="button" className="cancelbtn" onClick={()=>cancelarDefQuitarParcela()}>Cancelar</button>
                                     {buttonPagarParcela === "Pagar Inteiro" &&
                                         <button type="button" className="deletebtn" onClick={quitarParcela}>{buttonPagarParcela}</button>
                                     }
@@ -447,13 +454,15 @@ function Formulario() {
                             <>
                                 <p>Parcelas anteriores não pagas</p>
                                 <div className="clearfix">
-                                    <button type="button" className="cancelbtn" onClick={e => document.getElementById('id02').style.display='none'}>Cancelar</button>
+                                    <button type="button" className="cancelbtn" onClick={()=>cancelarDefQuitarParcela()}>Cancelar</button>
                                 </div>
                             </>
                         }
                     </div>
                 </form>
             </div>
+            }
+        </div>
         </div>
         </>
     )

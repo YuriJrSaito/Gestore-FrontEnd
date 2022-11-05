@@ -72,12 +72,15 @@ function Formulario() {
 
     async function limparAvisos()
     {
-        document.querySelector("#msgTitulo").innerHTML = "";
-        document.querySelector("#msgCodigoRef").innerHTML = "";
-        document.querySelector("#msgQtde").innerHTML = "";
-        document.querySelector("#msgDescricao").innerHTML = "";
-        document.querySelector("#msgValorUnitario").innerHTML = "";
-        document.querySelector("#msgValorCompra").innerHTML = "";
+        if(form === true)
+        {
+            document.querySelector("#msgTitulo").innerHTML = "";
+            document.querySelector("#msgCodigoRef").innerHTML = "";
+            document.querySelector("#msgQtde").innerHTML = "";
+            document.querySelector("#msgDescricao").innerHTML = "";
+            document.querySelector("#msgValorUnitario").innerHTML = "";
+            document.querySelector("#msgValorCompra").innerHTML = "";
+        }
     }
 
     async function validar()
@@ -421,8 +424,9 @@ function Formulario() {
 
     return (
         <>
-        <Header />
+       <Header />
         <div className="background-conteudo">
+        <div className='background'>
             {tabela === true &&
             <div className='background-tabelas'>
                 <div className="formulario-tabela">
@@ -480,131 +484,126 @@ function Formulario() {
 
             {form === true &&
             <>
-            <div className='formulario-duplo'>
-                <div className='main-row'>
-                    <div className="formulario">
-                        <div className='titulo'>
-                            <div className='titulo-cont'>
-                                <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
-                                <h1>Informações</h1>
-                            </div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Título*</label>
-                            <input type="text" name="titulo" id="titulo" value={titulo || ""} placeholder="Digite o título" onChange={e=>{setTitulo(e.target.value);document.querySelector("#msgTitulo").innerHTML = ""}} required />
-                            <div className='msg' id='msgTitulo'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Código de Referência</label>
-                            <input type="text" name="codigoRef" id="codigoRef" value={codigoRef  || ""} placeholder="Digite o código de referência" onChange={e=>{setCodigoRef(e.target.value);document.querySelector("#msgCodigoRef").innerHTML = ""}}/>
-                            <div className='msg' id='msgCodigoRef'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Quantidade no Estoque*</label>
-                            <input type="text" name="qtdeEstoque" id="qtdeEstoque" value={qtdeEstoque  || ""} placeholder="Digite a quantidade" onChange={e=>{setQtdeEstoque(e.target.value);document.querySelector("#msgQtde").innerHTML = ""}} required />
-                            <div className='msg' id='msgQtde'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Descrição</label>
-                            <input type="text" name="descricao" id="descricao" value={descricao  || ""} placeholder="Digite a descrição" onChange={e=>{setDescricao(e.target.value);document.querySelector("#msgDescricao").innerHTML = ""}}/>
-                            <div className='msg' id='msgDescricao'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Valor Unitário*</label>
-                            <input type="text" name="valorUnitario" id="valorUnitario" value={valorUnitario  || ""} placeholder="Digite o valor unitário" onChange={e=>{setValorUnitario(e.target.value);document.querySelector("#msgValorUnitario").innerHTML = ""}}/>
-                            <div className='msg' id='msgValorUnitario'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Valor de Compra</label>
-                            <input type="text" name="valorCompra" id="valorCompra" value={valorCompra  || ""} placeholder="Digite o valor de compra" onChange={e=>{setValorCompra(e.target.value);document.querySelector("#msgValorCompra").innerHTML = ""}}/>
-                            <div className='msg' id='msgValorCompra'></div>
-                        </div>
-
-                        <div className='formulario-padrao'>
-                            {fornecedores !== "" &&
-                                <>
-                                    <label>Fornecedor*</label>
-                                    <select id="selFornecedor" value={idFornecedor} onChange={e=>{setFornecedor(e.target.value);document.querySelector("#msgFornecedor").innerHTML = ""}}>
-                                        <option key={0} value={0}>Escolha um Fornecedor</option>
-                                        {fornecedores.map(fornecedor => (
-                                            <option key={fornecedor.id} value={fornecedor.id}>{fornecedor.nome}</option>
-                                        ))}
-                                    </select>
-                                    <div className='msg' id='msgFornecedor'></div>
-                                </>
-                            }
-                        </div>
-
-                        <div className='formulario-padrao'>
-                            {categorias !== "" &&
-                                <>
-                                    <label>Categoria*</label>
-                                    <select id="selCategoria" value={idCategoria} onChange={e=>{setCategoria(e.target.value);document.querySelector("#msgCategoria").innerHTML = ""}}>
-                                        <option key={0} value={0}>Escolha uma categoria</option>
-                                        {categorias.map(categoria => (
-                                            <option key={categoria.id} value={categoria.id}>{categoria.descricao}</option>
-                                        ))}
-                                    </select>
-                                    <div className='msg' id='msgCategoria'></div>
-                                </>
-                            }
-                            <input type="button" id='btnCargo' onClick={definirBotaoNovaCategoria} value="Nova Categoria"/> 
-                            {btnNovaCategoria === true &&
-                                <div className='formulario-padrao'>
-                                    <label>Cadastrar Nova Categoria</label>
-                                    <div className='adicionar-cargo'>
-                                        <input type="text" name="cargo" id="cargo" value={cadDescCategoria || ""} onChange={e=>setDescCategoria(e.target.value)} placeholder="Digite a Categoria"/>
-                                        <input type="button" onClick={cadastrarCategoria} value="Cadastrar"/> 
-                                        {msgCategoria !== "" &&
-                                            <p style={{color: categoriaMsgCor}}>{msgCategoria}</p>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        <div className='formulario-padrao'>
-                            <label>Imagens</label>
-                            <div id="arquivos">
-                                <div id="div-arquivos">
-                                    <form>
-                                        <label htmlFor="fileUpload1">+</label>
-                                        <input type="file" id="fileUpload1" onChange={e=>setarImg1(e.target.value)}></input>
-                                    </form>
-                                </div>
-                                <div id="div-arquivos">
-                                    <form>
-                                        <label htmlFor="fileUpload2">+</label>
-                                        <input type="file" id="fileUpload2" onChange={e=>setarImg2(e.target.value)}></input>
-                                    </form>
-                                </div>
-                                <div id="div-arquivos">
-                                    <form>
-                                        <label htmlFor="fileUpload3">+</label>
-                                        <input type="file" id="fileUpload3" onChange={e=>setarImg3(e.target.value)}></input>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mensagemCli"></div>
-
-                        <div className='titulo-bottom'>
-                            <h2>( * ) Campos obrigatórios</h2>
-                        </div>
-                    </div>        
+            <div className='background'>
+            <div className="formulario">
+                <div className='titulo'>
+                    <div className='titulo-cont'>
+                        <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                        <h1>Informações</h1>
+                    </div>
                 </div>
-            </div>
-            
+
+                <div className="formulario-padrao">
+                    <label>Título*</label>
+                    <input type="text" name="titulo" id="titulo" value={titulo || ""} placeholder="Digite o título" onChange={e=>{setTitulo(e.target.value);document.querySelector("#msgTitulo").innerHTML = ""}} required />
+                    <div className='msg' id='msgTitulo'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Código de Referência</label>
+                    <input type="text" name="codigoRef" id="codigoRef" value={codigoRef  || ""} placeholder="Digite o código de referência" onChange={e=>{setCodigoRef(e.target.value);document.querySelector("#msgCodigoRef").innerHTML = ""}}/>
+                    <div className='msg' id='msgCodigoRef'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Quantidade no Estoque*</label>
+                    <input type="text" name="qtdeEstoque" id="qtdeEstoque" value={qtdeEstoque  || ""} placeholder="Digite a quantidade" onChange={e=>{setQtdeEstoque(e.target.value);document.querySelector("#msgQtde").innerHTML = ""}} required />
+                    <div className='msg' id='msgQtde'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Descrição</label>
+                    <input type="text" name="descricao" id="descricao" value={descricao  || ""} placeholder="Digite a descrição" onChange={e=>{setDescricao(e.target.value);document.querySelector("#msgDescricao").innerHTML = ""}}/>
+                    <div className='msg' id='msgDescricao'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Valor Unitário*</label>
+                    <input type="text" name="valorUnitario" id="valorUnitario" value={valorUnitario  || ""} placeholder="Digite o valor unitário" onChange={e=>{setValorUnitario(e.target.value);document.querySelector("#msgValorUnitario").innerHTML = ""}}/>
+                    <div className='msg' id='msgValorUnitario'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Valor de Compra</label>
+                    <input type="text" name="valorCompra" id="valorCompra" value={valorCompra  || ""} placeholder="Digite o valor de compra" onChange={e=>{setValorCompra(e.target.value);document.querySelector("#msgValorCompra").innerHTML = ""}}/>
+                    <div className='msg' id='msgValorCompra'></div>
+                </div>
+
+                <div className='formulario-padrao'>
+                    {fornecedores !== "" &&
+                        <>
+                            <label>Fornecedor*</label>
+                            <select id="selFornecedor" value={idFornecedor} onChange={e=>{setFornecedor(e.target.value);document.querySelector("#msgFornecedor").innerHTML = ""}}>
+                                <option key={0} value={0}>Escolha um Fornecedor</option>
+                                {fornecedores.map(fornecedor => (
+                                    <option key={fornecedor.id} value={fornecedor.id}>{fornecedor.nome}</option>
+                                ))}
+                            </select>
+                            <div className='msg' id='msgFornecedor'></div>
+                        </>
+                    }
+                </div>
+
+                <div className='formulario-padrao'>
+                    {categorias !== "" &&
+                        <>
+                            <label>Categoria*</label>
+                            <select id="selCategoria" value={idCategoria} onChange={e=>{setCategoria(e.target.value);document.querySelector("#msgCategoria").innerHTML = ""}}>
+                                <option key={0} value={0}>Escolha uma categoria</option>
+                                {categorias.map(categoria => (
+                                    <option key={categoria.id} value={categoria.id}>{categoria.descricao}</option>
+                                ))}
+                            </select>
+                            <div className='msg' id='msgCategoria'></div>
+                        </>
+                    }
+                    <input type="button" id='btnCargo' onClick={definirBotaoNovaCategoria} value="Nova Categoria"/> 
+                    {btnNovaCategoria === true &&
+                        <div className='formulario-padrao'>
+                            <label>Cadastrar Nova Categoria</label>
+                            <div className='adicionar-cargo'>
+                                <input type="text" name="cargo" id="cargo" value={cadDescCategoria || ""} onChange={e=>setDescCategoria(e.target.value)} placeholder="Digite a Categoria"/>
+                                <input type="button" onClick={cadastrarCategoria} value="Cadastrar"/> 
+                                {msgCategoria !== "" &&
+                                    <p style={{color: categoriaMsgCor}}>{msgCategoria}</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div className='formulario-padrao'>
+                    <label>Imagens</label>
+                    <div id="arquivos">
+                        <div id="div-arquivos">
+                            <form>
+                                <label htmlFor="fileUpload1">+</label>
+                                <input type="file" id="fileUpload1" onChange={e=>setarImg1(e.target.value)}></input>
+                            </form>
+                        </div>
+                        <div id="div-arquivos">
+                            <form>
+                                <label htmlFor="fileUpload2">+</label>
+                                <input type="file" id="fileUpload2" onChange={e=>setarImg2(e.target.value)}></input>
+                            </form>
+                        </div>
+                        <div id="div-arquivos">
+                            <form>
+                                <label htmlFor="fileUpload3">+</label>
+                                <input type="file" id="fileUpload3" onChange={e=>setarImg3(e.target.value)}></input>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mensagemCli"></div>
+
+                <div className='titulo-bottom'>
+                    <h2>( * ) Campos obrigatórios</h2>
+                </div>
+            </div>        
 
             <div className='main-row'>
-
                 {img1 !== "" &&
                     <div className="formulario-img">
                         <img className='' src={`/img//${img1}`} alt="Aqui fica a primeira imagem"></img>
@@ -641,6 +640,7 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </div>
             </>
             }
 
@@ -672,6 +672,7 @@ function Formulario() {
                 </form>
             </div>
             }
+        </div>  
         </div>  
         </>
     )

@@ -464,12 +464,14 @@ function Formulario() {
         <>
         <Header />
         <div className="background-conteudo">
+        <div className='background'>
             {tabela === true &&
                 <TabelaVenda childToParent={childToParent}/>
             }
 
             {formSelProdutos === true &&
             <>
+            <div className='background-venda'>
                 <div className='formulario-tabela'>
                     <div className='titulo'>
                         <div className='titulo-cont'>
@@ -570,11 +572,13 @@ function Formulario() {
                         <button id="btnForm" onClick={proximoFormulario}>Proximo</button>
                     </div>
                 </div>
-                </>
+            </div>
+            </>
             }
 
             {formularioCadastro === true &&
             <>
+            <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
                     <div className='titulo-cont'>
@@ -648,6 +652,7 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </div>
             </>
             }
 
@@ -699,6 +704,7 @@ function Formulario() {
                 </form>
             </div>
             }
+        </div>
         </div>
         </>
     )

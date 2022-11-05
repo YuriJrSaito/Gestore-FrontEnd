@@ -9,13 +9,15 @@
 #dark{
     --body-bg: #212529;
     --button-cadastro: green;
+    --area-user: #212529;
     /*--body-color: #899095;
     --link-color: #dee2e6;
     --link-color-hover: #3cc368;*/
 }
   
 .navbar{
-    background-color: black;
+    /*background-color: black;*/
+    background-color: var(--body-bg);
     height: 80px;
     display: flex;
     justify-content: space-between;
@@ -29,7 +31,8 @@
 }
 
 .nav-menu{
-    background-color: black;
+    /*background-color: black;*/
+    background-color: var(--body-bg);
     width: 250px;
     height: 100vh;
     display: flex;
@@ -39,6 +42,18 @@
     left: -100%;
     transition: 850ms;
     z-index: 60;
+}
+
+.area-user{
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 5px 0 rgba(0, 0, 0, 0.19);
+}
+
+.navbar{
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    margin-bottom: 20px;
+}
+.nav-menu{
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); 
 }
 
 .nav-menu.active{
@@ -75,7 +90,8 @@
 }
 
 .nav-toggle{
-    background-color: black;
+    /*background-color: black;*/
+    background-color: var(--body-bg);
     width: 100%;
     height: 80px;
     display: flex;
@@ -124,11 +140,19 @@ span{
 }
 
 .main-row::-webkit-scrollbar{
-    height: 4px;
+    height: 0px;
 } 
 
 .sidebar::-webkit-scrollbar, ::-webkit-scrollbar{
-    width: 7px;
+    width: 0px;
+}
+
+.nav-menu-items::-webkit-scrollbar{
+    height: 0px;
+} 
+
+.nav-menu-items::-webkit-scrollbar, ::-webkit-scrollbar{
+    width: 0px;
 }
 
 .main-row::-webkit-scrollbar-track, .sidebar::-webkit-scrollbar-track, ::-webkit-scrollbar-track{
@@ -150,7 +174,8 @@ span{
 }
 
 .area-user{
-    background-color: black;
+    /*background-color: black;*/
+    background-color: var(--area-user);
     width: 200px;
     height: 30%;
     display: flex;
@@ -168,7 +193,8 @@ span{
 .area-items{
     width: 30%;
     height: 30%;
-    background-color: black;
+    /*background-color: black;*/
+    background-color: var(--body-bg);
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -189,6 +215,6 @@ span{
         font-size: 20px;
     }
     .nav-menu-items{
-        max-height: 90vh;
+        max-height: 100vh;
     }
 }

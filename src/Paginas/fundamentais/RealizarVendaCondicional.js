@@ -1,5 +1,6 @@
 import './RealizarVenda.css';
 import '../../App.css';
+import '../../tabela/styleTabela.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
@@ -7,67 +8,178 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch, faLessThanEqual} from '@fortawesome/free-solid-svg-icons';
 import moment from 'moment/moment';
 import Validar from '../../servicos/validar';
+import * as BsIcons from 'react-icons/bs';
 
 function Formulario() {
 
+    const [vendas, setVendas] = useState([]);
     const [produtos, setProdutos] = useState([]);
     const [produtosSel, setProdutosSel] = useState([]);
     const [clientes, setClientes] = useState('');
 
-    const [dataVenda, setDataVenda] = useState(moment().format('YYYY-MM-DD'));
+    const [dataCriacao, setDataCriacao] = useState(moment().format('YYYY-MM-DD'));
+    const [dataLimite, setDataLimite] = useState('');
+    const [observacao, setObservacao] = useState('');
 
-    const [idCliente, setIdCliente] = useState("");
+    const [idCliente, setIdCliente] = useState('');
     const [nomeCliente, setNomeCliente] = useState('');
+    const [cpfCliente, setCpfCliente] = useState('');
 
-    const [qtdeParcelas, setQtdeParcelas] = useState('');
     const [valorTotal, setValorTotal] = useState(0);
-    const [dataPrimeiroVencimento, setDataPrimeiroVencimento] = useState('');
 
     const [filtro, setFiltro] = useState('');
+    const [filtroCliente, setFiltroCliente] = useState('');
+    const [tipoFiltro, setTipoFiltro] = useState(0);
 
     const [selecionado, setSelecionado] = useState(false);
-    const [requisicao, setRequisicao] = useState(false);
     const [salvando, setSalvando] = useState(false);
     const [button, setButton] = useState('Salvar');
     const [msg, setMsg] = useState('');
 
+    const [formSelProdutos, setFormSelProdutos] = useState(false);
+    const [formularioCadastro, setFormularioCadastro] = useState(false);
+    const [tabela, setTabela] = useState(true);
+    const [defExclusao, setDefExclusao] = useState(false);
+    const [defClienteSel, setDefClienteSel] = useState(false);
+    const [alterarCliente, setAlterarCliente] = useState(true);
+    const [msgAlterarCliente, setMsgAlterarCliente] = useState('');
+
+    const [excVenda, setExcVenda] = useState('');
+
+    //todo:
+    //terminar o alterar no backend
+    //fazer o devolver produtos
 
     async function limparAvisos()
     {
-        document.querySelector('#msgProdutos').innerHTML = "";
-        document.querySelector('#msgSelCliente').innerHTML = "";
-        document.querySelector('#msgDataVenda').innerHTML = "";
-        document.querySelector('#msgVencimento').innerHTML = "";
-        document.querySelector('#msgQtdeParcelas').innerHTML = "";
+        if(formularioCadastro === true)
+        {
+            document.querySelector('#msgSelCliente').innerHTML = "";
+            document.querySelector('#msgCriacao').innerHTML = "";
+            document.querySelector('#msgLimite').innerHTML = "";
+        }
+        if(formSelProdutos === true)
+        {
+            document.querySelector('#msgProdutos').innerHTML = "";
+        }
     }
 
     async function limpar()
     {
         setSalvando(false);
         setSelecionado(false);
-        setRequisicao(false);
+        setAlterarCliente(true);
+        setMsgAlterarCliente('');
         setMsg("");
         setProdutosSel([]);
-        setDataVenda(moment().format('YYYY-MM-DD'));
+        setDataCriacao(moment().format('YYYY-MM-DD'));
         setIdCliente("");
         setNomeCliente("");
-        setQtdeParcelas("");
         setValorTotal(0);
-        setDataPrimeiroVencimento("")
+        setDataLimite("")
         setFiltro("");
+        setObservacao("");
 
         await limparAvisos();
+    }
+
+    async function filtrarProdutos()
+    {
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro-produtos");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("table-produtos");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
+        {
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
+    }
+
+    async function filtrarClientes()
+    {
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro-clientes");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("table-clientes");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
+        {
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
+    }
+
+    async function carregarVendas()
+    {
+        await api.get('/listarVendasCond')
+        .then((response)=>{
+            setVendas(response.data);
+        });
+    }
+
+    async function proximoFormulario()
+    {
+        let resp = await validarSelProdutos();
+        if(resp === true)
+        {
+            setFormSelProdutos(false);
+            setFormularioCadastro(true);
+        }
+    }
+
+    async function validarSelProdutos()
+    {
+        var val = new Validar();
+
+        if(await val.validarProdutosSel(produtosSel))
+        {
+            return true;
+        }
+        else
+        {
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
+            return false;
+        }
     }
 
     async function validar()
     {
         var val = new Validar();
 
-        if(await val.validarProdutosSel(produtosSel) &&
-           await val.validarClienteSelecionado(idCliente) &&
-           await val.validarDataEmissaoObrigatorio(dataVenda) &&
-           await val.validarDataVencimento(dataPrimeiroVencimento, dataVenda) &&
-           await val.validarQuantidadeObrigatorio(qtdeParcelas, "#msgQtdeParcelas", 12, "<p>Digite a quantidade</p>", "<p>Quantidade deve ser maior ou  igual a 0 (zero)</p>", "<p>Digite apenas Números</p>", "<p>Quantidade deve ser menor que 12</p>") 
+        if(await val.validarClienteSelecionado(idCliente) &&
+           await val.validarDataCriacao(dataCriacao) &&
+           await val.validarDataLimite(dataLimite, dataCriacao) &&
+           await val.validarObservacaoOpcional(observacao, document.querySelector("#msgObservacao"), "<p>Observação deve ter no máximo 30 caracteres</p>")
         )
         {
             return true;
@@ -79,37 +191,14 @@ function Formulario() {
         }
     }
 
-    async function gravarContaReceber()
+    async function gravarVenda()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-
-            let resp = await api.post('/cadContaReceber',{
-                qtdeParcelas: qtdeParcelas,
+        try{
+            let resp = await api.post('/cadVendaCond',{
+                dataCriacao: dataCriacao,
+                dataLimite: dataLimite,
+                observacao: observacao,
                 valorTotal: valorTotal,
-                dataEmissao: dataVenda,
-                dataPrimeiroVencimento: dataPrimeiroVencimento,
-            }).then(
-                response => {
-                    return response.data[0];
-                }
-            )
-
-            setRequisicao(false);
-            return resp;
-        }
-    }
-
-    async function gravarVenda(idCR)
-    {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-
-            let resp = await api.post('/cadVenda',{
-                dataVenda: dataVenda,
-                idContaReceber: idCR,
                 idAcesso: localStorage.getItem('acessoid'),
                 idCliente: idCliente,
             }).then(
@@ -117,28 +206,27 @@ function Formulario() {
                     return response.data[0];
                 }
             )
-
-            setRequisicao(false);
             return resp;
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
-    async function gravarItemVenda(idVenda)
+    async function gravarLista(idVenda)
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
-
-            await api.post('/cadItemVenda',{
+        try{
+            await api.post('/cadListaCond',{
                 produtos: produtosSel,
-                idVenda: idVenda
+                idVenda: idVenda,
             }).then(
                 response => {
                     setMsg(response.data);
                 }
             )
-
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -148,49 +236,138 @@ function Formulario() {
         {
             if(button === "Salvar")
             {
-                let idCR = await gravarContaReceber();
-                let idVenda = await gravarVenda(idCR);
-                await gravarItemVenda(idVenda);
+                let idVenda = await gravarVenda();
+                await gravarLista(idVenda);
+                await limpar();
+                await carregarVendas();
+                setFormularioCadastro(false);
+                setTabela(true);
             }
         }
     }
 
     async function buscarClientes()
-    {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+    {   
+        try{
             await api.get('/listarTodosClientes')
             .then((response)=>{
                 setClientes(response.data);
             });
-            setRequisicao(false);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
     async function definirClientes()
     {
         document.querySelector('#msgSelCliente').innerHTML = "";
-        document.getElementById('id01').style.display ='block';
+        setDefClienteSel(true);
         await buscarClientes();
+    }
+
+    async function setarCliente(cliente)
+    {
+        setCpfCliente(cliente.cpf);
+        setIdCliente(cliente.id);
+        setNomeCliente(cliente.nome);
+        setDefClienteSel(false);
     }
 
     async function carregarTodosProdutos()
     {
-        if(requisicao === false)
-        {
-            setRequisicao(true);
+        try{
             await api.get('/listarTodosProdutos')
             .then((response)=>{
                 setProdutos(response.data);
-            });
-            setRequisicao(false);
+            })
+        }catch(err){
+            console.log(err);
         }
     }
 
     async function carregarTudo()
     {
+        await carregarVendas();
         await carregarTodosProdutos();
+    }
+
+    async function selVenda(venda)
+    {
+        await carregarTodosProdutos();
+        setObservacao(venda.observacao);
+        setDataCriacao(venda.dataCriacao);
+        setDataLimite(venda.dataLimite);
+        
+        setValorTotal(venda.valorTotal);
+        setCpfCliente(venda.cpfCliente);
+        setNomeCliente(venda.nomeCliente);
+        setIdCliente(venda.idCliente);
+        setAlterarCliente(false);   
+        setMsgAlterarCliente("Não é possivel alterar o cliente");
+        setButton("Alterar");
+
+        let resp = await buscarProdutos(venda.id);
+        await gerarListaSel(resp);
+    }
+
+    async function gerarListaSel(resp)
+    {
+        for(let x=0; x<resp.length; x++)
+        {
+            let obProduto = await produtos.find(produtos=>produtos.id == resp[x].idProduto);
+            if(obProduto !== undefined)
+            {
+                let copia = await copiarProd(obProduto);
+                copia.qtdeSelecionado = resp[x].quantidade;
+                setProdutosSel([...produtosSel, copia]);
+            }
+        } 
+       setSelecionado(true);     
+       setTabela(false);
+       setFormSelProdutos(true);
+    }
+
+    async function buscarProdutos(idVenda)
+    {
+        try{
+            const resp = await api.get(`/buscarProdutosCond/${idVenda}`)
+            .then((response)=>{
+                return response.data;
+            })
+            return resp;
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
+    async function filtrarClientes()
+    {
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("tabelaVendas");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
+        {
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
     }
 
     useEffect(()=>{
@@ -206,6 +383,7 @@ function Formulario() {
             qtdeEstoque: produto.qtdeEstoque,
             qtdeSelecionado: 1,
             valorUnitario: produto.valorUnitario,
+            img1: produto.img1,
         }
         return prod;
     }
@@ -237,7 +415,6 @@ function Formulario() {
             if(await produtoExiste(prod) === false)
             {
                 setProdutosSel([...produtosSel, prod]);
-                //setProdutosAlterados([...produtosAlterados, produto]);
                 valor = parseFloat(valorTotal) + parseFloat(prod.valorUnitario);
             }
             else
@@ -362,50 +539,175 @@ function Formulario() {
         }
     }
 
-    async function filtrarProdutos()
+    async function definirExclusao(idVenda)
     {
-        if(requisicao === false)
+        setDefExclusao(true);
+        setExcVenda(idVenda);
+    }
+
+    async function cancelar()
+    {
+        setDefExclusao(false);
+        setExcVenda('');
+    }
+
+    async function excluirVenda()
+    {
+        let resp = await delLista(excVenda);
+        if(resp === true)
         {
-            setRequisicao(true);
-            if(filtro !== "")
-            {
-                await api.get(`/filtrarProdutos/${filtro}`)
-                .then((response)=>{
-                    setProdutos(response.data);
-                })   
-            }
-            else
-            {
-                await carregarTodosProdutos();
-            }   
-            setRequisicao(false);
+            await delVenda(excVenda);
+            await carregarVendas();
+
+            setDefExclusao(false);
         }
+        else
+            setMsg("Algo deu errado!!");
+    }
+
+    async function delVenda(idVenda)
+    {
+        if(idVenda !== "")
+        {
+            try{
+                await api.delete(`/deletarVendaCond/${idVenda}`);
+            }
+            catch(err){
+                console.log(err);
+            }
+            await limpar();
+        } 
+    }
+
+    async function delLista(idVenda)
+    {
+        if(idVenda !== "")
+        {
+            try{
+                const resp = await api.delete(`/deletarListaCond/${idVenda}`)
+                .then((response)=>{
+                    return response.data;
+                })
+                return resp;
+            }
+            catch(err){
+                console.log(err);
+            }
+            await limpar();
+        } 
+    }
+
+    async function retirarProduto(idProduto)
+    {
+        let res = produtosSel.find(produtosSel=>produtosSel.id == idProduto);
+        let valor = parseFloat(valorTotal) - (parseFloat(res.valorUnitario) * res.qtdeSelecionado);
+        setValorTotal(valor.toFixed(2));
+        setProdutosSel(produtosSel.filter(produtosSel=>produtosSel.id !== idProduto));
+        
+        let res2 = produtos.find(produtos=>produtos.id == idProduto);
+        console.log(res2.qtdeEstoque);
+
+        if(res2.qtdeEstoque === 0)
+            res2.qtdeEstoque = res.qtdeSelecionado;
+        else
+            if(res.qtdeSelecionado > 0)
+                res2.qtdeEstoque += res.qtdeSelecionado;
     }
 
     return (
         <>
         <Header />
         <div className="background-conteudo">
-            <div className='titulo-pagina'>
-                <h1>Realizar Venda Condicional</h1>
-            </div>
-            <div className='formulario-duplo'>
-                <div className='main-row'>           
-                    <div className="formulario-tabela">
-                        <div className='titulo'>
-                            <h1>Selecionar Podutos</h1>
-                        </div>
-                        <div className='formulario-padrao-tabela'>
-                            <div className='inputs-buscar-fornecedores'>
-                                <input type="search" value={filtro} onChange={e=>{setFiltro(e.target.value)}} placeholder='Pesquisar'></input>
-                                <button onClick={filtrarProdutos}>OK</button>   
-                            </div> 
+        <div className='background'>
+            {tabela === true &&
+            <>
+            <div className="formulario-tabela">
+                <div className='titulo-cadastro'>
+                    <div className='titulo'>
+                        <h1>Venda Condicional</h1>
+                    </div>
+                    <input type="button" value="Realizar Venda" onClick={e=>{carregarTodosProdutos();setTabela(false);setFormSelProdutos(true)}}></input>
+                </div>
+                
+                <div className='formulario-padrao-tabela'>
+                    <div className='inputs-buscar'>
+                        <select className='filtroSelect' value={tipoFiltro} onChange={e=>{setTipoFiltro(e.target.value)}}>
+                            <option key={0} value={0}>Cliente</option>
+                            <option key={1} value={1}>Funcionário</option>
+                        </select>
 
+                        <input type="search" id="filtro" value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarClientes()}} placeholder='Pesquisar'></input>
+                        <input type="button" value="Recarregar"></input>   
+                    </div> 
+                </div>
+            </div>
+            <div className='row'>
+                <table className='tabela' id="tabelaVendas">
+                    <thead className='thead-dark'>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Funcionário</th>
+                            <th>Data Criação</th>
+                            <th>Data Limite</th>
+                            <th>Observação</th>
+                            <th>Items</th>
+                            {localStorage.getItem("nivelAcesso") >= 60 &&
+                                <th>&nbsp;</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {vendas !== [] &&
+                            vendas.map(venda =>(
+                                <tr key={venda.id}>
+                                    <td id="bold" scope='row' onClick={e=>selVenda(venda)}>{venda.nomeCliente}</td>
+                                    <td onClick={e=>selVenda(venda)}>{venda.nomeUsuario}</td>
+                                    <td onClick={e=>selVenda(venda)}>{moment.utc(venda.dataCriacao).format('DD-MM-YYYY')}</td>
+                                    <td onClick={e=>selVenda(venda)}>{moment.utc(venda.dataLimite).format('DD-MM-YYYY')}</td>
+                                    <td onClick={e=>selVenda(venda)}>{venda.observacao}</td>
+                                    <td>
+                                        <a className="see">
+                                            <span aria-hidden="true">Ver</span>
+                                        </a>
+                                    </td>
+                                    
+                                    {localStorage.getItem("nivelAcesso") >= 60 &&
+                                        <td>
+                                            <a className="close">
+                                                <span aria-hidden="true" onClick={e=>definirExclusao(venda.id)}>x</span>
+                                            </a>
+                                        </td>
+                                    }
+                                </tr>
+                            )) 
+                        }
+                    </tbody>
+                </table>
+            </div>        
+            </>   
+            }
+
+            {formSelProdutos === true &&
+            <>
+            <div className='background-venda'>
+                <div className='formulario-tabela'>
+                    <div className='titulo'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setSelecionado(false);setProdutosSel([]);setValorTotal(0);setTabela(true);setFormSelProdutos(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Informações</h1>
+                        </div>
+                    </div>
+                    <div className='formulario-padrao-tabela'>
+                        <div className='inputs-buscar'>
+                            <input type="search" id='filtro-produtos' placeholder='Pesquisar por título' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarProdutos()}}></input>
+                        </div> 
+                        <div className='row-tabela'>
                             <div className='div-tabela'>
-                                <table className='tabela'>
+                                <table className='tabela' id='table-produtos'>
                                     <thead>
-                                        <tr>
+                                        <tr className='thead-dark'>
                                             <th>Título</th>
+                                            <th>Imagens</th>
                                             <th>Código</th>
                                             <th>Quantidade Estoque</th>
                                             <th>Valor Unitario(R$)</th>
@@ -414,8 +716,10 @@ function Formulario() {
                                     <tbody>
                                         {produtos !== "" &&
                                             produtos.map(produto =>(
-                                                <tr key={produto.id} id="alterando">
+                                                <tr key={produto.id}>
                                                     <td onClick={e=>selProduto(produto)}>{produto.titulo}</td>
+                                                    {produto.img1 === "" && <td onClick={e=>selProduto(produto)}>Sem imagens</td>}
+                                                    {produto.img1 !== "" && <td onClick={e=>selProduto(produto)} id="imgTabela"><img id='imgTable' src={`/img//${produto.img1}`} alt="Aqui fica a primeira imagem"></img></td>}
                                                     <td onClick={e=>selProduto(produto)}>{produto.codigoReferencia}</td>
                                                     <td onClick={e=>selProduto(produto)}>{produto.qtdeEstoque}</td>
                                                     <td onClick={e=>selProduto(produto)}>R${produto.valorUnitario}</td>
@@ -425,101 +729,142 @@ function Formulario() {
                                     </tbody>
                                 </table>
                             </div>
-                            <div className='msg' id='msgProdutos'></div>
                         </div>
-                    </div>     
-                    {selecionado === true &&
-                    <div className="formulario-tabela-fornecedores">
+                    <div className='msg' id='msgProdutos'></div>
+                    </div>   
+                </div>
+
+                {selecionado === true &&
+                <div className="formulario-tabela">
+                    <div className='titulo-cadastro'>
                         <div className='titulo'>
                             <h1>Produtos Selecionados</h1>
                         </div>
-                        <div className='formulario-padrao-tabela'>
+                    </div>
+                    <div className='formulario-padrao-tabela'>
+                        <div className='row-tabela'>
                             <div className='div-tabela'>
                                 <table className='tabela'>
                                     <thead>
-                                        <tr>
+                                        <tr className='thead-dark'>
                                             <th>Título</th>
+                                            <th>Imagens</th>
                                             <th>Código</th>
                                             <th>Valor Unitario(R$)</th>
                                             <th>Quantidade</th>
-                                            <th>Valor Total(R$)</th>
+                                            <th>Soma(R$)</th>
+                                            <th>&nbsp;</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {produtosSel !== "" &&
                                             produtosSel.map(produto =>(
-                                                <tr key={produto.id} id="alterando">
-                                                    <td onClick={e=>selProduto(produto)}>{produto.titulo}</td>   
+                                                <tr key={produto.id}>
+                                                    <td onClick={e=>selProduto(produto)}>{produto.titulo}</td> 
+                                                    {produto.img1 === "" && <td onClick={e=>selProduto(produto)}>Sem imagens</td>}
+                                                    {produto.img1 !== "" && <td onClick={e=>selProduto(produto)} id="imgTabela"><img id='imgTable' src={`/img//${produto.img1}`} alt="Aqui fica a primeira imagem"></img></td>}  
                                                     <td onClick={e=>selProduto(produto)}>{produto.codigoReferencia}</td>                                           
                                                     <td onClick={e=>selProduto(produto)}>R${produto.valorUnitario}</td>                                                 
                                                     <td><input type="number" value={produto.qtdeSelecionado} onChange={e=>{definirProdutoQuantidade(produto, e.target.value)}}/></td>
                                                     <td onClick={e=>selProduto(produto)}>R${(produto.valorUnitario * produto.qtdeSelecionado).toFixed(2)}</td>
+                                                    <td>
+                                                        <a className="close-prodSel">
+                                                            <span aria-hidden="true" onClick={e => {retirarProduto(produto.id)}}>x</span>
+                                                        </a>
+                                                    </td>
                                                 </tr>
                                             ))
                                         }
+                                        <tr>
+                                            <td id='bold'>Valor Total(R$)</td>
+                                            <td>&nbsp;</td>
+                                            <td>&nbsp;</td>
+                                            <td>&nbsp;</td>
+                                            <td>&nbsp;</td>
+                                            <td id='bold'>R${valorTotal}</td>
+                                            <td>&nbsp;</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                                 <div className='msg' id='msgProdutosSel'></div>
                             </div>
                         </div>
-                    </div>    
-                    }    
+                    </div>  
+                </div>  
+                }   
+                <div className='formulario'>
+                    <div className='div-botoes'>
+                        <button id="btnForm" onClick={proximoFormulario}>Proximo</button>
+                    </div>
                 </div>
             </div>
+            </>
+            }
+
+            {formularioCadastro === true &&
+            <>
+            <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
-                    <h1>Informações da venda</h1>
+                    <div className='titulo-cont'>
+                        <button id="retornar" onClick={e=>{setFormSelProdutos(true);setFormularioCadastro(false)}}><BsIcons.BsArrowLeft/></button>
+                        <h1>Informações sobre a venda</h1>
+                    </div>
                 </div>
+
 
                 <div className="formulario-padrao" id="clienteSel">
                     <label>Selecionar Cliente*</label>
+                    {msgAlterarCliente !== '' &&
+                
+                        <p style={{color:"red"}}>{msgAlterarCliente}</p>
+                    }
                     
-                    <button onClick={e=>definirClientes()}>Selecionar cliente</button>
-                    {
-                        idCliente !== "" &&
-                        <>
+                    {alterarCliente === true &&
+                        <button className='clienteSelButton' onClick={e=>definirClientes()}>Buscar</button>
+                    }
+                    {nomeCliente !== "" &&
+                        <div className='cliente-area'>
                             <label>Cliente Selecionado</label>
                             <h1>Nome: {nomeCliente}</h1>
-                            <h1>Id: {idCliente}</h1>
-                        </>
+                            {cpfCliente !== '' &&
+                                <h1>CPF: {cpfCliente}</h1>
+                            }
+                            {cpfCliente === '' &&
+                                <h1>CPF: Este Cliente não possui CPF cadastrado</h1>
+                            }
+                        </div>
                     }
                     <div className="msg" id='msgSelCliente'></div>
-                    
                 </div>
+
+
                 <div className="formulario-padrao">
                     <label>Valor Total</label>
                     <input type="text" name="valorTotal" id="valorTotal" placeholder="Valor Total" value={valorTotal} disabled/>
                 </div>
 
                 <div className="formulario-padrao">
-                    <label>Data da Venda*</label>
-                    <input type="date" value={dataVenda} onChange={e=>{setDataVenda(e.target.value);document.querySelector("#msgDataVenda").innerHTML = ""}} placeholder="dd/mm/yyyy" required />
-                    <div className='msg' id='msgDataVenda'></div>
+                    <label>Data de criação</label>
+                    <input type="date" value={dataCriacao} onChange={e=>{setDataCriacao(e.target.value);document.querySelector("#msgCriacao").innerHTML = ""}} placeholder="dd/mm/yyyy" required />
+                    <div className='msg' id='msgCriacao'></div>
                 </div>
 
                 <div className="formulario-padrao">
-                    <label>Vencimento da primeira parcela*</label>
-                    <input type="date" value={dataPrimeiroVencimento} onChange={e=>{setDataPrimeiroVencimento(e.target.value);document.querySelector("#msgVencimento").innerHTML = ""}} placeholder="dd/mm/yyyy"/>
-                    <div className='msg' id='msgVencimento'></div>
+                    <label>Data Limite</label>
+                    <input type="date" value={dataLimite} onChange={e=>{setDataLimite(e.target.value);document.querySelector("#msgLimite").innerHTML = ""}} placeholder="dd/mm/yyyy"/>
+                    <div className='msg' id='msgLimite'></div>
                 </div>
 
                 <div className="formulario-padrao">
-                    <label>Quantidade de parcelas*</label>
-                    <input type="value" value={qtdeParcelas} onChange={e=>{setQtdeParcelas(e.target.value);document.querySelector("#msgQtdeParcelas").innerHTML = ""}} placeholder="Digite a quantidade de parcelas"/>
-                    <div className='msg' id='msgQtdeParcelas'></div>
+                    <label>Observação</label>
+                    <input type="value" value={observacao} onChange={e=>{setObservacao(e.target.value);document.querySelector("#msgObservacao").innerHTML = ""}} placeholder="Digite a observação"/>
+                    <div className='msg' id='msgObservacao'></div>
                 </div>
                 <div className='titulo-bottom'>
                     <h2>( * ) Campos obrigatórios</h2>
                 </div>
             </div>
-
-            {msg !== "" &&
-                <div className='formulario'>
-                    <p id='msgSistema'>Mensagem do Sistema</p>
-                    <p id='msgSistema'>{msg}</p>
-                </div>    
-            }
-
             <div className='formulario'>
                 <div className='div-botoes'>
                     <button type="button" onClick={limpar}>Limpar</button>
@@ -537,43 +882,76 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </div>
+            </>
+            }
 
-            <div id="id01" className="modal">
-                <form className="modal-content">
-                    <div className="container">
+            {msg !== "" &&
+                <div className='formulario'>
+                    <p id='msgSistema'>Mensagem do Sistema</p>
+                    <p id='msgSistema'>{msg}</p>
+                </div>    
+            }
+
+            {defClienteSel === true &&
+            <div id="id01" className="modal-cliente">
+                <form className="modal-content-cliente">
+                    <div className="container-cliente"> 
                         <h1>Selecionar Cliente</h1>
-
-                        <div className='clearfix'>
-                            <div className='div-tabela'>
-                                <table className='tabela'>
-                                    <thead>
-                                        <tr>
-                                            <td>Nome</td>
-                                            <td>CPF</td>
-                                            <td>Idade</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {clientes !== "" && 
-                                            clientes.map(cliente => (
-                                                <tr key={cliente.id}>
-                                                    <td onClick={e=> {setIdCliente(cliente.id);setNomeCliente(cliente.nome);document.getElementById('id01').style.display='none'}}>{cliente.nome}</td>
-                                                    <td onClick={e=> {setIdCliente(cliente.id);setNomeCliente(cliente.nome);document.getElementById('id01').style.display='none'}}>{cliente.cpf}</td>
-                                                    <td onClick={e=> {setIdCliente(cliente.id);setNomeCliente(cliente.nome);document.getElementById('id01').style.display='none'}}>{cliente.idade}</td>
-                                                </tr> 
-                                            ))
-                                        }
-                                    </tbody>
-                                </table>
+                        <input className='inputs-buscar-cliente' type="search" id='filtro-clientes' placeholder='Pesquisar por Nome' value={filtroCliente} onChange={e=>{setFiltroCliente(e.target.value);filtrarClientes()}}></input>
+                        
+                        <div className='clearfix-clientes'>
+                            <div className='row'>
+                                <div className='div-tabela'>
+                                    <table id='table-clientes'>
+                                        <thead>
+                                            <tr>
+                                                <th>Nome</th>
+                                                <th>CPF</th>
+                                                <th>Idade</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {clientes !== "" && 
+                                                clientes.map(cliente => (
+                                                    <tr key={cliente.id}>
+                                                        <td onClick={e=> setarCliente(cliente)}>{cliente.nome}</td>
+                                                        <td onClick={e=> setarCliente(cliente)}>{cliente.cpf}</td>
+                                                        <td onClick={e=> setarCliente(cliente)}>{cliente.idade}</td>
+                                                    </tr> 
+                                                ))
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
+
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={e => document.getElementById('id01').style.display='none'}>Cancelar</button>
+                            <button type="button" className="cancelbtn" onClick={e => setDefClienteSel(false)}>Cancelar</button>
                         </div>
-            
                     </div>
                 </form>
             </div>
+            }
+
+            {defExclusao === true &&
+            <div id="id02" className="modal">
+                <form className="modal-content">
+                    <div className="container">
+                        <h1>Deletar Venda Condicional</h1>
+                        <p>Venda Condicional e todos seu items serão excluídos, os produtos retornaram ao estoque, deseja continuar?</p>                       
+                                
+                        <div className="clearfix">
+                            <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
+                            <button type="button" className="deletebtn" onClick={()=>excluirVenda()}>Deletar</button>
+                        </div>
+                        
+                    </div>
+                </form>
+            </div>
+            }
+        </div>
         </div>
         </>
     )

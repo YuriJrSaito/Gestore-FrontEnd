@@ -21,7 +21,7 @@
 
 .row {
   width: 60%;
-  height: 100%;
+  max-height: 60%;
   max-height: 400px;  
   /*background-color: #343a40;*/
   background-color: var(--body-bg);
@@ -72,6 +72,19 @@ tbody td:first-child, thead th:first-child{
   padding: 4px 8px;
 }
 
+.tabela tbody td .close-no span{
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.tabela tbody td .close-prodSel span{
+  font-size: 12px;
+  color: #dc3545; 
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
 .tabela tbody td .close span:hover{
   color: red; 
   border: 1px solid;
@@ -104,7 +117,6 @@ tbody td:first-child, thead th:first-child{
   margin-top: 25px;
 
   width: 60%;
-  height: 100%;
 
   color: black;
   /*background-color: #282828;*/
@@ -128,6 +140,7 @@ tbody td:first-child, thead th:first-child{
 
 .background-tabelas{
   display: flex;
+
   align-items: center;
   flex-direction: column;
   width: 100%;

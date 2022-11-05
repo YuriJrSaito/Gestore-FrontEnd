@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../servicos/axiosAPI';
 import { Link } from 'react-router-dom';
 import './Header.css'
 import * as FaIcons from 'react-icons/fa';
@@ -37,13 +38,25 @@ function Header() {
 
     async function logout()
     {
-        localStorage.clear();
+        try{
+            await api.post(`/logout`)
+            .then(
+                response => {
+                    console.log(response.data);
+                }
+            )
+            localStorage.clear();
+        }
+        catch(err){
+            console.log(err);
+        }
     }
 
     return (
         <>
         <IconContext.Provider value={{color: 'white', size: 30}}>
             <div className='navbar'>
+
                 <Link to="#" className="menu-bars">
                     <FaIcons.FaBars onClick={showSidebar} id="barras"/>
                 </Link>
@@ -71,7 +84,6 @@ function Header() {
                     </li>
                     {sidebarDados.map((item, index) => {
                         return (
-                            item.nivel <= localStorage.getItem('nivelAcesso') &&
                                 <li key={index} className={item.cNome}>
                                     <Link to={item.caminho}>
                                         {item.icone}
@@ -80,6 +92,11 @@ function Header() {
                                 </li>
                         )
                     })}
+                    <li>
+                        <Link to='#' className='nav-text'>
+                            <span>&nbsp;</span>
+                        </Link>
+                    </li>
                 </ul>
             </nav>
         </IconContext.Provider>

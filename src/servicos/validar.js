@@ -228,6 +228,16 @@ class Validar{
         return true;
     }
 
+    async validarDataEmissaoObrigatoria(dataEmissao) //cadastroUsuario
+    {
+        if(dataEmissao == "")
+        {
+            document.querySelector("#msgEmissao").innerHTML = "<p>Selecione a data de emissão</p>";
+            return false;
+        }
+        return true;
+    }
+
     async validarDataDemissao(dataDemissao, dataEmissao) //cadastroUsuario
     {
         if(dataDemissao != "")
@@ -493,6 +503,44 @@ class Validar{
         if(produtosSel.length == 0)
         {
             document.querySelector("#msgProdutos").innerHTML = "<p>Nenhum Produto Selecionado</p>";
+            return false;
+        }
+        return true;
+    }
+
+    async validarObservacaoOpcional(desc, doc, msg1) //realizarVendaCondicional
+    {
+        if(desc != "") 
+        {
+            if(desc.length > 30)
+            {
+                doc.innerHTML = msg1;
+                return false;
+            }
+        }
+        return true;
+    }
+
+    async validarDataLimite(dataLimite, dataCriacao) //realizarVendaCondicional
+    {
+        if(dataLimite == "")
+        {
+            document.querySelector("#msgLimite").innerHTML = "<p>Data Limite obrigatória</p>";
+            return false;
+        }
+        if(dataCriacao > dataLimite)
+        {
+            document.querySelector("#msgLimite").innerHTML = "<p>Data Limite deve ser maior que Data de Criação</p>";
+            return false;
+        }
+        return true;
+    }
+
+    async validarDataCriacao(dataCriacao) //realizarVendaCondicional
+    {
+        if(dataCriacao == "")
+        {
+            document.querySelector("#msgCriacao").innerHTML = "<p>Data de Criação obrigatória</p>";
             return false;
         }
         return true;

@@ -192,6 +192,7 @@ function Formulario() {
         <>
         <Header />
         <div className="background-conteudo">
+        <div className='background'>
             {tabela === true &&
                 <div className="background-tabelas">
                     <div className='formulario-tabela'>
@@ -244,42 +245,44 @@ function Formulario() {
 
             {form === true &&
             <>
-            <div className="formulario">
-                <div className='titulo'>
-                    <div className='titulo-cont'>
-                        <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
-                        <h1>Informações</h1>
+            <div className='background'>
+                <div className="formulario">
+                    <div className='titulo'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Informações</h1>
+                        </div>
+                    </div>
+
+                    <div className="formulario-padrao">
+                        <label>Título*</label>
+                        <input type="text" name="categoria" id="categoria" value={categoria || ""} placeholder="Digite a Categoria" onChange={e=>{setCategoria(e.target.value);document.querySelector("#msgCategoria").innerHTML = ""}} required />
+                        <div className='msg' id='msgCategoria'></div>
+                    </div>
+
+                    <div className="mensagemCli"></div>
+
+                    <div className='titulo-bottom'>
+                        <h2>( * ) Campos obrigatórios</h2>
                     </div>
                 </div>
 
-                <div className="formulario-padrao">
-                    <label>Título*</label>
-                    <input type="text" name="categoria" id="categoria" value={categoria || ""} placeholder="Digite a Categoria" onChange={e=>{setCategoria(e.target.value);document.querySelector("#msgCategoria").innerHTML = ""}} required />
-                    <div className='msg' id='msgCategoria'></div>
-                </div>
-
-                <div className="mensagemCli"></div>
-
-                <div className='titulo-bottom'>
-                    <h2>( * ) Campos obrigatórios</h2>
-                </div>
-            </div>
-
-            <div className='formulario'>
-                <div className='div-botoes'>
-                    <button type="button" onClick={limpar}>Limpar</button>
-                    <button className={(salvando ? "disabled": "")} 
-                        type="submit" id="btnForm" onClick={confirmarDados}>
-                        {salvando === false && button}
-                    </button>
-                    {  salvando === true &&
-                        
-                        <button className='salvando' type="button">
-                        {
-                            salvando === true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
-                        }
+                <div className='formulario'>
+                    <div className='div-botoes'>
+                        <button type="button" onClick={limpar}>Limpar</button>
+                        <button className={(salvando ? "disabled": "")} 
+                            type="submit" id="btnForm" onClick={confirmarDados}>
+                            {salvando === false && button}
                         </button>
-                    }
+                        {  salvando === true &&
+                            
+                            <button className='salvando' type="button">
+                            {
+                                salvando === true && <FontAwesomeIcon icon={faCircleNotch} className="fa-spin"/>
+                            }
+                            </button>
+                        }
+                    </div>
                 </div>
             </div>
             </>
@@ -316,6 +319,7 @@ function Formulario() {
                 </form>
             </div>
             }
+        </div>
         </div>
         </>
     )

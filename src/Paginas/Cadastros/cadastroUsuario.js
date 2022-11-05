@@ -367,12 +367,18 @@ function Formulario() {
 
         if(EnderecoOpen === true)
         {
-            document.querySelector("#msgCep").innerHTML = "";
-            document.querySelector("#msgCidade").innerHTML = "";
-            document.querySelector("#msgRua").innerHTML = "";
-            document.querySelector("#msgNumero").innerHTML = "";
-            document.querySelector("#msgBairro").innerHTML = "";
-            document.querySelector("#msgComplemento").innerHTML = "";
+            let resp = document.querySelector("#msgCep");
+            if(resp != null) resp.innerHTML = "";
+            resp = document.querySelector("#msgCidade");
+            if(resp != null) resp.innerHTML = "";
+            resp = document.querySelector("#msgRua");
+            if(resp != null) resp.innerHTML = "";
+            resp = document.querySelector("#msgNumero");
+            if(resp != null) resp.innerHTML = "";
+            resp = document.querySelector("#msgBairro");
+            if(resp != null) resp.innerHTML = "";
+            resp = document.querySelector("#msgComplemento");
+            if(resp != null) resp.innerHTML = "";
         }
 
         if(formDados === true)
@@ -580,7 +586,6 @@ function Formulario() {
     async function carregarTudo()
     {
         await carregarUsuarios();
-        await carregarCargos();
     }
 
     async function carregarUsuarios()
@@ -711,9 +716,9 @@ function Formulario() {
 
     async function alterarUsuario(usuario)
     {
-        limpar();
         setTabela(false);
-        setForm(true);
+        await setForm(true)
+        limpar();
         verContatos.length = 0;
 
         if(usuario.idade === null)
@@ -737,10 +742,12 @@ function Formulario() {
         else
             setDataDemissao(moment.utc(usuario.dataDemissao).format('YYYY-MM-DD'));
 
+
         if(usuario.sexo === "Masculino")
             definirM();
         if(usuario.sexo === "Feminino")
             definirF();
+
 
         if(EnderecoOpen === true)
         {
@@ -832,6 +839,7 @@ function Formulario() {
         <>
         <Header />
         <div className="background-conteudo">
+        <div className='background'>
             {tabela === true &&
             <div className="background-tabelas">
                 <div className='formulario-tabela'>
@@ -839,7 +847,7 @@ function Formulario() {
                         <div className='titulo'>
                             <h1>Usuarios</h1>
                         </div>
-                        <input type="button" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
+                        <input type="button" value="Cadastrar novo" onClick={e=>{carregarCargos();limpar();setForm(true);setTabela(false)}}></input>
                     </div>
                     <div className='formulario-padrao-tabela'>
                         <div className='inputs-buscar'>
@@ -864,8 +872,8 @@ function Formulario() {
                                 {usuarios !== "" &&
                                     usuarios.map(usuario =>(
                                         <tr key={usuario.id}>
-                                            <td onClick={e=>alterarUsuario(usuario)}>{usuario.nome}</td>
-                                            <td onClick={e=>alterarUsuario(usuario)}>{usuario.email}</td>
+                                            <td onClick={e=>{alterarUsuario(usuario)}}>{usuario.nome}</td>
+                                            <td onClick={e=>{alterarUsuario(usuario)}}>{usuario.email}</td>
                                             {localStorage.getItem("nivelAcesso") >= 60 &&
                                                 <td>
                                                     <a className="close">
@@ -885,6 +893,7 @@ function Formulario() {
 
             {form === true &&
             <>
+            <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
                     <div className='titulo-cont'>
@@ -1024,11 +1033,13 @@ function Formulario() {
                     <button id="btnForm" onClick={proximoUsuarioDados}>Proximo</button>
                 </div>
             </div>
+            </div>
             </>
             }
 
             {formDados === true &&
             <>
+            <div className='background'>
             <div className='formulario'>
                 <div className='titulo'>
                     <div className='titulo-cont'>
@@ -1102,11 +1113,13 @@ function Formulario() {
                     <button id="btnForm" onClick={proximoUsuarioAcesso}>Proximo</button>
                 </div>
             </div>
+            </div>
             </>
             }
 
             {formAcesso === true &&
             <>
+            <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
                     <div className='titulo-cont'>
@@ -1149,6 +1162,7 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </div>
             </>
             }
 
@@ -1183,6 +1197,7 @@ function Formulario() {
                 </form>
             </div>
             }
+        </div>
         </div>
         </>
     )

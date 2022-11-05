@@ -8,7 +8,8 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
 import Validar from '../../servicos/validar';
 import * as FcIcons from 'react-icons/fc';
-
+import * as BsIcons from 'react-icons/bs';
+import '../../tabela/styleTabela.css';
 //todo: gravar dados para o pagamento não completo das parcelas
 
 function Formulario() {
@@ -44,6 +45,11 @@ function Formulario() {
     const [salvando, setSalvando] = useState(false);
     const [button, setButton] = useState('Salvar');
     const [tituloPagina, setTituloPagina] = useState('Contas a Pagar');
+
+    const [form, setForm] = useState(false);
+    const [tabela, setTabela] = useState(true);
+    const [defExclusao, setDefExclusao] = useState(false);
+    const [defQuitarParcela, setDefQuitarParcela] = useState(false);
 
     const [buttonPagarParcela, setButtonPagarParcela] = useState('Pagar Inteiro');
     const [pagarParcelado, setPagarParcelado] = useState(false);
@@ -82,14 +88,17 @@ function Formulario() {
 
     async function limparAvisos()
     {
-        document.querySelector("#msgTitulo").innerHTML = "";
-        document.querySelector("#msgObservacao").innerHTML = "";
-        document.querySelector("#msgQtdeParcelas").innerHTML = "";
-        document.querySelector("#msgValorTotal").innerHTML = "";
-        document.querySelector("#msgEmissao").innerHTML = "";
-        document.querySelector("#msgVencimento").innerHTML = "";
-        document.querySelector("#msgFornecedor").innerHTML = "";
-        document.querySelector("#msgTipoDocumento").innerHTML = "";
+        if(form === true)
+        {
+            document.querySelector("#msgTitulo").innerHTML = "";
+            document.querySelector("#msgObservacao").innerHTML = "";
+            document.querySelector("#msgQtdeParcelas").innerHTML = "";
+            document.querySelector("#msgValorTotal").innerHTML = "";
+            document.querySelector("#msgEmissao").innerHTML = "";
+            document.querySelector("#msgVencimento").innerHTML = "";
+            document.querySelector("#msgFornecedor").innerHTML = "";
+            document.querySelector("#msgTipoDocumento").innerHTML = "";
+        }
     }
 
     async function validar()
@@ -196,8 +205,8 @@ function Formulario() {
 
     async function definirExclusao(idConta)
     {
-        document.getElementById('id01').style.display ='block';
         setExcConta(idConta);
+        setDefExclusao(true);
     }
 
     async function verificarParcelasPagas(num)
@@ -216,7 +225,7 @@ function Formulario() {
 
     async function definirQuitarParcela(parcela)
     {
-        document.getElementById('id02').style.display ='block';
+        setDefQuitarParcela(true);
         if(verificarParcelasPagas(parcela.numParcela))
         {
             setPIDFP(parcela.id);
@@ -234,6 +243,24 @@ function Formulario() {
         await carregarContas();
 
         document.getElementById('id01').style.display='none'; 
+    }
+
+    async function cancelar()
+    {   
+        setDefExclusao(false);
+        setPagarParcelado(false);
+        setExcConta('');
+    }
+
+    async function cancelarDefQuitarParcela()
+    {   
+        setDefQuitarParcela(false);
+        setPagarParcelado(false);
+        setPIDFP('');
+        setPValor('');
+        setPDataPagamento('');
+        setPDataVencimento('');
+        setPNumParcela('');
     }
 
     async function delConta(idConta)
@@ -277,7 +304,8 @@ function Formulario() {
             .then((response)=>{
                 setMsg(response.data);
             })
-            document.getElementById('id02').style.display='none';
+            setDefQuitarParcela(false);
+            setPagarParcelado(false);
             await definirParcelas(idContaPagar);
         }
         catch(err){
@@ -301,7 +329,8 @@ function Formulario() {
                     .then((response)=>{
                         setMsg(response.data);
                     })
-                    document.getElementById('id02').style.display='none';
+                    setDefQuitarParcela(false);
+                    setPagarParcelado(false);
                 }
                 catch(err){
                     console.log(err);
@@ -322,6 +351,34 @@ function Formulario() {
         }
     }
 
+    async function filtrarContas()
+    {
+        var input, filter, table, tr, td, i, txtValue;
+
+        input = document.getElementById("filtro");
+        filter = input.value.toUpperCase();
+
+        table = document.getElementById("table");
+        tr = table.getElementsByTagName("tr");
+
+        for (i=0; i<tr.length; i++) 
+        {
+            td = tr[i].getElementsByTagName("td")[0];
+            if(td) 
+            {
+                txtValue = td.textContent || td.innerText;
+                if(txtValue.toUpperCase().indexOf(filter) > -1 || filter === "") 
+                {
+                    tr[i].style.display = "";
+                } 
+                else 
+                {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }        
+    }
+
     async function ordenarParcelas()
     {
         parcelas.sort(function (x, y){
@@ -329,192 +386,190 @@ function Formulario() {
         });
     }
 
-    async function filtrarContas()
-    {
-        if(filtro !== "")
-        {
-            try{
-                await api.get(`/filtrarContasPagar/${filtro}`)
-                .then((response)=>{
-                    setMsg(response.data[0]);
-                    setContasPagar(response.data[1]);
-                })
-            }
-            catch(err){
-                console.log(err);
-            }
-        }
-        else
-        {
-            await carregarContas();
-        }
-    }
-
     return (
         <>
         <Header />
         <div className="background-conteudo">
-            <div className='titulo-pagina'>
-                <h1>{tituloPagina}</h1>
-            </div>
-            <div className='formulario-duplo'>
-                <div className='main-row'>
-                    <div className="formulario">
-
-                        <div className='titulo'>
-                            <h1>Cadastrar Conta</h1>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Título</label>
-                            <input type="text" name="titulo" id="titulo" value={titulo} placeholder="Digite um Título" onChange={e=>{setTitulo(e.target.value);document.querySelector("#msgTitulo").innerHTML = ""}}/>
-                            <div className='msg' id='msgTitulo'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Observação</label>
-                            <input type="text" name="observacao" id="observacao" value={observacao} placeholder="Digite uma Observação" onChange={e=>{setObservacao(e.target.value);document.querySelector("#msgObservacao").innerHTML = ""}}/>
-                            <div className='msg' id='msgObservacao'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Quantidade Parcelas *</label>
-                            <input type="text" name="qtdeParcelas" id="qtdeParcelas" value={qtdeParcelas} placeholder="Quantidade de Parcelas" onChange={e=>{setQtdeParcelas(e.target.value);document.querySelector("#msgQtdeParcelas").innerHTML = ""}}/>
-                            <div className='msg' id='msgQtdeParcelas'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Valor Total *</label>
-                            <input type="text" name="valorTotal" id="valorTotal" value={valorTotal} placeholder="Valor Total" onChange={e=>{setValorTotal(e.target.value);document.querySelector("#msgValorTotal").innerHTML = ""}}/>
-                            <div className='msg' id='msgValorTotal'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Data Emissão</label>
-                            <input type="date" name="dataEmissao" id="dataEmissao" value={dataEmissao} onChange={e=>{setDataEmissao(e.target.value);document.querySelector("#msgEmissao").innerHTML = ""}}/>
-                            <div className='msg' id='msgEmissao'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Vencimento Primeira Parcela *</label>
-                            <input type="date" name="primeiroVencimento" id="primeiroVencimento" value={dataPrimeiroVencimento} onChange={e=>{setDataPrimeiroVencimento(e.target.value);document.querySelector("#msgVencimento").innerHTML = ""}}/>
-                            <div className='msg' id='msgVencimento'></div>
-                        </div>
-
-                        <div className="formulario-padrao">
-                            <label>Tipo Documento</label>
-                            <input type="text" name="tipoDocumento" id="tipoDocumento" value={tipoDocumento} placeholder="Digite o Tipo de Documento" onChange={e=>{setTipoDocumento(e.target.value);document.querySelector("#msgTipoDocumento").innerHTML = ""}}/>
-                            <div className='msg' id='msgTipoDocumento'></div>
-                        </div>
-
-                        <div className='formulario-padrao'>
-                            {fornecedores !== "" &&
-                                <>
-                                    <label>Fornecedor*</label>
-                                    <select id="selFornecedor" value={idFornecedor} onChange={e=>{setFornecedor(e.target.value);document.querySelector("#msgFornecedor").innerHTML = ""}}>
-                                        <option key={0} value={0}>Escolha um fornecedor</option>
-                                        {fornecedores.map(fornecedor => (
-                                            <option key={fornecedor.id} value={fornecedor.id}>{fornecedor.nome}</option>
-                                        ))}
-                                    </select>
-                                    <div className='msg' id='msgFornecedor'></div>
-                                </>
-                            }
-                        </div>
-                        <div className='titulo-bottom'>
-                            <h2>( * ) Campos obrigatórios</h2>
-                        </div>
-                    </div>
-
+            <div className='background'>
+            {tabela === true &&
+            <>
+                <div className='background-tabelas'>
                     <div className="formulario-tabela">
-                        <div className='titulo'>
-                            <h1>Selecionar Conta</h1>
+                        <div className='titulo-cadastro'>
+                            <div className='titulo'>
+                                <h1>Contas a Pagar</h1>
+                            </div>
+                            <input type="button" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
                         </div>
                         <div className='formulario-padrao-tabela'>
                             <div className='inputs-buscar'>
-                                <input type="search" value={filtro} onChange={e => {setFiltro(e.target.value)}} placeholder='Pesquisar por Título'></input>
-                                <button onClick={filtrarContas}>OK</button>   
+                                <input type="search" id='filtro' placeholder='Pesquisar por Nome' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarContas()}}></input>
+                                <input type="button" value="Recarregar" onClick={carregarContas}></input>   
                             </div> 
-
+                        </div>
+                    </div>
+                    <div className='row-conta'>
+                        <div className='div-tabela'>
+                            <table className='tabela' id='table'>
+                                <thead className='thead-dark'>
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Parcelas</th>
+                                        <th>Valor Total(R$)</th>
+                                        <th>Vencimento (primeira parcela)</th>
+                                        <th>&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {contasPagar !== "" &&
+                                        contasPagar.map(conta =>(
+                                            <tr key={conta.id}>
+                                                <td onClick={e=>definirParcelas(conta.id)}>{conta.titulo}</td>
+                                                <td onClick={e=>definirParcelas(conta.id)}>{conta.qtdeParcelas}</td>
+                                                <td onClick={e=>definirParcelas(conta.id)}>R$ {conta.valorTotal}</td>
+                                                <td onClick={e=>definirParcelas(conta.id)}>{moment.utc(conta.dataPrimeiroVencimento).format('DD-MM-YYYY')}</td>
+                                                <td>
+                                                    <a className="close">
+                                                        <span aria-hidden="true" onClick={e => {definirExclusao(conta.id)}}>x</span>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div className='row-conta'>
+                        {parcelaForm &&
                             <div className='div-tabela'>
+                                <div className='titulo'>
+                                    <h1>Parcelas</h1>
+                                </div>
                                 <table className='tabela'>
-                                    <thead>
+                                    <thead className='thead-dark'>
                                         <tr>
-                                            <th>Título</th>
-                                            <th>Parcelas</th>
+                                            <th>Número da Parcela</th>
+                                            <th>Data Vencimento</th>
                                             <th>Valor Total(R$)</th>
-                                            <th>Vencimento (primeira parcela)</th>
-                                            <th>Ação</th>
+                                            <th>Não Pago(R$)</th>
+                                            <th>Situação</th>
+                                            <th>Pagar</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {contasPagar !== "" &&
-                                            contasPagar.map(conta =>(
-                                                <tr key={conta.id}>
-                                                    <td onClick={e=>definirParcelas(conta.id)}>{conta.titulo}</td>
-                                                    <td onClick={e=>definirParcelas(conta.id)}>{conta.qtdeParcelas}</td>
-                                                    <td onClick={e=>definirParcelas(conta.id)}>R$ {conta.valorTotal}</td>
-                                                    <td onClick={e=>definirParcelas(conta.id)}>{moment.utc(conta.dataPrimeiroVencimento).format('DD-MM-YYYY')}</td>
-                                                    <td>
-                                                        <button type="button" onClick={e => {definirExclusao(conta.id)}}>
-                                                            Excluir
-                                                        </button>
-                                                    </td>
+                                        {parcelas !== "" && ordenarParcelas() &&
+                                            parcelas.map(parcela =>(
+                                                <tr key={parcela.id}>
+                                                    <td>{parcela.numParcela}</td>
+                                                    <td>{moment.utc(parcela.dataVencimento).format('DD-MM-YYYY')}</td>
+                                                    <td>R$ {parcela.valorTotal}</td>
+                                                    <td>R$ {parcela.valor}</td>
+                                                    <td>{parcela.situacao}</td>
+                                                    {
+                                                        parcela.situacao === "Pago" &&
+                                                        <td>
+                                                            <a className="close-no">
+                                                                <span><FcIcons.FcCheckmark/></span>
+                                                            </a>
+                                                        </td>
+                                                    }
+                                                    {parcela.situacao === "Não pago" &&
+                                                        <td>
+                                                            <a className="close">
+                                                                <span aria-hidden="true" onClick={e => {definirQuitarParcela(parcela)}}>Quitar</span>
+                                                            </a>
+                                                        </td>
+                                                    }
                                                 </tr>
                                             ))
                                         }
                                     </tbody>
                                 </table>
                             </div>
-                            {parcelaForm &&
-                                <div className='div-tabela'>
-                                    <div className='titulo'>
-                                        <h1>Parcelas</h1>
-                                    </div>
-                                    <table className='tabela'>
-                                        <thead>
-                                            <tr>
-                                                <th>Número da Parcela</th>
-                                                <th>Data Vencimento</th>
-                                                <th>Valor Total(R$)</th>
-                                                <th>Não Pago(R$)</th>
-                                                <th>Situação</th>
-                                                <th>Pagar</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {parcelas !== "" && ordenarParcelas() &&
-                                                parcelas.map(parcela =>(
-                                                    <tr key={parcela.id}>
-                                                        <td>{parcela.numParcela}</td>
-                                                        <td>{moment.utc(parcela.dataVencimento).format('DD-MM-YYYY')}</td>
-                                                        <td>R$ {parcela.valorTotal}</td>
-                                                        <td>R$ {parcela.valor}</td>
-                                                        <td>{parcela.situacao}</td>
-                                                        {
-                                                            parcela.situacao === "Pago" &&
-                                                            <td>
-                                                                <FcIcons.FcCheckmark/>
-                                                            </td>
-                                                        }
-                                                        {parcela.situacao === "Não pago" &&
-                                                            <td>
-                                                                <button type="button" onClick={e => {definirQuitarParcela(parcela)}}>
-                                                                    Quitar
-                                                                </button>
-                                                            </td>
-                                                        }
-                                                    </tr>
-                                                ))
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            }
-                        </div>
-                    </div>            
+                        }
+                    </div>
                 </div>
-            </div>
+                {msg !== "" &&
+                    <div className='formulario'>
+                        <p id='msgSistema'>Mensagem do Sistema</p>
+                        <p id='msgSistema'>{msg}</p>
+                    </div>    
+                }
+            </>
+            }
+
+            {form === true &&
+            <>
+            <div className='background'>
+            <div className="formulario">
+                <div className='titulo'>
+                    <div className='titulo-cont'>
+                        <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                        <h1>Informações</h1>
+                    </div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Título</label>
+                    <input type="text" name="titulo" id="titulo" value={titulo} placeholder="Digite um Título" onChange={e=>{setTitulo(e.target.value);document.querySelector("#msgTitulo").innerHTML = ""}}/>
+                    <div className='msg' id='msgTitulo'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Observação</label>
+                    <input type="text" name="observacao" id="observacao" value={observacao} placeholder="Digite uma Observação" onChange={e=>{setObservacao(e.target.value);document.querySelector("#msgObservacao").innerHTML = ""}}/>
+                    <div className='msg' id='msgObservacao'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Quantidade Parcelas *</label>
+                    <input type="text" name="qtdeParcelas" id="qtdeParcelas" value={qtdeParcelas} placeholder="Quantidade de Parcelas" onChange={e=>{setQtdeParcelas(e.target.value);document.querySelector("#msgQtdeParcelas").innerHTML = ""}}/>
+                    <div className='msg' id='msgQtdeParcelas'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Valor Total *</label>
+                    <input type="text" name="valorTotal" id="valorTotal" value={valorTotal} placeholder="Valor Total" onChange={e=>{setValorTotal(e.target.value);document.querySelector("#msgValorTotal").innerHTML = ""}}/>
+                    <div className='msg' id='msgValorTotal'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Data Emissão</label>
+                    <input type="date" name="dataEmissao" id="dataEmissao" value={dataEmissao} onChange={e=>{setDataEmissao(e.target.value);document.querySelector("#msgEmissao").innerHTML = ""}}/>
+                    <div className='msg' id='msgEmissao'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Vencimento Primeira Parcela *</label>
+                    <input type="date" name="primeiroVencimento" id="primeiroVencimento" value={dataPrimeiroVencimento} onChange={e=>{setDataPrimeiroVencimento(e.target.value);document.querySelector("#msgVencimento").innerHTML = ""}}/>
+                    <div className='msg' id='msgVencimento'></div>
+                </div>
+
+                <div className="formulario-padrao">
+                    <label>Tipo Documento</label>
+                    <input type="text" name="tipoDocumento" id="tipoDocumento" value={tipoDocumento} placeholder="Digite o Tipo de Documento" onChange={e=>{setTipoDocumento(e.target.value);document.querySelector("#msgTipoDocumento").innerHTML = ""}}/>
+                    <div className='msg' id='msgTipoDocumento'></div>
+                </div>
+
+                <div className='formulario-padrao'>
+                    {fornecedores !== "" &&
+                        <>
+                            <label>Fornecedor*</label>
+                            <select id="selFornecedor" value={idFornecedor} onChange={e=>{setFornecedor(e.target.value);document.querySelector("#msgFornecedor").innerHTML = ""}}>
+                                <option key={0} value={0}>Escolha um fornecedor</option>
+                                {fornecedores.map(fornecedor => (
+                                    <option key={fornecedor.id} value={fornecedor.id}>{fornecedor.nome}</option>
+                                ))}
+                            </select>
+                            <div className='msg' id='msgFornecedor'></div>
+                        </>
+                    }
+                </div>
+                <div className='titulo-bottom'>
+                    <h2>( * ) Campos obrigatórios</h2>
+                </div>
+            </div>      
 
             {msg !== "" &&
                 <div className='formulario'>
@@ -540,22 +595,29 @@ function Formulario() {
                     }
                 </div>
             </div>
-
-            <div id="id01" className="modal">
-                <form className="modal-content">
-                    <div className="container">
-                        <h1>Deletar Conta</h1>
-                        <p>A conta e todas as parcelas serão excluidas, deseja continuar?</p>
-                        
-                        <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={e => document.getElementById('id01').style.display='none'}>Cancelar</button>
-                            <button type="button" className="deletebtn" onClick={()=>excluirConta()}>Deletar</button>
-                        </div>
-            
-                    </div>
-                </form>
             </div>
+            </>
+            }           
 
+            {defExclusao === true &&
+                <div id="id01" className="modal">
+                    <form className="modal-content">
+                        <div className="container">
+                            <h1>Deletar Conta</h1>
+                            <p>A conta e todas as parcelas serão excluidas, deseja continuar?</p>
+                            
+                            <div className="clearfix">
+                                <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
+                                <button type="button" className="deletebtn" onClick={()=>excluirConta()}>Deletar</button>
+                            </div>
+                
+                        </div>
+                    </form>
+            </div>
+            }
+
+
+            {defQuitarParcela === true &&
             <div id="id02" className="modal">
                 <form className="modal-content">
                     <div className="container">
@@ -582,7 +644,7 @@ function Formulario() {
                                 }
 
                                 <div className="clearfix">
-                                    <button type="button" className="cancelbtn" onClick={e => document.getElementById('id02').style.display='none'}>Cancelar</button>
+                                    <button type="button" className="cancelbtn" onClick={()=>cancelarDefQuitarParcela()}>Cancelar</button>
                                     {buttonPagarParcela === "Pagar Inteiro" &&
                                         <button type="button" className="deletebtn" onClick={quitarParcela}>{buttonPagarParcela}</button>
                                     }
@@ -598,13 +660,15 @@ function Formulario() {
                             <>
                                 <p>Parcelas anteriores não pagas</p>
                                 <div className="clearfix">
-                                    <button type="button" className="cancelbtn" onClick={e => document.getElementById('id02').style.display='none'}>Cancelar</button>
+                                    <button type="button" className="cancelbtn" onClick={()=>cancelarDefQuitarParcela()}>Cancelar</button>
                                 </div>
                             </>
                         }
                     </div>
                 </form>
             </div>
+            }
+        </div>
         </div>
         </>
     )

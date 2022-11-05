@@ -349,6 +349,7 @@ function Formulario() {
         <>
         <Header />
         <div className="background-conteudo">
+        <div className='background'>
             {tabela === true &&
             <div className="background-tabelas">
                 <div className="formulario-tabela">
@@ -402,6 +403,7 @@ function Formulario() {
             }
             {form === true &&
             <>
+            <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
                     <div className='titulo-cont'>
@@ -462,6 +464,7 @@ function Formulario() {
                     }
                 </div>
             </div>
+            </div>
             </>
             }
 
@@ -497,6 +500,7 @@ function Formulario() {
                 </form>
             </div>
             }
+        </div>
         </div>
         </>
     )

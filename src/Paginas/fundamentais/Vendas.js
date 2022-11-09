@@ -81,7 +81,7 @@ function Vendas({childToParent})
 
     async function definirExclusao(idVenda)
     {
-
+        
     }
 
     return (

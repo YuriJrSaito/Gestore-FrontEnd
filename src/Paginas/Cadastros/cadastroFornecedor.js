@@ -2,6 +2,7 @@ import '../../App.css';
 import '../../tabela/styleTabela.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
+import Manual from '../../Components/manual.js'
 import React, { useEffect, useState } from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCircleNotch} from '@fortawesome/free-solid-svg-icons';
@@ -33,6 +34,8 @@ function Formulario() {
     const [form, setForm] = useState(false);
     const [tabela, setTabela] = useState(true);
     const [defExclusao, setDefExclusao] = useState(false);
+    const [manual, setManual] = useState(false);
+    const [ultimoId, setUltimoId] = useState('');
 
     async function validarTelefone(valor)
     {
@@ -119,6 +122,8 @@ function Formulario() {
     {
         setSalvando(false);
 
+        setUltimoId('');
+        setManual(false);
         setButton('Salvar');
         setNome('');
         setCnpj('');
@@ -345,9 +350,27 @@ function Formulario() {
         setAltFor(fornecedor.id);
     }
 
+    const ativarManual = (id) => {
+        setUltimoId(id);
+        setManual(!manual);
+    }
+
     return (
         <>
         <Header />
+        {manual === true &&
+            tabela === true &&
+                <Manual ativarManual={ativarManual} origem={"cadFornecedorTabela"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            form === true &&
+                <Manual ativarManual={ativarManual} origem={"cadFornecedorForm"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            defExclusao === true &&
+                <Manual ativarManual={ativarManual} origem={"cadFornecedorEx"} lastid={ultimoId}/>
+        }
+    
         <div className="background-conteudo">
         <div className='background'>
             {tabela === true &&
@@ -357,13 +380,14 @@ function Formulario() {
                         <div className='titulo'>
                             <h1>Fornecedores</h1>
                         </div>
-                        <input type="button" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
+                        <input type="button" id="cadastrarNovo" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
 
                     <div className='formulario-padrao-tabela'>
                         <div className='inputs-buscar'>
                             <input type="search" id='filtro' placeholder='Pesquisar por Nome' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarFornecedores()}}></input>
-                            <input type="button" onClick={recarregarFornecedores} value="Recarregar"></input>   
+                            <input type="button" id="recarregar" onClick={recarregarFornecedores} value="Recarregar"></input>   
                         </div> 
                     </div>
                 </div>           
@@ -388,7 +412,7 @@ function Formulario() {
                                             {localStorage.getItem("nivelAcesso") >= 60 &&
                                                 <td>
                                                     <a className="close">
-                                                        <span aria-hidden="true" onClick={e => {definirExclusao(fornecedor.id)}}>x</span>
+                                                        <span id='tabela-excluir' aria-hidden="true" onClick={e => {definirExclusao(fornecedor.id)}}>x</span>
                                                     </a>
                                                 </td>
                                             }
@@ -409,6 +433,7 @@ function Formulario() {
                     <div className='titulo-cont'>
                         <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
                         <h1>Informações</h1>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
                 </div>
 
@@ -450,7 +475,7 @@ function Formulario() {
             </div>
             <div className='formulario'>
                 <div className='div-botoes'>
-                    <button type="button" onClick={limpar}>Limpar</button>
+                    <button id='limpar' type="button" onClick={limpar}>Limpar</button>
                     <button className={(salvando ? "disabled": "")} 
                         type="submit" id="btnForm" onClick={confirmarDados}>
                         {salvando === false && button}
@@ -480,6 +505,7 @@ function Formulario() {
                 <form className="modal-content">
                     <div className="container">
                         <h1>Deletar Fornecedor</h1>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                         {msgProcurar > 0 &&
                             <p>Este fornecedor está presente em alguns produtos, não é possível deletar!!</p>                       
                         }           
@@ -489,10 +515,10 @@ function Formulario() {
                         }
 
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
+                            <button id="cancelar" type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
                             {
                                 msgProcurar <= 0 &&
-                                <button type="button" className="deletebtn" onClick={()=>excluirFornecedor()}>Deletar</button>
+                                <button id='excluir' type="button" className="deletebtn" onClick={()=>excluirFornecedor()}>Deletar</button>
                             }
                         </div>
                         

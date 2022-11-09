@@ -3,6 +3,7 @@ import '../../App.css';
 import '../../tabela/styleTabela.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
+import Manual from '../../Components/manual.js'
 import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -70,6 +71,8 @@ function Formulario() {
 
     const [defExclusao, setDefExclusao] = useState(false);
     const [msgProcurar, setMsgProcurar] = useState(0);
+    const [manual, setManual] = useState(false);
+    const [ultimoId, setUltimoId] = useState('');
 
     function validarTelefone(valor)
     {
@@ -402,6 +405,9 @@ function Formulario() {
         setSalvando(false);
         setButton("Salvar");
         setMsg('');
+
+        setManual(false);
+        setUltimoId('');
 
         setNome('');
         setEmail('');
@@ -835,9 +841,34 @@ function Formulario() {
         document.querySelector("#SexoM").checked = true;
     }
 
+    const ativarManual = (id) => {
+        setUltimoId(id);
+        setManual(!manual);
+    }
+
     return (
         <>
         <Header />
+        {manual === true &&
+            tabela === true &&
+                <Manual ativarManual={ativarManual} origem={"cadUsuarioTabela"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            form === true &&
+                <Manual ativarManual={ativarManual} origem={"cadUsuarioForm"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            formDados === true &&
+                <Manual ativarManual={ativarManual} origem={"cadUsuarioFormDados"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            formAcesso === true &&
+                <Manual ativarManual={ativarManual} origem={"cadUsuarioFormAcesso"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            defExclusao === true &&
+                <Manual ativarManual={ativarManual} origem={"cadUsuarioEx"} lastid={ultimoId}/>
+        }
         <div className="background-conteudo">
         <div className='background'>
             {tabela === true &&
@@ -847,12 +878,13 @@ function Formulario() {
                         <div className='titulo'>
                             <h1>Usuarios</h1>
                         </div>
-                        <input type="button" value="Cadastrar novo" onClick={e=>{carregarCargos();limpar();setForm(true);setTabela(false)}}></input>
+                        <input type="button" id='cadastrarNovo' value="Cadastrar novo" onClick={e=>{carregarCargos();limpar();setForm(true);setTabela(false)}}></input>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
                     <div className='formulario-padrao-tabela'>
                         <div className='inputs-buscar'>
                             <input type="search" id='filtro' placeholder='Pesquisar por Nome' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarUsuarios()}}></input>
-                            <input type="button" onClick={carregarUsuarios} value="Recarregar"></input> 
+                            <input id="recarregar" type="button" onClick={carregarUsuarios} value="Recarregar"></input> 
                         </div> 
                     </div>
                 </div>
@@ -877,7 +909,7 @@ function Formulario() {
                                             {localStorage.getItem("nivelAcesso") >= 60 &&
                                                 <td>
                                                     <a className="close">
-                                                        <span aria-hidden="true" onClick={e => {definirExclusao(usuario.id, usuario.id_telefone, usuario.id_endereco, usuario.id_controle_acesso)}}>x</span>
+                                                        <span id="tabela-excluir" aria-hidden="true" onClick={e => {definirExclusao(usuario.id, usuario.id_telefone, usuario.id_endereco, usuario.id_controle_acesso)}}>x</span>
                                                     </a>
                                                 </td>
                                             }
@@ -899,6 +931,7 @@ function Formulario() {
                     <div className='titulo-cont'>
                         <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
                         <h1>Informações Pessoais</h1>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
                 </div>
 
@@ -923,11 +956,11 @@ function Formulario() {
                 <div className='formulario-padrao-sexo'>
                     <label>Sexo</label>
 
-                    <label>Feminino
+                    <label id="fem">Feminino
                         <input type="radio" name="Sexo" id="SexoF" value="Feminino" onClick={definirF} onChange={e=>setSexo(e.target.value)}/>
                     </label>
     
-                    <label>Masculino
+                    <label id="mas">Masculino
                         <input type="radio" name="Sexo" id="SexoM" value="Masculino"  onClick={definirM} onChange={e=>setSexo(e.target.value)}/>
                     </label>
                 </div>
@@ -948,8 +981,8 @@ function Formulario() {
                             <div className="formulario-padrao">
                                 <label htmlFor="telefone">Número de contato (mínimo 1, máximo 3 telefones)</label>
                                 <div id="adicionar-contato">
-                                    <input type="tel" value={telefone} onChange={e=>{setTelefone(e.target.value);document.querySelector("#mensagemContato").innerHTML = ""}} placeholder="(xx)xxxxx-xxxx" required/>
-                                    <input type="button" onClick={addLista} value="Adicionar"/>                           
+                                    <input id='cadTel' type="tel" value={telefone} onChange={e=>{setTelefone(e.target.value);document.querySelector("#mensagemContato").innerHTML = ""}} placeholder="(xx)xxxxx-xxxx" required/>
+                                    <input id='addTel' type="button" onClick={addLista} value="Adicionar"/>                           
                                 </div>
                                 <div id="mensagemContato"></div>
                             </div>
@@ -967,7 +1000,7 @@ function Formulario() {
                                             <tr key={contato.codigo}>
                                                 <td>{contato.telefone}</td>
                                                 <td>
-                                                    <button className="btnExcluirCont" onClick={()=>Excluir(contato.codigo)} type="button">
+                                                    <button id="excTel" className="btnExcluirCont" onClick={()=>Excluir(contato.codigo)} type="button">
                                                         Excluir
                                                     </button>
                                                 </td>
@@ -1029,7 +1062,7 @@ function Formulario() {
             }
             <div className='formulario'>
                 <div className='div-botoes'>
-                    <button type="button" onClick={limpar}>Limpar</button>
+                    <button id='limpar' type="button" onClick={limpar}>Limpar</button>
                     <button id="btnForm" onClick={proximoUsuarioDados}>Proximo</button>
                 </div>
             </div>
@@ -1045,6 +1078,7 @@ function Formulario() {
                     <div className='titulo-cont'>
                         <button id="retornar" onClick={e=>{setForm(true);setFormDados(false)}}><BsIcons.BsArrowLeft/></button>
                         <h1>Dados de Usuário</h1>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
                 </div>
                 <div className='formulario-padrao'>
@@ -1066,7 +1100,7 @@ function Formulario() {
                             <label>Cadastrar Novo Cargo</label>
                             <div className='adicionar-cargo'>
                                 <input type="text" name="cargo" id="cargo" value={cadDescCargo || ""} onChange={e=>setCadDescCargo(e.target.value)} placeholder="Digite o cargo"/>
-                                <input type="button" onClick={cadastrarCargo} value="Cadastrar"/> 
+                                <input id='cadCargo' type="button" onClick={cadastrarCargo} value="Cadastrar"/> 
                                 {msgCargo !== "" &&
                                     <p style={{color: cargoMsgCor}}>{msgCargo}</p>
                                 }
@@ -1077,7 +1111,7 @@ function Formulario() {
 
                 <div className="formulario-padrao">
                     <label htmlFor="nivelAcesso">Nível Acesso*</label>
-                    <select value={nivelAcesso} onChange={e=>{setNivelAcesso(e.target.value);document.querySelector("#msgNivel").innerHTML = ""}}>
+                    <select id='nivelAc' value={nivelAcesso} onChange={e=>{setNivelAcesso(e.target.value);document.querySelector("#msgNivel").innerHTML = ""}}>
                         <option>Escolha um nível de acesso</option>
                         <option key={20} value={20}>Funcionário</option>
                         <option key={60} value={60}>Administrador</option>
@@ -1092,7 +1126,7 @@ function Formulario() {
                 </div>
 
                 <div className="formulario-padrao">
-                    <label htmlFor="dataEmissao">Data Emissão*</label>
+                    <label htmlFor="dataEmissao">Data Admissão*</label>
                     <input type="date" name="dataEmissao" id="dataEmissao" value={dataEmissao || ""} onChange={e=>{setDataEmissao(e.target.value);document.querySelector("#msgEmissao").innerHTML = ""}}/>
                     <div className='msg' id='msgEmissao'></div>
                 </div>
@@ -1109,7 +1143,7 @@ function Formulario() {
             </div>
             <div className='formulario'>
                 <div className='div-botoes'>
-                    <button type="button" onClick={limpar}>Limpar</button>
+                    <button id="limpar" type="button" onClick={limpar}>Limpar</button>
                     <button id="btnForm" onClick={proximoUsuarioAcesso}>Proximo</button>
                 </div>
             </div>
@@ -1125,6 +1159,7 @@ function Formulario() {
                     <div className='titulo-cont'>
                         <button id="retornar" onClick={e=>{setFormDados(true);setFormAcesso(false)}}><BsIcons.BsArrowLeft/></button>
                         <h1>Dados de Acesso</h1>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
                 </div>
 
@@ -1147,7 +1182,7 @@ function Formulario() {
 
             <div className='formulario'>
                 <div className='div-botoes'>
-                    <button type="button" onClick={limpar}>Limpar</button>
+                    <button id='limpar' type="button" onClick={limpar}>Limpar</button>
                     <button className={(salvando ? "disabled": "")} 
                         type="submit" id="btnForm" onClick={e=>{confirmarDados()}}>
                         {salvando === false && button}
@@ -1178,6 +1213,7 @@ function Formulario() {
                 <form className="modal-content">
                     <div className="container">
                         <h1>Deletar Usuário</h1>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                         {msgProcurar > 0 &&
                             <p>Este usuário está presente em algumas vendas, não é possível deletar!!</p>                       
                         }           
@@ -1187,9 +1223,9 @@ function Formulario() {
                         }
 
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
+                            <button id='cancelar' type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
                             {msgProcurar <= 0 &&
-                                <button type="button" className="deletebtn" onClick={()=>excluirUsuario()}>Deletar</button>
+                                <button id='excluir' type="button" className="deletebtn" onClick={()=>excluirUsuario()}>Deletar</button>
                             }
                         </div>
                 

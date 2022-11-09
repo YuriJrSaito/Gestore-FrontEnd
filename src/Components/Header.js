@@ -84,6 +84,7 @@ function Header() {
                     </li>
                     {sidebarDados.map((item, index) => {
                         return (
+                            localStorage.getItem("nivelAcesso") >= item.nivel &&
                                 <li key={index} className={item.cNome}>
                                     <Link to={item.caminho}>
                                         {item.icone}

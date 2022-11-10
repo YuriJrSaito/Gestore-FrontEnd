@@ -82,6 +82,7 @@ function Formulario() {
         setDataLimite("")
         setFiltro("");
         setObservacao("");
+        setButton("Salvar");
 
         await limparAvisos();
     }
@@ -277,8 +278,8 @@ function Formulario() {
         {
             if(button === "Salvar")
             {
-                let idVenda = await gravarVenda();
-                await gravarLista(idVenda);
+                let idVendaAux = await gravarVenda();
+                await gravarLista(idVendaAux);
             }
             else
             {
@@ -627,6 +628,7 @@ function Formulario() {
         if(resp === true)
         {
             await delVenda(excVenda);
+            await limpar();
             await carregarVendas();
 
             setDefExclusao(false);
@@ -702,7 +704,7 @@ function Formulario() {
                     <div className='titulo'>
                         <h1>Venda Condicional</h1>
                     </div>
-                    <input type="button" value="Realizar Venda" onClick={e=>{carregarTodosProdutos();setTabela(false);setFormSelProdutos(true)}}></input>
+                    <input type="button" value="Realizar Venda" onClick={e=>{limpar();carregarTodosProdutos();setTabela(false);setFormSelProdutos(true)}}></input>
                 </div>
                 
                 <div className='formulario-padrao-tabela'>
@@ -790,8 +792,9 @@ function Formulario() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {produtos !== "" &&
+                                        {produtos !== "" && 
                                             produtos.map(produto =>(
+                                                produto.qtdeEstoque > 0 &&
                                                 <tr key={produto.id}>
                                                     <td onClick={e=>selProduto(produto)}>{produto.titulo}</td>
                                                     {produto.img1 === "" && <td onClick={e=>selProduto(produto)}>Sem imagens</td>}

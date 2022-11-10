@@ -1,12 +1,10 @@
-import React from 'react';
-
 export const manualDados = [
 
     //Cadastro de Produtos ---------------------------------------------------------------------------------------
     {
         titulo: 'Filtro : "Pesquisar por Nome"',
         categoria: 'cadProdutoTabela',
-        texto: 'Este campo serve para a filtragem de dados, ao escrever, a tabela ira mostrar apenas as linhas convenientes ao filtro',
+        texto: 'Este campo serve para a filtragem de dados, ao escrever, a tabela irá mostrar apenas as linhas convenientes ao filtro',
         campo: "filtro",
     },
     {
@@ -206,6 +204,7 @@ export const manualDados = [
         categoria: 'cadFornecedorForm',
         texto: 'Siga o email de exemplo, é necessario possuir "@" "email" e ".com" para ser validado',
         obrigatorio: "Não",
+        max: 30,
         campo: "email",
     },
     {
@@ -282,12 +281,6 @@ export const manualDados = [
         campo: "excluir",
     },
     {
-        titulo: 'Botões : "Deletar"',
-        categoria: 'cadUsuarioFormEx',
-        texto: 'Ao clicar você irá efetivar a exclusão, caso este botão não esteja visível, leia a mensagem atentamente',
-        campo: "excluir",
-    },
-    {
         titulo: 'Nome Completo : "Digite o Nome"',
         categoria: 'cadUsuarioForm',
         texto: 'Preencha este campo com o nome completo do usuário',
@@ -330,6 +323,7 @@ export const manualDados = [
         categoria: 'cadUsuarioForm',
         texto: 'Siga o email de exemplo, é necessario possuir "@" "email" e ".com" para ser validado',
         obrigatorio: "Não",
+        max: 30,
         campo: "email",
     },
     {
@@ -343,7 +337,7 @@ export const manualDados = [
     {
         titulo: 'Cadastrar Contato : "Adicionar"',
         categoria: 'cadUsuarioForm',
-        texto: 'Ao clicar vc irá adicionar o telefone preenchido há lista',
+        texto: 'Ao clicar vc irá adicionar o telefone preenchido na lista',
         campo: "addTel",
     },
     {
@@ -505,4 +499,484 @@ export const manualDados = [
         campo: "btnForm",
     },
     //Fim cadastro de usuário------------------------------------------------------------------------------------------------------------
+   
+    //cadastro de Cliente------------------------------------------------------------------------------------------------------------
+    {
+        titulo: 'Filtro : "Pesquisar por Nome"',
+        categoria: 'cadClienteTabela',
+        texto: 'Este campo serve para a filtragem de dados, ao escrever, a tabela ira mostrar apenas as linhas convenientes ao filtro',
+        campo: "filtro",
+    },
+    {
+        titulo: 'Botão Recarregar : "Recarregar"',
+        categoria: 'cadClienteTabela',
+        texto: 'Ao clicar neste botão a lista de clientes será recarregada, se os clientes não estiverem sendo exibidos clique neste botão',
+        campo: "recarregar",
+    },
+    {
+        titulo: 'Botão Cadastrar novo: "Cadastrar novo"',
+        categoria: 'cadClienteTabela',
+        texto: 'Ao clicar neste botão o formulário de cadastro de um novo cliente será aberto',
+        campo: "cadastrarNovo",
+    },
+    {
+        titulo: 'Linha Tabela',
+        categoria: 'cadClienteTabela',
+        texto: 'Ao clicar em alguma linha da tabela será aberto o formulario com os dados do cliente referente a linha, sendo possivel edita-los',
+        campo: "table",
+    },
+    {
+        titulo: 'Linha Tabela : "X - Excluír"',
+        categoria: 'cadClienteTabela',
+        texto: 'Ao clicar neste x será aberto um componente com algumas informações sobre a exclusão',
+        campo: "tabela-excluir",
+    },
+    {
+        titulo: 'Botões : "Cancelar"',
+        categoria: 'cadClienteEx',
+        texto: 'Ao clicar você fechara está aba e o cliente não sera excluído',
+        campo: "cancelar",
+    },
+    {
+        titulo: 'Botões : "Deletar"',
+        categoria: 'cadClienteEx',
+        texto: 'Ao clicar você irá efetivar a exclusão, caso este botão não esteja visível, leia a mensagem atentamente',
+        campo: "excluir",
+    },
+    {
+        titulo: 'Nome Completo : "Digite o Nome"',
+        categoria: 'cadClienteForm',
+        texto: 'Preencha este campo com o nome completo',
+        obrigatorio: "Sim",
+        max: 50,
+        campo: "nome",
+    },
+    {
+        titulo: 'CPF : "xxx.xxx.xxx-xx"',
+        categoria: 'cadClienteForm',
+        texto: 'Não digite os símbolos ou caracteres que não forem números, o CPF deve ter 11 caracteres',
+        obrigatorio: "Não",
+        max: 11,
+        campo: "cpf",
+    },
+    {
+        titulo: 'Idade : "Digite a idade"',
+        categoria: 'cadClienteForm',
+        texto: 'Digite apenas números, maiores que 13(zero) e menores que 100(cem)',
+        obrigatorio: "Não",
+        max: 2,
+        campo: "idade",
+    },
+    {
+        titulo: 'Sexo : "Feminino"',
+        categoria: 'cadClienteForm',
+        texto: 'Selecione este campo para mulheres',
+        obrigatorio: "Não",
+        campo: "fem",
+    },
+    {
+        titulo: 'Sexo : "Masculino"',
+        categoria: 'cadClienteForm',
+        texto: 'Selecione este campo para homens',
+        obrigatorio: "Não",
+        campo: "mas",
+    },
+    {
+        titulo: 'Email : "exemplo@email.com"',
+        categoria: 'cadClienteForm',
+        texto: 'Siga o email de exemplo, é necessario possuir "@" "email" e ".com" para ser validado',
+        obrigatorio: "Não",
+        max: 30,
+        campo: "email",
+    },
+    {
+        titulo: 'Cadastrar Contato : "(xx)xxxxx-xxxx"',
+        categoria: 'cadClienteForm',
+        texto: 'Não digite os símbolos ou caracteres que não forem números, é obrigatório pelo menos 1 telefone cadastrado, e é permitido no máximo 3 telefones',
+        obrigatorio: "Sim",
+        max: 11,
+        campo: "cadTel",
+    },
+    {
+        titulo: 'Cadastrar Contato : "Adicionar"',
+        categoria: 'cadClienteForm',
+        texto: 'Ao clicar vc irá adicionar o telefone preenchido na lista',
+        campo: "addTel",
+    },
+    {
+        titulo: 'Tabela Telefones Botão: "Excluír"',
+        categoria: 'cadClienteForm',
+        texto: 'Ao clicar vc irá retirar o telefone referente a linha da tabela',
+        campo: "excTel",
+    },
+    {
+        titulo: 'CEP : "xxxxx-xxx"',
+        categoria: 'cadClienteForm',
+        texto: 'Não digite os símbolos ou caracteres que não forem números',
+        obrigatorio: "Não",
+        max: 8,
+        campo: "cep",
+    },
+    {
+        titulo: 'Cidade : "Digite a cidade"',
+        categoria: 'cadClienteForm',
+        texto: 'Preencha este campo com a cidade de residência',
+        obrigatorio: "não",
+        max: 30,
+        campo: "cidade",
+    },
+    {
+        titulo: 'Rua : "Digite a rua"',
+        categoria: 'cadClienteForm',
+        texto: 'Digite a rua de residência',
+        obrigatorio: "não",
+        max: 50,
+        campo: "rua",
+    },
+    {
+        titulo: 'Número : "Digite o número"',
+        categoria: 'cadClienteForm',
+        texto: 'Não digite os símbolos ou caracteres que não forem números, não digite números menores que 0(zero)',
+        obrigatorio: "não",
+        campo: "numero",
+    },
+    {
+        titulo: 'Bairro : "Digite o bairro"',
+        categoria: 'cadClienteForm',
+        texto: 'Digite o bairro',
+        obrigatorio: "não",
+        max: 30,
+        campo: "bairro",
+    },
+    {
+        titulo: 'Complemento : "Digite o complemento"',
+        categoria: 'cadClienteForm',
+        texto: 'Digite um complemento referente ao endereço',
+        obrigatorio: "não",
+        max: 30,
+        campo: "complemento",
+    },
+    {
+        titulo: 'Botões : "Limpar"',
+        categoria: 'cadClienteForm',
+        texto: 'Ao clicar todos os dados e mensagens de erro no formulário serão apagados',
+        campo: "limpar",
+    },
+    {
+        titulo: 'Botões : "Salvar ou Alterar"',
+        categoria: 'cadClienteForm',
+        texto: 'Caso o botão esteja em modo "Salvar", ao ser clicado ele validará todos os dados preenchidos e irá efetivar o cadastro, caso esteja em modo "Alterar", também validará os dados e irá confirmar a alteração',
+        campo: "btnForm",
+    },
+    //Fim cadastro de cliente------------------------------------------------------------------------------------------------------------
+
+    //cadastro de Cargo------------------------------------------------------------------------------------------------------------
+    {
+        titulo: 'Filtro : "Pesquisar por título"',
+        categoria: 'cadCargoTabela',
+        texto: 'Este campo serve para a filtragem de dados, ao escrever, a tabela ira mostrar apenas as linhas convenientes ao filtro',
+        campo: "filtro",
+    },
+    {
+        titulo: 'Botão Recarregar : "Recarregar"',
+        categoria: 'cadCargoTabela',
+        texto: 'Ao clicar neste botão a lista será recarregada, se a tabela estiver vazia clique neste botão',
+        campo: "recarregar",
+    },
+    {
+        titulo: 'Botão Cadastrar novo: "Cadastrar novo"',
+        categoria: 'cadCargoTabela',
+        texto: 'Ao clicar neste botão o formulário de cadastro será aberto',
+        campo: "cadastrarNovo",
+    },
+    {
+        titulo: 'Linha Tabela',
+        categoria: 'cadCargoTabela',
+        texto: 'Ao clicar em alguma linha da tabela será aberto o formulário com os dados referente a linha, sendo possivel edita-los',
+        campo: "table",
+    },
+    {
+        titulo: 'Linha Tabela : "X - Excluír"',
+        categoria: 'cadCargoTabela',
+        texto: 'Ao clicar neste x será aberto um componente com algumas informações sobre a exclusão',
+        campo: "tabela-excluir",
+    },
+    {
+        titulo: 'Botões : "Cancelar"',
+        categoria: 'cadCargoEx',
+        texto: 'Ao clicar você fechará está aba e a exclusão não será efetivada',
+        campo: "cancelar",
+    },
+    {
+        titulo: 'Botões : "Deletar"',
+        categoria: 'cadCargoEx',
+        texto: 'Ao clicar você irá efetivar a exclusão, caso este botão não esteja visível, leia a mensagem atentamente',
+        campo: "excluir",
+    },
+    {
+        titulo: 'Título : "Digite o Cargo"',
+        categoria: 'cadCargoForm',
+        texto: 'Digite o cargo de usuário para cadastro, exemplo: caixa, vendedor, gerente...',
+        obrigatorio: 'Sim',
+        max: 30,
+        campo: "tituloCargo",
+    },
+    {
+        titulo: 'Botões : "Limpar"',
+        categoria: 'cadCargoForm',
+        texto: 'Ao clicar todos os dados e mensagens de erro no formulário serão apagados',
+        campo: "limpar",
+    },
+    {
+        titulo: 'Botões : "Salvar ou Alterar"',
+        categoria: 'cadCargoForm',
+        texto: 'Ao clicar neste botão o novo cargo sera validado pelo sistema e caso seja bem sucedido ele será cadastrado',
+        campo: "btnForm",
+    },
+    //Fim cadastro de Cargo------------------------------------------------------------------------------------------------------------   
+
+    //cadastro de Categoria------------------------------------------------------------------------------------------------------------
+    {
+        titulo: 'Filtro : "Pesquisar por título"',
+        categoria: 'cadCategoriaTabela',
+        texto: 'Este campo serve para a filtragem de dados, ao escrever, a tabela ira mostrar apenas as linhas convenientes ao filtro',
+        campo: "filtro",
+    },
+    {
+        titulo: 'Botão Recarregar : "Recarregar"',
+        categoria: 'cadCategoriaTabela',
+        texto: 'Ao clicar neste botão a lista será recarregada, se a tabela estiver vazia clique neste botão',
+        campo: "recarregar",
+    },
+    {
+        titulo: 'Botão Cadastrar novo: "Cadastrar novo"',
+        categoria: 'cadCategoriaTabela',
+        texto: 'Ao clicar neste botão o formulário de cadastro será aberto',
+        campo: "cadastrarNovo",
+    },
+    {
+        titulo: 'Linha Tabela',
+        categoria: 'cadCategoriaTabela',
+        texto: 'Ao clicar em alguma linha da tabela será aberto o formulário com os dados referente a linha, sendo possivel edita-los',
+        campo: "table",
+    },
+    {
+        titulo: 'Linha Tabela : "X - Excluír"',
+        categoria: 'cadCategoriaTabela',
+        texto: 'Ao clicar neste x será aberto um componente com algumas informações sobre a exclusão',
+        campo: "tabela-excluir",
+    },
+    {
+        titulo: 'Botões : "Cancelar"',
+        categoria: 'cadCategoriaEx',
+        texto: 'Ao clicar você fechará está aba e a exclusão não será efetivada',
+        campo: "cancelar",
+    },
+    {
+        titulo: 'Botões : "Deletar"',
+        categoria: 'cadCategoriaEx',
+        texto: 'Ao clicar você irá efetivar a exclusão, caso este botão não esteja visível, leia a mensagem atentamente',
+        campo: "excluir",
+    },
+    {
+        titulo: 'Título : "Digite a Categoria"',
+        categoria: 'cadCategoriaForm',
+        texto: 'Digite a categoria de produtos para cadastro, exemplo: calça, camisa, relógio...',
+        obrigatorio: 'Sim',
+        max: 30,
+        campo: "categoria",
+    },
+    {
+        titulo: 'Botões : "Limpar"',
+        categoria: 'cadCategoriaForm',
+        texto: 'Ao clicar todos os dados e mensagens de erro no formulário serão apagados',
+        campo: "limpar",
+    },
+    {
+        titulo: 'Botões : "Salvar ou Alterar"',
+        categoria: 'cadCategoriaForm',
+        texto: 'Ao clicar neste botão a nova categoria sera validada pelo sistema e caso seja bem sucedido ela será cadastrada',
+        campo: "btnForm",
+    },
+    //Fim cadastro de Categoria------------------------------------------------------------------------------------------------------------   
+    
+    //Cadastro de Contas a Pagar------------------------------------------------------------------------------------------------------------   
+    {
+        titulo: 'Filtro : "Pesquisar por título"',
+        categoria: 'cadContaTabela',
+        texto: 'Este campo serve para a filtragem de dados, ao escrever, a tabela ira mostrar apenas as linhas convenientes ao filtro',
+        campo: "filtro",
+    },
+    {
+        titulo: 'Botão Recarregar : "Recarregar"',
+        categoria: 'cadContaTabela',
+        texto: 'Ao clicar neste botão a lista será recarregada, se a tabela estiver vazia clique neste botão',
+        campo: "recarregar",
+    },
+    {
+        titulo: 'Botão Cadastrar novo: "Cadastrar novo"',
+        categoria: 'cadContaTabela',
+        texto: 'Ao clicar neste botão o formulário de cadastro será aberto',
+        campo: "cadastrarNovo",
+    },
+    {
+        titulo: 'Linha Tabela',
+        categoria: 'cadContaTabela',
+        texto: 'Ao clicar em alguma linha da tabela será aberto o formulário com os dados referente a linha, sendo possivel edita-los',
+        campo: "table",
+    },
+    {
+        titulo: 'Linha Tabela : "X - Excluír"',
+        categoria: 'cadContaTabela',
+        texto: 'Ao clicar neste x será aberto um componente com algumas informações sobre a exclusão',
+        campo: "tabela-excluir",
+    },
+    {
+        titulo: 'Linha Tabela-Parcelas : "Quitar"',
+        categoria: 'cadContaTabela',
+        texto: 'Ao clicar em "Quitar" será aberto um componente com algumas informações sobre a quitação da parcela',
+        campo: "tabela-quitar",
+    },
+    {
+        titulo: 'Botões : "Cancelar"',
+        categoria: 'cadContaEx',
+        texto: 'Ao clicar você fechará está aba e a exclusão não será efetivada',
+        campo: "cancelar",
+    },
+    {
+        titulo: 'Botões : "Deletar"',
+        categoria: 'cadContaEx',
+        texto: 'Ao clicar você irá efetivar a exclusão, caso este botão não esteja visível, leia a mensagem atentamente',
+        campo: "excluir",
+    },
+    {
+        titulo: 'Botões : "Descontar Valor"',
+        categoria: 'cadContaParcela',
+        texto: 'Ao clicar abrirá um campo para se digitar um valor',
+        campo: "input-extra",
+    },
+    {
+        titulo: 'Campo : "Descontar"',
+        categoria: 'cadContaParcela',
+        texto: 'Digite o valor que deve ser descontado desta parcela, em seguida clique em "Finalizar"',
+        campo: "campo-extra",
+    },
+    {
+        titulo: 'Botões : "Cancelar"',
+        categoria: 'cadContaParcela',
+        texto: 'Ao clicar você fechará está aba e a exclusão não será efetivada',
+        campo: "cancelar",
+    },
+    {
+        titulo: 'Botões : "Pagar Inteiro ou Finalizar"',
+        categoria: 'cadContaParcela',
+        texto: 'Ao clicar em "Descontar Valor" o botão entra em modo "Finalizar" onde o valor digitado será descontado do valor ainda não pago da parcela, caso o botão esteja em modo "Pagar Inteiro" ao ser clicado ele realizará o pagamento completo da parcela',
+        campo: "pargarParcela",
+    },
+    {
+        titulo: 'Título : "Digite um Título"',
+        categoria: 'cadContaPagarForm',
+        texto: 'Título não obrigatório, entretanto é recomendado que se tenha para uma melhor organização e disponibilidade em filtros de busca',
+        obrigatorio: 'Não',
+        max: 20,
+        campo: "titulo",
+    },
+    {
+        titulo: 'Observação : "Digite uma observação"',
+        categoria: 'cadContaPagarForm',
+        texto: 'Digite algumas observações importantes relacionadas a conta, como avisos',
+        obrigatorio: 'Não',
+        max: 30,
+        campo: "observacao",
+    },
+    {
+        titulo: 'Quantidade Parcelas : "Quantidade de Parcelas"',
+        categoria: 'cadContaPagarForm',
+        texto: 'O máximo de parcelas que o sistema aceita é de 12 meses (1 ano), não digite valores que não forem números maiores que 0(zero)',
+        obrigatorio: 'Sim',
+        campo: "qtdeParcelas",
+    },
+    {
+        titulo: 'Valor Total : "Valor Total"',
+        categoria: 'cadContaPagarForm',
+        texto: 'Não digite valores que não forem números maiores que 0(zero), o sistema irá calcular o valor de cada parcela posteriormente',
+        obrigatorio: 'Sim',
+        max: 2,
+        campo: "valorTotal",
+    },
+    {
+        titulo: 'Data Emissão : "dd/mm/yyyy"',
+        categoria: 'cadContaPagarForm',
+        texto: 'Data na qual foi realizada a compra, ou emissão do documento, dica: especifique em "Observação", clique no ícone ao final deste campo para abrir um calendário',
+        obrigatorio: 'Não',
+        campo: "dataEmissao",
+    },
+    {
+        titulo: 'Vencimento Primeira Parcela : "dd/mm/yyyy"',
+        categoria: 'cadContaPagarForm',
+        texto: 'Data do vencimento da primeira parcela, para a divisão das próximas parcelas, clique no ícone ao final deste campo para abrir um calendário',
+        obrigatorio: 'Sim',
+        campo: "primeiroVencimento",
+    },
+    {
+        titulo: 'Tipo Documento : "Digite o Tipo de Documento"',
+        categoria: 'cadContaPagarForm',
+        texto: 'Escreva de forma simples o tipo de documento, exemplo: boleto',
+        obrigatorio: 'Não',
+        max: 10,
+        campo: "tipoDocumento",
+    },
+    {
+        titulo: 'Fornecedor : "Escolha um Fornecedor"',
+        categoria: 'cadContaPagarForm',
+        texto: 'Selecione o fornecedor deste produto, case o fornecedor não esteja presente, cadastre-o em "Menu=>Fornecedor", ou então cadastre um fornecedor intitulado como "Sem fornecedor"',
+        obrigatorio: 'Sim',
+        campo: "selFornecedor",
+    },
+    {
+        titulo: 'Botões : "Limpar"',
+        categoria: 'cadContaPagarForm',
+        texto: 'Ao clicar todos os dados e mensagens de erro no formulário serão apagados',
+        campo: "limpar",
+    },
+    {
+        titulo: 'Botões : "Salvar ou Alterar"',
+        categoria: 'cadContaPagarForm',
+        texto: 'Ao clicar neste botão a nova conta será validada pelo sistema e caso bem sucedida ela será cadastrada',
+        campo: "btnForm",
+    },
+    //Fim cadastro de contas a Pagar------------------------------------------------------------------------------------------------------------   
+
+    //Ver contas a receber------------------------------------------------------------------------------------------------------------   
+    {
+        titulo: 'Filtro : "Pesquisar por título"',
+        categoria: 'cadContaTabelaR',
+        texto: 'Este campo serve para a filtragem de dados, ao escrever, a tabela ira mostrar apenas as linhas convenientes ao filtro',
+        campo: "filtro",
+    },
+    {
+        titulo: 'Botão Recarregar : "Recarregar"',
+        categoria: 'cadContaTabelaR',
+        texto: 'Ao clicar neste botão a lista será recarregada, se a tabela estiver vazia clique neste botão',
+        campo: "recarregar",
+    },
+    {
+        titulo: 'Linha Tabela',
+        categoria: 'cadContaTabelaR',
+        texto: 'Ao clicar em alguma linha da tabela será aberto o formulário com os dados referente a linha, sendo possivel edita-los',
+        campo: "table",
+    },
+    {
+        titulo: 'Linha Tabela : "X - Excluír"',
+        categoria: 'cadContaTabelaR',
+        texto: 'Ao clicar neste x será aberto um componente com algumas informações sobre a exclusão',
+        campo: "tabela-excluir",
+    },
+    {
+        titulo: 'Linha Tabela-Parcelas : "Quitar"',
+        categoria: 'cadContaTabelaR',
+        texto: 'Ao clicar em "Quitar" será aberto um componente com algumas informações sobre a quitação da parcela',
+        campo: "tabela-quitar",
+    },
+    //Fim ver contas a receber
 ]

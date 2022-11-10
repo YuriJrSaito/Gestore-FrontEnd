@@ -36,7 +36,7 @@ function Header() {
     const [areaUsuario, setAreaUsuario] = useState(false);
     const showArea = () => setAreaUsuario(!areaUsuario);
 
-    async function logout()
+    /*async function logout()
     {
         try{
             await api.post(`/logout`)
@@ -50,6 +50,11 @@ function Header() {
         catch(err){
             console.log(err);
         }
+    }*/
+
+    async function logout()
+    {
+        localStorage.clear();
     }
 
     return (

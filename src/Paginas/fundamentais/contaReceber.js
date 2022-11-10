@@ -2,6 +2,7 @@ import './Conta.css';
 import '../../App.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
+import Manual from '../../Components/manual.js'
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import * as FcIcons from 'react-icons/fc';
@@ -32,8 +33,8 @@ function Formulario() {
     const [tabela, setTabela] = useState(true);
     const [defExclusao, setDefExclusao] = useState(false);
     const [defQuitarParcela, setDefQuitarParcela] = useState(false);
-
-    const [tituloPagina, setTituloPagina] = useState('Contas a Receber');
+    const [manual, setManual] = useState(false);
+    const [ultimoId, setUltimoId] = useState('');
 
     const [msgProcurar, setMsgProcurar] = useState(0);
     const [buttonPagarParcela, setButtonPagarParcela] = useState('Pagar Inteiro');
@@ -266,9 +267,26 @@ function Formulario() {
         }        
     }
 
+    const ativarManual = (id) => {
+        setUltimoId(id);
+        setManual(!manual);
+    }
+
     return (
         <>
         <Header />
+        {manual === true &&
+            tabela === true &&
+                <Manual ativarManual={ativarManual} origem={"cadContaTabelaR"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            defExclusao === true &&
+                <Manual ativarManual={ativarManual} origem={"cadContaEx"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            defQuitarParcela === true &&
+                <Manual ativarManual={ativarManual} origem={"cadContaParcela"} lastid={ultimoId}/>
+        }
         <div className="background-conteudo">
             <div className='background'>
             {tabela === true &&
@@ -279,11 +297,12 @@ function Formulario() {
                             <div className='titulo'>
                                 <h1>Contas a Receber</h1>
                             </div>
+                            <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                         </div>
                         <div className='formulario-padrao-tabela'>
                             <div className='inputs-buscar'>
                                 <input type="search" id='filtro' placeholder='Pesquisar por cliente' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarContas()}}></input>
-                                <input type="button" value="Recarregar" onClick={carregarContas}></input>   
+                                <input type="button" id='recarregar' value="Recarregar" onClick={carregarContas}></input>   
                             </div> 
                         </div>
                     </div>
@@ -314,7 +333,7 @@ function Formulario() {
                                                 {localStorage.getItem('nivelAcesso') >= 60 &&
                                                     <td>
                                                         <a className="close">
-                                                            <span aria-hidden="true" onClick={e => {definirExclusao(conta.id)}}>x</span>
+                                                            <span id='tabela-excluir' aria-hidden="true" onClick={e => {definirExclusao(conta.id)}}>x</span>
                                                         </a>
                                                     </td>
                                                 }
@@ -363,7 +382,7 @@ function Formulario() {
                                                         {parcela.situacao === "Não pago" &&
                                                             <td>
                                                                 <a className="close">
-                                                                    <span aria-hidden="true" onClick={e => {definirQuitarParcela(parcela)}}>Quitar</span>
+                                                                    <span id='tabela-quitar' aria-hidden="true" onClick={e => {definirQuitarParcela(parcela)}}>Quitar</span>
                                                                 </a>
                                                             </td>
                                                         }
@@ -392,6 +411,7 @@ function Formulario() {
                 <form className="modal-content">
                     <div className="container">
                         <h1>Deletar Conta</h1>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                         {msgProcurar > 0 &&
                             <p>Esta conta esta vinculada a uma venda, não é possível deletar!!</p>                       
                         }           
@@ -401,9 +421,9 @@ function Formulario() {
                         }
 
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
+                            <button id='cancelar' type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>
                             {msgProcurar <= 0 &&
-                                <button type="button" className="deletebtn" onClick={()=>excluirConta()}>Deletar</button>
+                                <button id='excluir' type="button" className="deletebtn" onClick={()=>excluirConta()}>Deletar</button>
                             }
                         </div>
                     </div>
@@ -416,6 +436,7 @@ function Formulario() {
                 <form className="modal-content">
                     <div className="container">
                         <h1>Quitar Parcela</h1>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                         {pNaoPago === false &&
                             <>
                                 <h1>Confira as informações</h1>
@@ -430,7 +451,7 @@ function Formulario() {
                                         <div className='formulario-alert'>
                                             <div className="formulario-alert-number">
                                                 <p>Descontar: (R$)</p>
-                                                <input type="number" placeholder="Pagar parcelado" value={valorParcelado} onChange={e=>{{setValorParcelado(e.target.value);document.querySelector("#msgQuitarParcela").innerHTML=""}}}></input>
+                                                <input id='campo-extra' type="number" placeholder="Pagar parcelado" value={valorParcelado} onChange={e=>{{setValorParcelado(e.target.value);document.querySelector("#msgQuitarParcela").innerHTML=""}}}></input>
                                             </div>
                                             <div className='msg' id='msgQuitarParcela'></div>
                                         </div>
@@ -438,12 +459,12 @@ function Formulario() {
                                 }
 
                                 <div className="clearfix">
-                                    <button type="button" className="cancelbtn" onClick={()=>cancelarDefQuitarParcela()}>Cancelar</button>
+                                    <button id='cancelar' type="button" className="cancelbtn" onClick={()=>cancelarDefQuitarParcela()}>Cancelar</button>
                                     {buttonPagarParcela === "Pagar Inteiro" &&
-                                        <button type="button" className="deletebtn" onClick={quitarParcela}>{buttonPagarParcela}</button>
+                                        <button id='pargarParcela' type="button" className="deletebtn" onClick={quitarParcela}>{buttonPagarParcela}</button>
                                     }
                                     {buttonPagarParcela === "Finalizar" &&
-                                        <button type="button" className="deletebtn" onClick={pagarParcela}>{buttonPagarParcela}</button>
+                                        <button id='pargarParcela' type="button" className="deletebtn" onClick={pagarParcela}>{buttonPagarParcela}</button>
                                     }
 
                                 </div>
@@ -454,7 +475,7 @@ function Formulario() {
                             <>
                                 <p>Parcelas anteriores não pagas</p>
                                 <div className="clearfix">
-                                    <button type="button" className="cancelbtn" onClick={()=>cancelarDefQuitarParcela()}>Cancelar</button>
+                                    <button id='cancelar' type="button" className="cancelbtn" onClick={()=>cancelarDefQuitarParcela()}>Cancelar</button>
                                 </div>
                             </>
                         }

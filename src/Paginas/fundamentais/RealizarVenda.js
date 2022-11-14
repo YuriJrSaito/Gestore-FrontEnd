@@ -35,12 +35,14 @@ function Formulario() {
     const [salvando, setSalvando] = useState(false);
     const [button, setButton] = useState('Salvar');
     const [msg, setMsg] = useState('');
+    const [idVendaCond, setIdVendaCond] = useState('');
 
     const [formSelProdutos, setFormSelProdutos] = useState(false);
     const [formularioCadastro, setFormularioCadastro] = useState(false);
     const [tabela, setTabela] = useState(true);
     const [defExclusao, setDefExclusao] = useState(false);
     const [defClienteSel, setDefClienteSel] = useState(false);
+    const [defTodosProdutos, setDefTodosProdutos] = useState(true);
 
     async function limparAvisos()
     {
@@ -228,6 +230,22 @@ function Formulario() {
         }
     }
 
+    async function devolverEstoqueVendaCond()
+    {
+        console.log(produtos);
+        for(let prod of produtos)
+        {
+            for(let sel of produtosSel)
+            {
+                if(prod.id === sel.id)
+                {
+                    sel.qtdeEstoque = parseInt(prod.qtdeEstoque) + parseInt(sel.qtdeSelecionado);
+                }
+            }
+        }
+        console.log(produtosSel);
+    }
+
     async function confirmarDados()
     {
         if(await validar())
@@ -235,7 +253,10 @@ function Formulario() {
             if(button === "Salvar")
             {
                 let idCR = await gravarContaReceber();
-                let idVenda = await gravarVenda(idCR);
+                var idVenda = await gravarVenda(idCR);
+
+                if(idVendaCond !== '')
+                    await devolverEstoqueVendaCond();
                 await gravarItemVenda(idVenda);
             }
         }
@@ -280,15 +301,109 @@ function Formulario() {
             console.log(err);
         }
     }
+//---------------------------------------------------------------------------------------------------------------
+    async function buscarItems(vendaCond)
+    {
+        try{
+            const resp = await api.get(`/buscarProdutosCond/${vendaCond}`)
+            .then((response)=>{
+                return response.data;
+            })
+            return resp;
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
+    async function buscarProdutos(items)
+    {   
+        try{
+            let resp = await api.post(`/buscarInfoProdutos`,{
+                items: items
+            })
+            .then(
+                response => {
+                    return response.data;
+                }
+            )
+            return resp;
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
+    async function setarProdutosCond(vendaCond)
+    {
+        let items = await buscarItems(vendaCond);
+        let retorno = await buscarProdutos(items);
+        let total = 0;
+        for(let prod of retorno)
+        {
+            let valor = parseFloat(prod.valorUnitario) * parseInt(prod.qtdeSelecionado);
+            total = parseFloat((total+valor).toFixed(2));
+        }
+        setValorTotal(total);
+
+        setTabela(false);
+        setFormSelProdutos(true);
+        setSelecionado(true);
+
+        await definirSelecionados(retorno);
+    }
+
+    async function definirSelecionados(retorno)
+    {
+        let vetProdsSel = [];
+        for(let prod of retorno)
+        {
+            let newProd = await copiarProdCond(prod);
+            vetProdsSel = [...vetProdsSel, newProd];
+        }
+
+        for(let prod of vetProdsSel)
+        {
+            prod.qtdeEstoque = parseInt(prod.qtdeEstoque) + parseInt(prod.qtdeSelecionado);
+        }
+        setProdutosSel(vetProdsSel);
+        /*let inputs = document.querySelectorAll("#input-selQuantidade");
+        for(let input of inputs)
+        {
+            input.setAttribute('disabled', '');
+        }*/
+    }
+
+    async function copiarProdCond(produto)
+    {
+        var prod = {
+            id: produto.id,
+            titulo: produto.titulo,
+            codigoReferencia: produto.codigo,
+            qtdeEstoque: produto.qtdeEstoque,
+            qtdeSelecionado: produto.qtdeSelecionado,
+            valorUnitario: produto.valorUnitario,
+            img1: produto.img1,
+        }
+        return prod;
+    }
 
     async function carregarTudo()
     {
         await carregarTodosProdutos();
+        let vendaCond = localStorage.getItem("idVendaCondicional");
+        if(vendaCond !== null)
+        {
+            setIdVendaCond(vendaCond);
+            localStorage.removeItem("idVendaCondicional");
+            await setarProdutosCond(vendaCond);
+        }
     }
 
     useEffect(()=>{
         carregarTudo();
     },[]);
+//----------------------------------------------------------------------------------------------
 
     async function copiarProd(produto)
     {
@@ -472,6 +587,7 @@ function Formulario() {
             {formSelProdutos === true &&
             <>
             <div className='background-venda'>
+                {defTodosProdutos === true &&
                 <div className='formulario-tabela'>
                     <div className='titulo'>
                         <div className='titulo-cont'>
@@ -515,6 +631,7 @@ function Formulario() {
                     <div className='msg' id='msgProdutos'></div>
                     </div>   
                 </div>
+                }
 
                 {selecionado === true &&
                 <div className="formulario-tabela">
@@ -546,7 +663,7 @@ function Formulario() {
                                                     {produto.img1 !== "" && <td onClick={e=>selProduto(produto)} id="imgTabela"><img id='imgTable' src={`/img//${produto.img1}`} alt="Aqui fica a primeira imagem"></img></td>}  
                                                     <td onClick={e=>selProduto(produto)}>{produto.codigoReferencia}</td>                                           
                                                     <td onClick={e=>selProduto(produto)}>R${produto.valorUnitario}</td>                                                 
-                                                    <td><input type="number" value={produto.qtdeSelecionado} onChange={e=>{definirProdutoQuantidade(produto, e.target.value)}}/></td>
+                                                    <td><input id='input-selQuantidade' type="number" value={produto.qtdeSelecionado} onChange={e=>{definirProdutoQuantidade(produto, e.target.value)}}/></td>
                                                     <td onClick={e=>selProduto(produto)}>R${(produto.valorUnitario * produto.qtdeSelecionado).toFixed(2)}</td>
                                                 </tr>
                                             ))

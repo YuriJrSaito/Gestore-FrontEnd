@@ -6,12 +6,14 @@ import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
 import moment from 'moment/moment';
 import * as BsIcons from 'react-icons/bs';
+import {Navigate, useNavigate} from 'react-router-dom';
 
 function Formulario() {
     const [tabela, setTabela] = useState(true);
     const [formSelProdutos, setFormSelProdutos] = useState(false);
     const [vendas, setVendas] = useState([]);
     const [produtos, setProdutos] = useState([]);
+    const [produtosDevolvidos, setProdutosDevolvidos] = useState([]);
     const [teste, setTeste] = useState(false);
     const [valorTotal, setValorTotal] = useState(0);
     const [filtro, setFiltro] = useState('');
@@ -19,8 +21,11 @@ function Formulario() {
     const [msg, setMsg] = useState('');
     const [defExclusao, setDefExclusao] = useState(false);
     const [defProxVenda, setDefProdVenda] = useState(false);
+    const [idVenda, setIdVenda] = useState('');
 
     const [excProd, setExcProd] = useState('');
+
+    const Navigate = useNavigate();
 
     async function buscarItems(idVenda)
     {
@@ -40,7 +45,7 @@ function Formulario() {
     {   
         try{
             let resp = await api.post(`/buscarInfoProdutos`,{
-                items: items
+                items: items,
             })
             .then(
                 response => {
@@ -57,6 +62,7 @@ function Formulario() {
 
     async function selVenda(venda)
     {
+        setIdVenda(venda.id);
         setTabela(false);
         await setFormSelProdutos(true);
         let items = await buscarItems(venda.id);
@@ -193,12 +199,13 @@ function Formulario() {
 
     async function excluirProdutoLista()
     {
+        setProdutosDevolvidos([...produtosDevolvidos, excProd]);
         setProdutos(produtos.filter(produtos=>produtos.id !== excProd.id));
-        await cancelar();
 
         let valor = parseFloat(excProd.valorUnitario) * parseInt(excProd.qtdeSelecionado);
         valor = parseFloat(valor.toFixed(2));
         setValorTotal(parseFloat((valorTotal - valor).toFixed(2)));
+        await cancelar();
     }
 
     async function definirVenda()
@@ -208,12 +215,76 @@ function Formulario() {
 
     async function cancelarProximo()
     {
+        setExcProd('');
         setDefProdVenda(false);
+    }
+
+    async function devolverItems(prods)
+    {
+        try{
+            let resp = await api.post(`/devolverProdutosCond`,{
+                items: prods,
+                idVenda: idVenda
+            })
+            .then(
+                response => {
+                    return response.data;
+                }
+            )
+            return resp;
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
+    async function copiarProd(prod, quantidade)
+    {
+        let newProd = {
+            id: prod.id,
+            titulo: prod.titulo,
+            valorUnitario: prod.valorUnitario,
+            qtdeEstoque: prod.qtdeEstoque,
+            img1: prod.img1,
+            codigo: prod.codigo,
+            qtdeNoItem: prod.qtdeNoItem,
+            qtdeSelecionado: quantidade,
+            valor: prod.valor,
+            itemId: prod.itemId,
+        }
+        return newProd;
+    }
+
+    async function verificarItensRetirados()
+    {
+        let vetProdutos = [];
+        for(let prod of produtos)
+        {
+            //defino a quantidade
+            let quant = parseInt(prod.qtdeNoItem) - parseInt(prod.qtdeSelecionado);
+
+            //se quantidade for maior que zero quer dizer que é necessario devolver items
+            if(quant > 0)
+            {
+                let newProd = await copiarProd(prod, quant);
+                vetProdutos = [...vetProdutos, newProd];
+            }
+        }
+
+        for(let devolvido of produtosDevolvidos)
+        {
+            let newProd = await copiarProd(devolvido, devolvido.qtdeNoItem);
+            vetProdutos = [...vetProdutos, newProd];
+        }
+        return vetProdutos;
     }
 
     async function proximoVenda()
     {
-
+        localStorage.setItem("idVendaCondicional", idVenda);
+        //let prods = await verificarItensRetirados();
+        //await devolverItems(prods);
+        return Navigate("/realizarVenda");
     }
 
     return (
@@ -278,7 +349,7 @@ function Formulario() {
                         <div className='titulo'>
                             <div className='titulo-cont'>
                                 <button id="retornar" onClick={e=>{setTabela(true);setFormSelProdutos(false)}}><BsIcons.BsArrowLeft/></button>
-                                <h1>Informações</h1>
+                                <h1>Produtos</h1>
                             </div>
                         </div>
                         <div className='formulario-padrao-tabela'>
@@ -387,7 +458,7 @@ function Formulario() {
                         <div className="container">
                             <h1>Prosseguir para venda</h1>
                             <p>Ao clicar em continuar você será redirecionado(a) para a venda com todos os produtos presentes na tabela,
-                               após isso não será possivel efetuar a retirada de produtos.
+                               após isso não será possivel efetuar a retirada de produtos ou cancelar a compra.
                             </p>  
                             <p>Deseja continuar ?</p>
 

@@ -13,6 +13,7 @@ import ContaPagar from './Paginas/fundamentais/ContaPagar.js';
 import CadastrarCargo from './Paginas/Cadastros/cadastroCargo.js';
 import CadastrarCategoria from './Paginas/Cadastros/cadastroCategoria.js';
 import ContaReceber from './Paginas/fundamentais/contaReceber.js';
+import Relatorio from './Paginas/Relatorios/Principal';
 
 
 /*const cUsuario = (user) => {
@@ -52,6 +53,7 @@ const App = () => {
                     <Route path="/cadastroCargo" element={<CadastrarCargo />} exact={true}></Route>      
                     <Route path="/cadastroCategoria" element={<CadastrarCategoria />} exact={true}></Route>      
                     <Route path="/contaReceber" element={<ContaReceber />} exact={true}></Route>      
+                    <Route path="/principalRelatorios" element={<Relatorio />} exact={true}></Route>      
                 </Routes>
             </Router>
         </>
@@ -73,6 +75,7 @@ const App = () => {
         <Route path="/cadastroCargo" element={protectedRouteADM(localStorage.getItem('nivelAcesso'), <CadastrarCargo />)} exact={true}></Route>      
         <Route path="/cadastroCategoria" element={protectedRouteAutenticado(localStorage.getItem('login'), <CadastrarCategoria />)} exact={true}></Route>      
         <Route path="/contaReceber" element={protectedRouteAutenticado(localStorage.getItem('login'), <ContaReceber />)} exact={true}></Route>      
+        <Route path="/principalRelatorios" element={protectedRouteADM(localStorage.getItem('nivelAcesso'),<Relatorio />)} exact={true}></Route>        
     </Routes>
 </Router>*/
 

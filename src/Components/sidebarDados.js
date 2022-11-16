@@ -116,7 +116,7 @@ export const sidebarDados = [
     },
     {
         titulo: 'Relatórios',
-        caminho: '/home',
+        caminho: '/principalRelatorios',
         icone: <HiIcons.HiDocumentReport/>,
         cNome: 'nav-text',
         nivel: 60,

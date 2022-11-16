@@ -48,10 +48,6 @@ function Formulario() {
 
     const [excVenda, setExcVenda] = useState('');
 
-    //todo:
-    //terminar o alterar no backend
-    //fazer o devolver produtos
-
     async function limparAvisos()
     {
         if(formularioCadastro === true)
@@ -1017,7 +1013,7 @@ function Formulario() {
                 <form className="modal-content">
                     <div className="container">
                         <h1>Deletar Venda Condicional</h1>
-                        <p>Venda Condicional e todos seu items serão excluídos, os produtos retornaram ao estoque, deseja continuar?</p>                       
+                        <p>Venda Condicional e todos seu items serão excluídos, os produtos retornarão ao estoque, deseja continuar?</p>                       
                                 
                         <div className="clearfix">
                             <button type="button" className="cancelbtn" onClick={()=>cancelar()}>Cancelar</button>

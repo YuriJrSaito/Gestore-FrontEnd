@@ -16,6 +16,7 @@ function Formulario() {
 
     const [produtos, setProdutos] = useState([]);
     const [produtosSel, setProdutosSel] = useState([]);
+    const [produtosEx, setProdutosEx] = useState([]);
     const [clientes, setClientes] = useState('');
 
     const [dataVenda, setDataVenda] = useState(moment().format('YYYY-MM-DD'));
@@ -46,9 +47,10 @@ function Formulario() {
 
     async function limparAvisos()
     {
+        if(formSelProdutos === true)
+            document.querySelector('#msgProdutos').innerHTML = "";
         if(formularioCadastro === true)
         {
-            document.querySelector('#msgProdutos').innerHTML = "";
             document.querySelector('#msgSelCliente').innerHTML = "";
             document.querySelector('#msgDataVenda').innerHTML = "";
             document.querySelector('#msgVencimento').innerHTML = "";
@@ -69,6 +71,7 @@ function Formulario() {
         setValorTotal(0);
         setDataPrimeiroVencimento("")
         setFiltro("");
+        setIdVendaCond('');
 
         await limparAvisos();
     }
@@ -230,20 +233,46 @@ function Formulario() {
         }
     }
 
+    async function devolverEstoqueProdutosEx()
+    {
+        try{
+            await api.post('/devolverProdutosCond',{
+                items: produtosEx
+            }).then(
+                response => {
+                    setMsg(response.data);
+                }
+            )
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
     async function devolverEstoqueVendaCond()
     {
-        console.log(produtos);
+        //para todos os produtos selecionados a quantidade no estoque é a soma do quanto há no estoque com o quanto esta
+        //selecionado, ou seja caso haja 4 produtos vindos da venda condicional, o cliente decide ficar com 2 peças
+        //no estoque tem 10 desse produto, então no total tem-se 14 peças (10+4) mas o cliente fica com duas então no fim da venda
+        //fica-se 12(14-2), está subtração é feita ao final da venda
         for(let prod of produtos)
         {
             for(let sel of produtosSel)
             {
                 if(prod.id === sel.id)
                 {
+                    //eu defino a quantidade no estoque do produto selecionado como a soma da quantidade no estoque do produto
+                    //em "produtos" com a quantidade selecionado do produto em "produtosSel"
                     sel.qtdeEstoque = parseInt(prod.qtdeEstoque) + parseInt(sel.qtdeSelecionado);
                 }
             }
         }
-        console.log(produtosSel);
+
+        //produtos que foram totalmente removios da lista de "produtosSel" são guardados em "produtosEx", assim esta função
+        //devolve todos esses produtos retirados ao estoque
+        //necessario pois a função acima não lida com produtos que não estão selecionados
+        if(produtosEx !== [])
+            await devolverEstoqueProdutosEx();
     }
 
     async function confirmarDados()
@@ -255,10 +284,52 @@ function Formulario() {
                 let idCR = await gravarContaReceber();
                 var idVenda = await gravarVenda(idCR);
 
+                //vejo se é derivada de uma venda condicional
                 if(idVendaCond !== '')
+                {
+                    //aqui eu lido com o controle de estoque que por ser uma venda condicional
+                    //deve ser tratada antes da venda ser efetivada
                     await devolverEstoqueVendaCond();
+
+                    //após devolver os produtos ao estoque, excluo os items                   
+                    let resp = await delLista();
+                    if(resp === true)
+                    {
+                        //se bem sucedido a esclusão dos items, é excluido a venda
+                        await excluirVendaCond();
+                    }
+                }
+
                 await gravarItemVenda(idVenda);
             }
+            setFormularioCadastro(false);
+            setTabela(true);
+            limpar();
+        }
+    }
+
+    async function delLista()
+    {
+        //nessa exclusão não é alterado o estoque, pois ja foi tratado
+        try{
+            const resp = await api.delete(`/deletarListaCondSemEstoque/${idVendaCond}`)
+            .then((response)=>{
+                return response.data;
+            })
+            return resp;
+        }
+        catch(err){
+            console.log(err);
+        }
+    }
+
+    async function excluirVendaCond()
+    {
+        try{
+            await api.delete(`/deletarVendaCond/${idVendaCond}`);
+        }
+        catch(err){
+            console.log(err);
         }
     }
 
@@ -301,9 +372,11 @@ function Formulario() {
             console.log(err);
         }
     }
+
 //---------------------------------------------------------------------------------------------------------------
     async function buscarItems(vendaCond)
     {
+        //busco todos os items da venda condicional
         try{
             const resp = await api.get(`/buscarProdutosCond/${vendaCond}`)
             .then((response)=>{
@@ -317,7 +390,8 @@ function Formulario() {
     }
 
     async function buscarProdutos(items)
-    {   
+    {  
+        //busco todos os produtos com dados do produto e do item da venda condicional
         try{
             let resp = await api.post(`/buscarInfoProdutos`,{
                 items: items
@@ -336,20 +410,29 @@ function Formulario() {
 
     async function setarProdutosCond(vendaCond)
     {
+        //busco todos os items da lista cond
         let items = await buscarItems(vendaCond);
+
+        //busco todos os produtos presentes nos items da venda condicional
         let retorno = await buscarProdutos(items);
+
+        //aqui eu calculo o valor total, de acordo com os produtos da venda condicional
         let total = 0;
         for(let prod of retorno)
         {
             let valor = parseFloat(prod.valorUnitario) * parseInt(prod.qtdeSelecionado);
             total = parseFloat((total+valor).toFixed(2));
         }
+
+        //seto o valor total na constante
         setValorTotal(total);
 
+        //aqui eu defino como a página deve estar para a venda condicional
         setTabela(false);
         setFormSelProdutos(true);
         setSelecionado(true);
 
+        //aqui eu modifico os produtos para ficarem do formato necessario para está venda e aloco na constante produtosSel
         await definirSelecionados(retorno);
     }
 
@@ -358,24 +441,20 @@ function Formulario() {
         let vetProdsSel = [];
         for(let prod of retorno)
         {
+            //copio o produto selecionando apenas os dados que serão ultilizados para a venda 
             let newProd = await copiarProdCond(prod);
+
+            //coloco o produto copiado no meu vetor
             vetProdsSel = [...vetProdsSel, newProd];
         }
 
-        for(let prod of vetProdsSel)
-        {
-            prod.qtdeEstoque = parseInt(prod.qtdeEstoque) + parseInt(prod.qtdeSelecionado);
-        }
+        //insiro o meu vetor na constante
         setProdutosSel(vetProdsSel);
-        /*let inputs = document.querySelectorAll("#input-selQuantidade");
-        for(let input of inputs)
-        {
-            input.setAttribute('disabled', '');
-        }*/
     }
 
     async function copiarProdCond(produto)
     {
+        //este copiar produto condicional possui a quantidade selecionada dos items da venda condicional
         var prod = {
             id: produto.id,
             titulo: produto.titulo,
@@ -390,12 +469,21 @@ function Formulario() {
 
     async function carregarTudo()
     {
+        //carrego todos os produtos para presentes no bd
         await carregarTodosProdutos();
+
+        //pego o id da venda condicional
         let vendaCond = localStorage.getItem("idVendaCondicional");
+        //se houver o id no localstorage eu realizo as ações necessarias para uma venda derivada de uma venda condicional
         if(vendaCond !== null)
         {
+            //aloco o id da venda condicional em uma constante
             setIdVendaCond(vendaCond);
+
+            //retiro id da venda condicional do localstorage para que a página não entre novamente como condicional nas proximas vendas
             localStorage.removeItem("idVendaCondicional");
+
+            //aqui eu busco os produtos condicionais e modifico eles para ficarem do formato desejado
             await setarProdutosCond(vendaCond);
         }
     }
@@ -575,6 +663,33 @@ function Formulario() {
         setTabela(!childdata);
     }
 
+    async function retirarProduto(idProduto)
+    {
+        //procuro em "produtosSel" o produto que sera retirado
+        let res = produtosSel.find(produtosSel=>produtosSel.id == idProduto);
+
+        //calculo o novo valor total
+        let valor = parseFloat(valorTotal) - (parseFloat(res.valorUnitario) * res.qtdeSelecionado);
+        setValorTotal(valor.toFixed(2));
+
+        //efetivo a retirada do produto da lista de "produtosSel"
+        setProdutosSel(produtosSel.filter(produtosSel=>produtosSel.id !== idProduto));
+        
+        //procuro o produto na lista de "Produtos" em estoque
+        let res2 = produtos.find(produtos=>produtos.id == idProduto);
+
+        //aqui faço a devolução de estoque
+        //se a quantidade em estoque do produto em "Produtos" for igual a zero eu defino a sua quantidade igual ao que foi retirado
+        if(res2.qtdeEstoque == 0) 
+            res2.qtdeEstoque = res.qtdeSelecionado;
+        //caso não seja igual a zero eu somo as quantidades
+        else
+            if(res.qtdeSelecionado > 0)
+                res2.qtdeEstoque = parseInt(res2.qtdeEstoque) + parseInt(res.qtdeSelecionado);
+        
+        setProdutosEx([...produtosEx, res2]);
+    }
+
     return (
         <>
         <Header />
@@ -614,6 +729,7 @@ function Formulario() {
                                     <tbody>
                                         {produtos !== "" &&
                                             produtos.map(produto =>(
+                                                produto.qtdeEstoque > 0 &&
                                                 <tr key={produto.id}>
                                                     <td onClick={e=>selProduto(produto)}>{produto.titulo}</td>
                                                     {produto.img1 === "" && <td onClick={e=>selProduto(produto)}>Sem imagens</td>}
@@ -652,6 +768,7 @@ function Formulario() {
                                             <th>Valor Unitario(R$)</th>
                                             <th>Quantidade</th>
                                             <th>Soma(R$)</th>
+                                            <th>&nbsp;</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -663,8 +780,13 @@ function Formulario() {
                                                     {produto.img1 !== "" && <td onClick={e=>selProduto(produto)} id="imgTabela"><img id='imgTable' src={`/img//${produto.img1}`} alt="Aqui fica a primeira imagem"></img></td>}  
                                                     <td onClick={e=>selProduto(produto)}>{produto.codigoReferencia}</td>                                           
                                                     <td onClick={e=>selProduto(produto)}>R${produto.valorUnitario}</td>                                                 
-                                                    <td><input id='input-selQuantidade' type="number" value={produto.qtdeSelecionado} onChange={e=>{definirProdutoQuantidade(produto, e.target.value)}}/></td>
+                                                    <td><input type="number" value={produto.qtdeSelecionado} onChange={e=>{definirProdutoQuantidade(produto, e.target.value)}}/></td>
                                                     <td onClick={e=>selProduto(produto)}>R${(produto.valorUnitario * produto.qtdeSelecionado).toFixed(2)}</td>
+                                                    <td>
+                                                        <a className="close-prodSel">
+                                                            <span aria-hidden="true" onClick={e => {retirarProduto(produto.id, produto.idLista)}}>x</span>
+                                                        </a>
+                                                    </td>
                                                 </tr>
                                             ))
                                         }
@@ -675,6 +797,7 @@ function Formulario() {
                                             <td>&nbsp;</td>
                                             <td>&nbsp;</td>
                                             <td id='bold'>R${valorTotal}</td>
+                                            <td>&nbsp;</td>
                                         </tr>
                                     </tbody>
                                 </table>

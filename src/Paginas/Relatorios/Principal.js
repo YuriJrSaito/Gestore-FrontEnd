@@ -148,6 +148,40 @@ function Relatorio() {
         return resp;
     }
 
+    async function gerarRelatorioFornecedores()
+    {
+        let header = ['ID', 'Fornecedor', 'CNPJ', 'Email', 'Telefone(1)', 'Telefone(2)', 'Devendo(R$)', 'Parcelas Devendo'];
+
+        let fornecedores = await carregarFornecedores();
+        GerarRelatorio(fornecedores, "Fornecedores", header.length, header, data);
+    }
+
+    async function carregarFornecedores()
+    {
+        let resp = await api.get('/relFornecedores')
+        .then((response)=>{
+            return response.data;
+        });
+        return resp;
+    }
+
+    async function gerarRelatorioProdutosCondicional()
+    {
+        let header = ['ID', 'Produto', 'Categoria', 'Cliente', 'Quantidade', 'Data Limite Para Devolução'];
+
+        let produtos = await carregarProdutosCondicional();
+        GerarRelatorio(produtos, "Produtos Em Condicional", header.length, header, data);
+    }
+
+    async function carregarProdutosCondicional()
+    {
+        let resp = await api.get('/relProdutosCondicional')
+        .then((response)=>{
+            return response.data;
+        });
+        return resp;
+    }
+
     return (
         <>
         <Header />
@@ -160,6 +194,8 @@ function Relatorio() {
             <input type="button" onClick={gerarRelatorioCategoriaMaisVendidos} value="Mais Vendidos"></input>
             <input type="button" onClick={gerarRelatorioCategoriaMenosVendidos} value="Menos Vendidos"></input>
             <input type="button" onClick={gerarRelatorioProdutividadeFuncionarios} value="Produtividade"></input>
+            <input type="button" onClick={gerarRelatorioFornecedores} value="Fornecedores"></input>
+            <input type="button" onClick={gerarRelatorioProdutosCondicional} value="Produtos Condicional"></input>
         </div>
         </>
     )

@@ -19,9 +19,9 @@ function GerarRelatorio(dados, titulo, tamanho, header, data)
         let vetaux = [tamanho];
         for(let x=0; x<tamanho; x++)
         {
-            if(dado[x] == null)
+            if(dado[x] == null || dado[x] == "")
             {
-                dado[x] = "Não Cadastrado";
+                dado[x] = "---";
             }
             vetaux[x] = {text: `${dado[x]}`, fontSize: 9, margin: [0, 2, 0, 2]};
         }
@@ -35,7 +35,7 @@ function GerarRelatorio(dados, titulo, tamanho, header, data)
             let total = 0;
             for(let dado of dados)
             {
-                total = parseFloat(total) + parseFloat(dado[7]); //dado[7] é o valor total não pago
+                total = parseFloat(total) + parseFloat(dado[7]); //dado[7] é o valor total não pago em vendas
             }
     
             return [

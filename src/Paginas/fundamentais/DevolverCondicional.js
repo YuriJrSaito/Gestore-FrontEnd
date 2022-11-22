@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import moment from 'moment/moment';
 import * as BsIcons from 'react-icons/bs';
 import {Navigate, useNavigate} from 'react-router-dom';
+import Manual from '../../Components/manual.js'
 
 function Formulario() {
     const [tabela, setTabela] = useState(true);
@@ -21,6 +22,8 @@ function Formulario() {
     const [idVenda, setIdVenda] = useState('');
 
     const [excProd, setExcProd] = useState('');
+    const [manual, setManual] = useState(false);
+    const [ultimoId, setUltimoId] = useState('');
 
     const Navigate = useNavigate();
 
@@ -200,9 +203,27 @@ function Formulario() {
         return Navigate("/realizarVenda");
     }
 
+    const ativarManual = (id) => {
+        setUltimoId(id);
+        setManual(!manual);
+    }
+
     return (
         <>
         <Header />
+        {manual === true &&
+            tabela === true &&
+                <Manual ativarManual={ativarManual} origem={"devolverCondicional"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            formSelProdutos === true &&
+                <Manual ativarManual={ativarManual} origem={"devolverCondicionalSelProdutos"} lastid={ultimoId}/>
+        }
+        {
+            manual == true &&
+                defProxVenda === true &&
+                    <Manual ativarManual={ativarManual} origem={"devolverCondicionalProxVenda"} lastid={ultimoId}/>
+        }
         <div className="background-conteudo">
             <div className='background'>
                 {tabela === true &&
@@ -212,17 +233,20 @@ function Formulario() {
                         <div className='titulo'>
                             <h1>Venda Condicional</h1>
                         </div>
+                        <div className='titulo-botoes'>
+                            <input type="button" value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                        </div>
                     </div>
                     
                     <div className='formulario-padrao-tabela'>
                         <div className='inputs-buscar'>
-                            <select className='filtroSelect' value={tipoFiltro} onChange={e=>{setTipoFiltro(e.target.value)}}>
+                            <select id='sel-filtro' className='filtroSelect' value={tipoFiltro} onChange={e=>{setTipoFiltro(e.target.value)}}>
                                 <option key={0} value={0}>Cliente</option>
                                 <option key={1} value={1}>Funcionário</option>
                             </select>
 
                             <input type="search" id="filtro" value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarClientes()}} placeholder='Pesquisar'></input>
-                            <input type="button" value="Recarregar"></input>   
+                            <input type="button" id='recarregar' value="Recarregar"></input>   
                         </div> 
                     </div>
                 </div>
@@ -260,10 +284,14 @@ function Formulario() {
                 <div className='background-venda'>
                     <div className='formulario-tabela'>
                         <div className='titulo'>
-                            <div className='titulo-cont'>
-                                <button id="retornar" onClick={e=>{setTabela(true);setFormSelProdutos(false)}}><BsIcons.BsArrowLeft/></button>
-                                <h1>Produtos</h1>
+                            <div className='titulo-flex'>
+                                <div className='titulo-cont'>
+                                    <button id="retornar" onClick={e=>{setTabela(true);setFormSelProdutos(false)}}><BsIcons.BsArrowLeft/></button>
+                                    <h1>Produtos</h1>
+                                </div>
+                                <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                             </div>
+                            <hr></hr>
                         </div>
                         <div className='formulario-padrao-tabela'>
                             <div className='inputs-buscar'>
@@ -337,8 +365,8 @@ function Formulario() {
                             <p>Deseja continuar ?</p>
 
                             <div className="clearfix">
-                                <button type="button" className="cancelbtn" onClick={()=>cancelarProximo()}>Cancelar</button>
-                                <button type="button" className="deletebtn" onClick={()=>proximoVenda()}>Continuar</button>
+                                <button id='cancelar' type="button" className="cancelbtn" onClick={()=>cancelarProximo()}>Cancelar</button>
+                                <button id='continuar' type="button" className="deletebtn" onClick={()=>proximoVenda()}>Continuar</button>
                             </div>     
                         </div>
                         

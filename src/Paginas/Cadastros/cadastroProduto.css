@@ -1,3 +1,19 @@
+#light{
+    --bg-buttons-imagens: #0247fe;
+    --color-text-imagens: white;
+
+    --inputs-bg: #f8f8ff ;
+    --inputs-text: white;
+}
+
+#dark{
+    --bg-buttons-imagens: #0247fe;
+    --color-text-imagens: white;
+
+    --inputs-bg: #30363C;
+    --inputs-text: white;
+}
+
 #arquivos{
     width: 100%;
     height: 100%;
@@ -11,9 +27,9 @@
 }
 
 form label{
-    background-color: black;
+    background-color: var(--bg-buttons-imagens);
     border-radius: 5px;
-    color: #fff;
+    color: var(--color-text-imagens);
     cursor: pointer;
     padding: 6px 20px
 }
@@ -34,7 +50,7 @@ form input[type="file"]{
     height: 100%;
   
     color: black;
-    background-color: rgb(30, 30, 30);
+    background-color: var(--inputs-bg);
     
     display: flex;
     flex-direction: row;
@@ -52,7 +68,7 @@ form input[type="file"]{
     max-height: 100%;
     image-rendering: high-quality;
     padding: 5px 5px;
-    background-color: black;
+    background-color: var(--inputs-bg);
     object-fit:cover;
     object-position:50% 50%;
 }

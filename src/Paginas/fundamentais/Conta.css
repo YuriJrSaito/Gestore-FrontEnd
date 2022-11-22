@@ -14,7 +14,7 @@
 
 .formulario-alert-number input[type=number]{
     background-color: white;
-    border-color:blue;;
+    border-color:blue;
 }
 
 #input-extra{
@@ -40,4 +40,8 @@
     overflow-y: auto;
     overflow-x: auto;
     /*border-radius: 10px;*/
+}
+
+#campo-extra{
+    color: black;
 }

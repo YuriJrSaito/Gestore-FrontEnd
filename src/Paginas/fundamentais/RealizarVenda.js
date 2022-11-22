@@ -9,7 +9,7 @@ import {faCircleNotch, faLessThanEqual} from '@fortawesome/free-solid-svg-icons'
 import moment from 'moment/moment';
 import Validar from '../../servicos/validar';
 import * as BsIcons from 'react-icons/bs';
-
+import Manual from '../../Components/manual.js'
 import TabelaVenda from './Vendas.js';
 
 function Formulario() {
@@ -44,6 +44,9 @@ function Formulario() {
     const [defExclusao, setDefExclusao] = useState(false);
     const [defClienteSel, setDefClienteSel] = useState(false);
     const [defTodosProdutos, setDefTodosProdutos] = useState(true);
+
+    const [manual, setManual] = useState(false);
+    const [ultimoId, setUltimoId] = useState('');
 
     async function limparAvisos()
     {
@@ -690,9 +693,26 @@ function Formulario() {
         setProdutosEx([...produtosEx, res2]);
     }
 
+    const ativarManual = (id) => {
+        setUltimoId(id);
+        setManual(!manual);
+    }
+
     return (
         <>
         <Header />
+        {manual === true &&
+            formSelProdutos === true &&
+            <Manual ativarManual={ativarManual} origem={"cadVendasProdutos"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            formularioCadastro === true &&
+            <Manual ativarManual={ativarManual} origem={"cadVendasForm"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            defClienteSel === true &&
+            <Manual ativarManual={ativarManual} origem={"cadVendasSelCliente"} lastid={ultimoId}/>
+        }
         <div className="background-conteudo">
         <div className='background'>
             {tabela === true &&
@@ -705,10 +725,14 @@ function Formulario() {
                 {defTodosProdutos === true &&
                 <div className='formulario-tabela'>
                     <div className='titulo'>
-                        <div className='titulo-cont'>
-                            <button id="retornar" onClick={e=>{setTabela(true);setFormSelProdutos(false)}}><BsIcons.BsArrowLeft/></button>
-                            <h1>Informações</h1>
+                        <div className='titulo-flex'>
+                            <div className='titulo-cont'>
+                                <button id="retornar" onClick={e=>{setTabela(true);setFormSelProdutos(false)}}><BsIcons.BsArrowLeft/></button>
+                                <h1>Estoque</h1>
+                            </div>
+                            <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                         </div>
+                        <hr></hr>
                     </div>
                     <div className='formulario-padrao-tabela'>
                         <div className='inputs-buscar'>
@@ -753,13 +777,16 @@ function Formulario() {
                 <div className="formulario-tabela">
                     <div className='titulo-cadastro'>
                         <div className='titulo'>
-                            <h1>Produtos Selecionados</h1>
+                            <div className='titulo-flex'>
+                                <h1>Produtos Selecionados</h1>
+                            </div>
+                            <hr></hr>
                         </div>
                     </div>
                     <div className='formulario-padrao-tabela'>
                         <div className='row-tabela'>
                             <div className='div-tabela'>
-                                <table className='tabela'>
+                                <table className='tabela' id='table-selecionados'>
                                     <thead>
                                         <tr className='thead-dark'>
                                             <th>Título</th>
@@ -775,16 +802,16 @@ function Formulario() {
                                         {produtosSel !== "" &&
                                             produtosSel.map(produto =>(
                                                 <tr key={produto.id}>
-                                                    <td onClick={e=>selProduto(produto)}>{produto.titulo}</td> 
-                                                    {produto.img1 === "" && <td onClick={e=>selProduto(produto)}>Sem imagens</td>}
-                                                    {produto.img1 !== "" && <td onClick={e=>selProduto(produto)} id="imgTabela"><img id='imgTable' src={`/img//${produto.img1}`} alt="Aqui fica a primeira imagem"></img></td>}  
-                                                    <td onClick={e=>selProduto(produto)}>{produto.codigoReferencia}</td>                                           
-                                                    <td onClick={e=>selProduto(produto)}>R${produto.valorUnitario}</td>                                                 
+                                                    <td>{produto.titulo}</td> 
+                                                    {produto.img1 === "" && <td>Sem imagens</td>}
+                                                    {produto.img1 !== "" && <td id="imgTabela"><img id='imgTable' src={`/img//${produto.img1}`} alt="Aqui fica a primeira imagem"></img></td>}  
+                                                    <td>{produto.codigoReferencia}</td>                                           
+                                                    <td>R${produto.valorUnitario}</td>                                                 
                                                     <td><input type="number" value={produto.qtdeSelecionado} onChange={e=>{definirProdutoQuantidade(produto, e.target.value)}}/></td>
-                                                    <td onClick={e=>selProduto(produto)}>R${(produto.valorUnitario * produto.qtdeSelecionado).toFixed(2)}</td>
+                                                    <td>R${(produto.valorUnitario * produto.qtdeSelecionado).toFixed(2)}</td>
                                                     <td>
                                                         <a className="close-prodSel">
-                                                            <span aria-hidden="true" onClick={e => {retirarProduto(produto.id, produto.idLista)}}>x</span>
+                                                            <span id='tabela-excluir' aria-hidden="true" onClick={e => {retirarProduto(produto.id, produto.idLista)}}>x</span>
                                                         </a>
                                                     </td>
                                                 </tr>
@@ -821,16 +848,20 @@ function Formulario() {
             <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
-                    <div className='titulo-cont'>
-                        <button id="retornar" onClick={e=>{setFormSelProdutos(true);setFormularioCadastro(false)}}><BsIcons.BsArrowLeft/></button>
-                        <h1>Informações sobre a venda</h1>
+                    <div className='titulo-flex'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setFormSelProdutos(true);setFormularioCadastro(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Informações sobre a venda</h1>
+                        </div>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
+                    <hr></hr>
                 </div>
-
+                
                 <div className="formulario-padrao" id="clienteSel">
                     <label>Selecionar Cliente*</label>
                     
-                    <button className='clienteSelButton' onClick={e=>definirClientes()}>Buscar</button>
+                    <button id='sel-cliente' className='clienteSelButton' onClick={e=>definirClientes()}>Buscar</button>
 
                     {nomeCliente !== "" &&
                         <>
@@ -856,19 +887,19 @@ function Formulario() {
 
                 <div className="formulario-padrao">
                     <label>Data da Venda*</label>
-                    <input type="date" value={dataVenda} onChange={e=>{setDataVenda(e.target.value);document.querySelector("#msgDataVenda").innerHTML = ""}} placeholder="dd/mm/yyyy" required />
+                    <input type="date" id='dataVenda' value={dataVenda} onChange={e=>{setDataVenda(e.target.value);document.querySelector("#msgDataVenda").innerHTML = ""}} placeholder="dd/mm/yyyy" required />
                     <div className='msg' id='msgDataVenda'></div>
                 </div>
 
                 <div className="formulario-padrao">
                     <label>Vencimento da primeira parcela*</label>
-                    <input type="date" value={dataPrimeiroVencimento} onChange={e=>{setDataPrimeiroVencimento(e.target.value);document.querySelector("#msgVencimento").innerHTML = ""}} placeholder="dd/mm/yyyy"/>
+                    <input type="date" id='dataVencimento' value={dataPrimeiroVencimento} onChange={e=>{setDataPrimeiroVencimento(e.target.value);document.querySelector("#msgVencimento").innerHTML = ""}} placeholder="dd/mm/yyyy"/>
                     <div className='msg' id='msgVencimento'></div>
                 </div>
 
                 <div className="formulario-padrao">
                     <label>Quantidade de parcelas*</label>
-                    <input type="value" value={qtdeParcelas} onChange={e=>{setQtdeParcelas(e.target.value);document.querySelector("#msgQtdeParcelas").innerHTML = ""}} placeholder="Digite a quantidade de parcelas"/>
+                    <input type="value" id='qtdeParcelas' value={qtdeParcelas} onChange={e=>{setQtdeParcelas(e.target.value);document.querySelector("#msgQtdeParcelas").innerHTML = ""}} placeholder="Digite a quantidade de parcelas"/>
                     <div className='msg' id='msgQtdeParcelas'></div>
                 </div>
                 <div className='titulo-bottom'>
@@ -877,7 +908,7 @@ function Formulario() {
             </div>
             <div className='formulario'>
                 <div className='div-botoes'>
-                    <button type="button" onClick={limpar}>Limpar</button>
+                    <button id='limpar' type="button" onClick={limpar}>Limpar</button>
                     <button className={(salvando ? "disabled": "")} 
                         type="submit" id="btnForm" onClick={confirmarDados}>
                         {salvando === false && button}
@@ -909,7 +940,7 @@ function Formulario() {
                     <div className="container-cliente"> 
                         <h1>Selecionar Cliente</h1>
                         <input className='inputs-buscar-cliente' type="search" id='filtro-clientes' placeholder='Pesquisar por Nome' value={filtroCliente} onChange={e=>{setFiltroCliente(e.target.value);filtrarClientes()}}></input>
-                        
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                         <div className='clearfix-clientes'>
                             <div className='row'>
                                 <div className='div-tabela'>
@@ -938,7 +969,7 @@ function Formulario() {
                         </div>
 
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={e => setDefClienteSel(false)}>Cancelar</button>
+                            <button id='cancelar' type="button" className="cancelbtn" onClick={e => setDefClienteSel(false)}>Cancelar</button>
                         </div>
                     </div>
                 </form>

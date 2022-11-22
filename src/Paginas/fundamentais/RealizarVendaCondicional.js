@@ -9,6 +9,7 @@ import {faCircleNotch, faLessThanEqual} from '@fortawesome/free-solid-svg-icons'
 import moment from 'moment/moment';
 import Validar from '../../servicos/validar';
 import * as BsIcons from 'react-icons/bs';
+import Manual from '../../Components/manual.js'
 
 function Formulario() {
 
@@ -47,6 +48,9 @@ function Formulario() {
     const [msgAlterarCliente, setMsgAlterarCliente] = useState('');
 
     const [excVenda, setExcVenda] = useState('');
+    
+    const [manual, setManual] = useState(false);
+    const [ultimoId, setUltimoId] = useState('');
 
     async function limparAvisos()
     {
@@ -688,9 +692,30 @@ function Formulario() {
         setProdutosEx([...produtosEx, prod]);
     }
 
+    const ativarManual = (id) => {
+        setUltimoId(id);
+        setManual(!manual);
+    }
+
     return (
         <>
         <Header />
+        {manual === true &&
+            tabela === true &&
+            <Manual ativarManual={ativarManual} origem={"cadVendasTabela"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            formSelProdutos === true &&
+            <Manual ativarManual={ativarManual} origem={"cadVendasProdutos"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            formularioCadastro === true &&
+            <Manual ativarManual={ativarManual} origem={"cadVendasFormCond"} lastid={ultimoId}/>
+        }
+        {manual === true &&
+            defClienteSel === true &&
+            <Manual ativarManual={ativarManual} origem={"cadVendasSelCliente"} lastid={ultimoId}/>
+        }
         <div className="background-conteudo">
         <div className='background'>
             {tabela === true &&
@@ -700,18 +725,21 @@ function Formulario() {
                     <div className='titulo'>
                         <h1>Venda Condicional</h1>
                     </div>
-                    <input type="button" value="Realizar Venda" onClick={e=>{limpar();carregarTodosProdutos();setTabela(false);setFormSelProdutos(true)}}></input>
+                    <div className='titulo-botoes'>
+                        <input type="button" value="Realizar Venda" onClick={e=>{limpar();carregarTodosProdutos();setTabela(false);setFormSelProdutos(true)}}></input>
+                        <input type="button" value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                    </div>
                 </div>
                 
                 <div className='formulario-padrao-tabela'>
                     <div className='inputs-buscar'>
-                        <select className='filtroSelect' value={tipoFiltro} onChange={e=>{setTipoFiltro(e.target.value)}}>
+                        <select id='sel-filtro' className='filtroSelect' value={tipoFiltro} onChange={e=>{setTipoFiltro(e.target.value)}}>
                             <option key={0} value={0}>Cliente</option>
                             <option key={1} value={1}>Funcionário</option>
                         </select>
 
                         <input type="search" id="filtro" value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarClientes()}} placeholder='Pesquisar'></input>
-                        <input type="button" value="Recarregar"></input>   
+                        <input type="button" id='recarregar' value="Recarregar"></input>   
                     </div> 
                 </div>
             </div>
@@ -748,7 +776,7 @@ function Formulario() {
                                     {localStorage.getItem("nivelAcesso") >= 60 &&
                                         <td>
                                             <a className="close">
-                                                <span aria-hidden="true" onClick={e=>definirExclusao(venda.id)}>x</span>
+                                                <span id='tabela-excluir' aria-hidden="true" onClick={e=>definirExclusao(venda.id)}>x</span>
                                             </a>
                                         </td>
                                     }
@@ -766,10 +794,14 @@ function Formulario() {
             <div className='background-venda'>
                 <div className='formulario-tabela'>
                     <div className='titulo'>
-                        <div className='titulo-cont'>
-                            <button id="retornar" onClick={e=>{setSelecionado(false);setProdutosSel([]);setValorTotal(0);setTabela(true);setFormSelProdutos(false)}}><BsIcons.BsArrowLeft/></button>
-                            <h1>Informações</h1>
+                        <div className='titulo-flex'>
+                            <div className='titulo-cont'>
+                                <button id="retornar" onClick={e=>{setSelecionado(false);setProdutosSel([]);setValorTotal(0);setTabela(true);setFormSelProdutos(false)}}><BsIcons.BsArrowLeft/></button>
+                                <h1>Estoque</h1>
+                            </div>
+                            <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                         </div>
+                        <hr></hr>
                     </div>
                     <div className='formulario-padrao-tabela'>
                         <div className='inputs-buscar'>
@@ -814,12 +846,13 @@ function Formulario() {
                     <div className='titulo-cadastro'>
                         <div className='titulo'>
                             <h1>Produtos Selecionados</h1>
+                            <hr></hr>
                         </div>
                     </div>
                     <div className='formulario-padrao-tabela'>
                         <div className='row-tabela'>
                             <div className='div-tabela'>
-                                <table className='tabela'>
+                                <table className='tabela' id='table-selecionados'>
                                     <thead>
                                         <tr className='thead-dark'>
                                             <th>Título</th>
@@ -844,7 +877,7 @@ function Formulario() {
                                                     <td>R${(produto.valorUnitario * produto.qtdeSelecionado).toFixed(2)}</td>
                                                     <td>
                                                         <a className="close-prodSel">
-                                                            <span aria-hidden="true" onClick={e => {retirarProduto(produto.id, produto.idLista)}}>x</span>
+                                                            <span id='tabela-excluir' aria-hidden="true" onClick={e => {retirarProduto(produto.id, produto.idLista)}}>x</span>
                                                         </a>
                                                     </td>
                                                 </tr>
@@ -881,10 +914,14 @@ function Formulario() {
             <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
-                    <div className='titulo-cont'>
-                        <button id="retornar" onClick={e=>{setFormSelProdutos(true);setFormularioCadastro(false)}}><BsIcons.BsArrowLeft/></button>
-                        <h1>Informações sobre a venda</h1>
+                    <div className='titulo-flex'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setFormSelProdutos(true);setFormularioCadastro(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Informações sobre a venda</h1>
+                        </div>
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
+                    <hr></hr>
                 </div>
 
                 <div className="formulario-padrao" id="clienteSel">
@@ -894,7 +931,7 @@ function Formulario() {
                     }
                     
                     {alterarCliente === true &&
-                        <button className='clienteSelButton' onClick={e=>definirClientes()}>Buscar</button>
+                        <button id='sel-cliente' className='clienteSelButton' onClick={e=>definirClientes()}>Buscar</button>
                     }
                     {nomeCliente !== "" &&
                         <div className='cliente-area'>
@@ -913,25 +950,25 @@ function Formulario() {
 
 
                 <div className="formulario-padrao">
-                    <label>Valor Total</label>
+                    <label>Valor Total*</label>
                     <input type="text" name="valorTotal" id="valorTotal" placeholder="Valor Total" value={valorTotal} disabled/>
                 </div>
 
                 <div className="formulario-padrao">
-                    <label>Data de criação</label>
-                    <input type="date" value={dataCriacao} onChange={e=>{setDataCriacao(e.target.value);document.querySelector("#msgCriacao").innerHTML = ""}} placeholder="dd/mm/yyyy" required />
+                    <label>Data de criação*</label>
+                    <input type="date" id='dataVenda' value={dataCriacao} onChange={e=>{setDataCriacao(e.target.value);document.querySelector("#msgCriacao").innerHTML = ""}} placeholder="dd/mm/yyyy" required />
                     <div className='msg' id='msgCriacao'></div>
                 </div>
 
                 <div className="formulario-padrao">
-                    <label>Data Limite</label>
-                    <input type="date" value={dataLimite} onChange={e=>{setDataLimite(e.target.value);document.querySelector("#msgLimite").innerHTML = ""}} placeholder="dd/mm/yyyy"/>
+                    <label>Data Limite*</label>
+                    <input type="date" id='dataVencimento' value={dataLimite} onChange={e=>{setDataLimite(e.target.value);document.querySelector("#msgLimite").innerHTML = ""}} placeholder="dd/mm/yyyy"/>
                     <div className='msg' id='msgLimite'></div>
                 </div>
 
                 <div className="formulario-padrao">
                     <label>Observação</label>
-                    <input type="value" value={observacao} onChange={e=>{setObservacao(e.target.value);document.querySelector("#msgObservacao").innerHTML = ""}} placeholder="Digite a observação"/>
+                    <input type="value" id='observacao' value={observacao} onChange={e=>{setObservacao(e.target.value);document.querySelector("#msgObservacao").innerHTML = ""}} placeholder="Digite a observação"/>
                     <div className='msg' id='msgObservacao'></div>
                 </div>
                 <div className='titulo-bottom'>
@@ -940,7 +977,7 @@ function Formulario() {
             </div>
             <div className='formulario'>
                 <div className='div-botoes'>
-                    <button type="button" onClick={limpar}>Limpar</button>
+                    <button id='limpar' type="button" onClick={limpar}>Limpar</button>
                     <button className={(salvando ? "disabled": "")} 
                         type="submit" id="btnForm" onClick={confirmarDados}>
                         {salvando === false && button}
@@ -972,7 +1009,7 @@ function Formulario() {
                     <div className="container-cliente"> 
                         <h1>Selecionar Cliente</h1>
                         <input className='inputs-buscar-cliente' type="search" id='filtro-clientes' placeholder='Pesquisar por Nome' value={filtroCliente} onChange={e=>{setFiltroCliente(e.target.value);filtrarClientes()}}></input>
-                        
+                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                         <div className='clearfix-clientes'>
                             <div className='row'>
                                 <div className='div-tabela'>
@@ -1001,7 +1038,7 @@ function Formulario() {
                         </div>
 
                         <div className="clearfix">
-                            <button type="button" className="cancelbtn" onClick={e => setDefClienteSel(false)}>Cancelar</button>
+                            <button type="button" id='cancelar' className="cancelbtn" onClick={e => setDefClienteSel(false)}>Cancelar</button>
                         </div>
                     </div>
                 </form>

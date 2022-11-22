@@ -21,7 +21,7 @@
     display: inline-block;
     border: 1px solid #ccc;
    
-    background-color: blue;
+    background-color: var(--bg-buttons);
     color: white;
 
     cursor: pointer;
@@ -55,7 +55,7 @@
     padding: 5px 5px;
     margin: 5px 0;
     color: #afafaf;
-    background-color: hsl(0, 0%, 10%);
+    background-color: var(--inputs-bg);
     width: 50%;
     height: 40px;
     border: 1px solid #ccc;

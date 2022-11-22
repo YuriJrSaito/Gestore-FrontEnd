@@ -209,6 +209,9 @@ function Formulario() {
             await api.get('/listarFornecedores')
             .then((response)=>{
                 setFornecedores(response.data);
+                let novo = [];
+                novo = response.data.slice(1);
+                console.log(novo);
             });
         }
         catch(err){
@@ -380,10 +383,11 @@ function Formulario() {
                         <div className='titulo'>
                             <h1>Fornecedores</h1>
                         </div>
-                        <input type="button" id="cadastrarNovo" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
-                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                        <div className='titulo-botoes'>
+                            <input type="button" id="cadastrarNovo" value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
+                            <input type="button" value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                        </div>
                     </div>
-
                     <div className='formulario-padrao-tabela'>
                         <div className='inputs-buscar'>
                             <input type="search" id='filtro' placeholder='Pesquisar por Nome' value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarFornecedores()}}></input>
@@ -405,7 +409,7 @@ function Formulario() {
                             </thead>
                             <tbody>
                                 {fornecedores !== "" &&
-                                    fornecedores.map(fornecedor =>(
+                                    fornecedores.map((fornecedor, index) =>(
                                         <tr key={fornecedor.id}>
                                             <td id='bold' onClick={e=>alterarFornecedor(fornecedor)}>{fornecedor.nome || ""}</td>
                                             <td onClick={e=>alterarFornecedor(fornecedor)}>{fornecedor.CNPJ || ""}</td>
@@ -430,11 +434,14 @@ function Formulario() {
             <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
-                    <div className='titulo-cont'>
-                        <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
-                        <h1>Informações</h1>
+                    <div className='titulo-flex'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Informações</h1>
+                        </div>
                         <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
+                    <hr></hr>
                 </div>
 
                 <div className="formulario-padrao">

@@ -1,4 +1,5 @@
 import '../../App.css';
+import './relatorio.css';
 import api from '../../servicos/axiosAPI';
 import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
@@ -167,10 +168,10 @@ function Relatorio() {
 
     async function gerarRelatorioProdutosCondicional()
     {
-        let header = ['ID', 'Produto', 'Categoria', 'Cliente', 'Quantidade', 'Data Limite Para Devolução'];
+        let header = ['ID', 'Cliente', 'Produto', 'Categoria', 'Quantidade', 'Data Limite Para Devolução'];
 
         let produtos = await carregarProdutosCondicional();
-        GerarRelatorio(produtos, "Produtos Em Condicional", header.length, header, data);
+        GerarRelatorio(produtos, "Relação de Clientes e Produtos em Condicional", header.length, header, data);
     }
 
     async function carregarProdutosCondicional()
@@ -186,16 +187,107 @@ function Relatorio() {
         <>
         <Header />
         <div className="background-conteudo">
-            <input type="button" onClick={gerarRelatorioVenda} value="Gerar Relatorio todas Vendas"></input>
-            <input type="button" onClick={gerarRelatorioCliente} value="Gerar Relatorio todos Clientes"></input>
-            <input type="button" onClick={gerarRelatorioContaReceber} value="Gerar Relatorio todas Conta Receber"></input>
-            <input type="button" onClick={gerarRelatorioContaPagar} value="Gerar Relatorio todas Conta Pagar"></input>
-            <input type="button" onClick={gerarRelatorioEstoque} value="Gerar Relatorio Produtos no estoque"></input>
-            <input type="button" onClick={gerarRelatorioCategoriaMaisVendidos} value="Mais Vendidos"></input>
-            <input type="button" onClick={gerarRelatorioCategoriaMenosVendidos} value="Menos Vendidos"></input>
-            <input type="button" onClick={gerarRelatorioProdutividadeFuncionarios} value="Produtividade"></input>
-            <input type="button" onClick={gerarRelatorioFornecedores} value="Fornecedores"></input>
-            <input type="button" onClick={gerarRelatorioProdutosCondicional} value="Produtos Condicional"></input>
+            <div className='background-relatorios'>
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Vendas</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório sobre todas as vendas do seu negócio</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioVenda} value="Gerar"></input>
+                </div>
+
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Clientes</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório dos seus clientes</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioCliente} value="Gerar"></input>
+                </div>
+
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Contas a Receber</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório das suas contas a receber</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioContaReceber} value="Gerar"></input>
+                </div>
+
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Contas a Pagar</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório das suas contas a pagar</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioContaPagar} value="Gerar"></input>
+                </div>
+
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Estoque</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório do Estoque</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioEstoque} value="Gerar"></input>
+                </div>
+
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Categorias Menos Vendidas</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório das 20 ou menos categorias de produtos mais vendidas</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioCategoriaMaisVendidos} value="Gerar"></input>
+                </div>
+
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Categorias Mais Vendidas</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório das 20 ou menos categorias de produtos menos vendidas</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioCategoriaMenosVendidos} value="Gerar"></input>
+                </div>
+                
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Produtividade</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório da produtividade dos seus funcionários</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioProdutividadeFuncionarios} value="Gerar"></input>
+                </div>
+
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Fornecedores</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório de fornecedores</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioFornecedores} value="Gerar"></input>
+                </div>
+
+                <div className='card-relatorio'>
+                    <div className='rel-titulo'>
+                        <h1>Produtos em Condicional</h1>
+                    </div>
+                    <div className='rel-texto'>
+                        <p>Clique aqui para gerar um relatório sobre os produtos em condicional e os clientes que estão com eles</p>
+                    </div>
+                    <input type="button" onClick={gerarRelatorioProdutosCondicional} value="Gerar"></input>
+                </div>
+            </div>
         </div>
         </>
     )

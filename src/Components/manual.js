@@ -60,7 +60,10 @@ function Manual({ativarManual, origem, lastid}) {
                                     {item.max !== undefined &&
                                         <p>Máximo de caracteres: {item.max}</p>
                                     }
-                                    <input id="destacar" type="button" value="Destacar" onClick={e=>{destacar(item.campo)}}></input>
+                                    {item.botao != false &&
+                                        <input id="destacar" type="button" value="Destacar" onClick={e=>{destacar(item.campo)}}></input>
+                                    }
+                                    
                                 </div>
                             )
                         })}

@@ -1,23 +1,13 @@
 #light{
-    --body-bg: #fafafa;
-    /*--body-color: #555;
-    --link-color: #222;
-    --link-color-hover: #ec5840;*/
+    --manual-bg: #212529;
+    --tabela-contato: #0C2D48;
+    --texto: white;
 }
   
 #dark{
-    --body-bg: #212529;
-    --bg-buttons: darkblue;
-    --bg-buttons-manual: darkblue;
-    --bg-button-retornar: #212529; 
-    --label: #afafaf;
+    --manual-bg: #212529;
     --tabela-contato: #0C2D48;
     --texto: white;
-    --texto-formulario: black;
-    --texto-button: #afafaf;
-    /*--body-color: #899095;
-    --link-color: #dee2e6;
-    --link-color-hover: #3cc368;*/
 }
 
 .nav-manual.active{
@@ -79,7 +69,7 @@
 .manual-componente{
     width: 90%;
     height: 30%;
-    background: var(--body-bg);
+    background: var(--manual-bg);
     color: var(--texto);
     padding: 10px 10px;
     border-radius: 10px;

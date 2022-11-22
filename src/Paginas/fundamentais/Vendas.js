@@ -2,11 +2,9 @@ import './RealizarVenda.css';
 import '../../App.css';
 import '../../tabela/styleTabela.css';
 import api from '../../servicos/axiosAPI';
-import Header from '../../Components/Header.js'
 import React, { useEffect, useState } from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCircleNotch, faLessThanEqual} from '@fortawesome/free-solid-svg-icons';
 import moment from 'moment/moment';
+import Manual from '../../Components/manual.js'
 
 function Vendas({childToParent})
 {
@@ -14,6 +12,8 @@ function Vendas({childToParent})
     const [filtro, setFiltro] = useState('');
     const [formSelProdutos, setFormSelProdutos] = useState(false);
     const [tipoFiltro, setTipoFiltro] = useState(0);
+    const [manual, setManual] = useState(false);
+    const [ultimoId, setUltimoId] = useState('');
 
     async function carregarVendas()
     {
@@ -58,7 +58,7 @@ function Vendas({childToParent})
         input = document.getElementById("filtro");
         filter = input.value.toUpperCase();
 
-        table = document.getElementById("tabelaVendas");
+        table = document.getElementById("table");
         tr = table.getElementsByTagName("tr");
 
         for (i=0; i<tr.length; i++) 
@@ -84,31 +84,42 @@ function Vendas({childToParent})
         
     }
 
+    const ativarManual = (id) => {
+        setUltimoId(id);
+        setManual(!manual);
+    }
+
     return (
         <>
+        {manual === true &&
+            <Manual ativarManual={ativarManual} origem={"cadVendasTabela"} lastid={ultimoId}/>
+        }
         <div className="background-tabelas">
             <div className="formulario-tabela">
                 <div className='titulo-cadastro'>
                     <div className='titulo'>
                         <h1>vendas</h1>
                     </div>
-                    <input type="button" value="Realizar Venda" onClick={()=>childToParent(clicar())}></input>
+                    <div className='titulo-botoes'>
+                        <input type="button" value="Realizar Venda" onClick={()=>childToParent(clicar())}></input>
+                        <input type="button" value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                    </div>
                 </div>
                 
                 <div className='formulario-padrao-tabela'>
                     <div className='inputs-buscar'>
-                        <select className='filtroSelect' value={tipoFiltro} onChange={e=>{setTipoFiltro(e.target.value)}}>
+                        <select id='sel-filtro' className='filtroSelect' value={tipoFiltro} onChange={e=>{setTipoFiltro(e.target.value)}}>
                             <option key={0} value={0}>Cliente</option>
                             <option key={1} value={1}>Funcionário</option>
                         </select>
 
                         <input type="search" id="filtro" value={filtro} onChange={e=>{setFiltro(e.target.value);filtrarClientes()}} placeholder='Pesquisar'></input>
-                        <input type="button" value="Recarregar"></input>   
+                        <input type="button" id='recarregar' value="Recarregar"></input>   
                     </div> 
                 </div>
             </div>
             <div className='row'>
-                <table className='tabela' id="tabelaVendas">
+                <table className='tabela' id="table">
                     <thead className='thead-dark'>
                         <tr>
                             <th>Cliente</th>
@@ -144,7 +155,7 @@ function Vendas({childToParent})
                                     {localStorage.getItem("nivelAcesso") >= 60 &&
                                         <td>
                                             <a className="close">
-                                                <span aria-hidden="true">x</span>
+                                                <span id='tabela-excluir' aria-hidden="true">x</span>
                                             </a>
                                         </td>
                                     }

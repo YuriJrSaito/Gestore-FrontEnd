@@ -1,23 +1,54 @@
 #light{
-  --body-bg: #fafafa;
-  /*--body-color: #555;
-  --link-color: #222;
-  --link-color-hover: #ec5840;*/
+  --body-bg: #353b41;
+  --bg-buttons: #0247fe;
+
+  --label: #343a40;
+  --tabela-contato: #0C2D48;
+  --texto: #353839;
+  --formulario-bg: #30363C ;
+  --texto-formulario: black;
+  --texto-button: #353839;
+
+  --inputs-bg: #090927 ;
+  --inputs-text: white;
+
+  --bg-buttons-manual: #0247fe;
+  --bg-button-retornar: #white; 
+  --bg-titulo: #353b41;
+  --titulo-text: lightgray;
 }
 
 #dark{
-  --body-bg: #212529;
-  --bg-buttons: darkblue;
-  --bg-buttons-manual: darkblue;
-  --bg-button-retornar: #212529; 
-  --label: #afafaf;
+  /*--body-bg: #353b41;*/
+  --body-bg: #2b3238;
+  --bg-buttons: #0247fe;
+
+  --label: white;
   --tabela-contato: #0C2D48;
   --texto: white;
+  --formulario-bg: #2b3238;
   --texto-formulario: black;
-  --texto-button: #afafaf;
-  /*--body-color: #899095;
-  --link-color: #dee2e6;
-  --link-color-hover: #3cc368;*/
+  --texto-button: white;
+
+  --inputs-bg: #30363C;
+  --inputs-text: white;
+
+  --bg-buttons-manual: #0247fe;
+  --bg-button-retornar: #2b3238; 
+  --bg-titulo: #2b3238;
+  --titulo-text: white;
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: lightgray;
+  opacity: 1; /* Firefox */
+}
+::-ms-input-placeholder { /* Microsoft Edge */
+  color: lightgray;
+}
+
+.hr{
+  border-top: 1px solid white;
 }
 
 *{
@@ -41,7 +72,6 @@ body{
   display: flex;
   align-items: center;
   flex-direction: column;
-  flex-wrap: wrap;
   width: 100%;
   height: 100vh;
   /*background-color: #ECF0F1;*/
@@ -100,7 +130,7 @@ body{
 
   color: var(--texto-formulario);
   /*background-color: #282828;*/
-  background-color: var(--body-bg);
+  background-color: var(--formulario-bg);
   
   display: flex;
   flex-direction: column;
@@ -128,6 +158,7 @@ body{
   width: 100%;
   display: flex;
   flex-direction: column;
+  background: var(--formulario-bg);
 }
 
 .formulario-telefone h1{
@@ -140,8 +171,18 @@ body{
   display: flex;
   flex-direction: row;
   align-items: center;
-  align-content: space-between;
-  width: 95%;
+  align-content: space-around;
+  width: 100%;
+}
+
+.titulo-botoes{
+  gap: 4px;
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: end;
+  pad: 10px 10px;
+  margin-right: 10px;
 }
 
 .titulo-cadastro input[type=button], select {
@@ -150,7 +191,8 @@ body{
   display: inline-block;
   border: 1px solid #ccc;
   background-color: var(--bg-buttons);
-  color: var(--texto);
+
+  color: var(--texto-button);
   cursor: pointer;
   border-radius: 4px;
   box-sizing: border-box;
@@ -160,18 +202,25 @@ body{
   width: 100%;
   height: 50px;
   /*background-color: #282828;*/
-  background-color: var(--body-bg);
+  background-color: var(--formulario-bg);
   color: var(--texto);
 
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
 }
 
+.titulo-flex{
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+}
+
 #retornar{
   /*background-color: #282828;*/
   background-color: var(--bg-button-retornar);
   cursor: pointer;
-  color: var(--texto);
+  color: var(--titulo-text);
   width: 10%;
   height: 100%;
   border: none;
@@ -193,7 +242,11 @@ body{
   width: 100%;
   height: 100%;
   align-items: center;
-  border-radius: 10px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  color: var(--titulo-text);
+  background-color: var(--bg-titulo);
+  /*box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.2), 0 4px 8px 0 rgba(0, 0, 0, 0.19);*/
 }
 
 .titulo-bottom{
@@ -282,12 +335,18 @@ body{
   margin: 5px 0;
   display: inline-block;
   border: 1px solid #ccc;
-  background-color: hsl(0, 0%, 10%);
-  color: var(--texto-button);
+  /*background-color: hsl(0, 0%, 10%);*/
+  background-color: var(--inputs-bg);
+  color: var(--inputs-text);
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
 
   box-sizing: border-box;
+}
+
+.formulario-padrao select{
+  background-color: var(--inputs-bg);
+  color: var(--inputs-text);
 }
 
 #adicionar-contato{
@@ -345,8 +404,8 @@ body{
   margin: 8px 0;
   border: 1px solid #ccc;
  
-  background-color: hsl(0, 0%, 14%);
-  color: var(--texto);
+  background-color: var(--bg-buttons);
+  color: var(--texto-button);
 
   cursor: pointer;
   border-radius: 5px;
@@ -507,7 +566,7 @@ button:hover {
   width: 40%;
   padding: 10px 20px;
   border: 1px solid #ccc;
-  background-color: hsl(0, 0%, 10%);
+  background-color: var(--inputs-bg);
   color: var(--texto-button);
 }
  
@@ -516,7 +575,7 @@ button:hover {
   width: 25%;
   padding: 10px 5px;
   border: 1px solid #ccc;
-  background-color: hsl(0, 0%, 10%);
+  background-color: var(--inputs-bg);
   color: var(--texto-button);
   border-radius: 0px;
   border-top-left-radius: 4px;
@@ -537,15 +596,16 @@ button:hover {
 }
 
 #manualButton{
-  width: auto;
-  padding: 10px 15px;
+  width: 70px;
+  height: 30px;
+  padding: 5px 10px;
   border: 1px solid #ccc;
   background-color: var(--bg-buttons-manual);
   color: var(--texto);
   cursor: pointer;
   box-sizing: border-box;
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-radius: 30px;
+  margin-right: 5px;
 }
 
 .titulo-cont #manualButton{
@@ -576,7 +636,7 @@ button:hover {
   }
 
   .inputs-buscar input[type=search]{
-    height: 30px;
+    height: 40px;
   }
 
   .inputs-buscar button{
@@ -623,7 +683,7 @@ button:hover {
     margin: 5px 0;
     display: inline-block;
     border: 1px solid #ccc;
-    
+
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
 
@@ -668,4 +728,30 @@ button:hover {
   #msgSistema{
       font-size: 19px;
   }
+
+  .titulo-botoes{
+    flex-wrap: nowrap;
+    gap: 1px;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .titulo-botoes input[type=button]{
+    width: 40%;
+    height: 30px;
+    padding: 5px 5px;
+    margin: 0;
+  }
+
+  .inputs-buscar input[type=search]{
+    width: 100%;
+  }
+
+  .titulo-cadastro{
+    flex-direction: column;
+    justify-content: center;
+    align-items: baseline;
+  }
+
 }

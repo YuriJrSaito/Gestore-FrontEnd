@@ -15,7 +15,7 @@ import { IconContext } from 'react-icons';
 */
 // IconContext.Provider value={{color: '#fff'}} #fff pode ser alterado por outras cores, apenas os icones de react-icons sofrera as alterações.
 function Header() {
-    const [sidebar, setSidebar] = useState(false);
+    const [sidebar, setSidebar] = useState(true);
     const showSidebar = () => setSidebar(!sidebar)
 
     const [sidebarProduto, setSidebarProduto] = useState(false);
@@ -59,7 +59,7 @@ function Header() {
 
     return (
         <>
-        <IconContext.Provider value={{color: 'white', size: 30}}>
+       
             <div className='navbar'>
 
                 <Link to="#" className="menu-bars">
@@ -70,7 +70,7 @@ function Header() {
                     <FaIcons.FaUserCircle onClick={showArea} id="area"/>
                 </Link>
 
-                {areaUsuario && 
+                {areaUsuario &&
                     <div className={areaUsuario ? 'area-user active' : 'area-user'}>
                         <div className='area-items'>
                             <h1>{localStorage.getItem('login')}</h1>
@@ -83,16 +83,18 @@ function Header() {
             <nav className={sidebar ? 'nav-menu active' : 'nav-menu'}>
                 <ul className='nav-menu-items' onClick={showSidebar}>
                     <li className='nav-toggle'>
+                        <h1>Gestore</h1>
                         <Link to="#" className='menu-bars'>
                             <AiIcons.AiOutlineClose id="close"/>
                         </Link>
                     </li>
+                    <hr></hr>
                     {sidebarDados.map((item, index) => {
                         return (
                             localStorage.getItem("nivelAcesso") >= item.nivel &&
                                 <li key={index} className={item.cNome}>
                                     <Link to={item.caminho}>
-                                        {item.icone}
+                                        <p className='icone'>{item.icone}</p>
                                         <span>{item.titulo}</span>
                                     </Link>
                                 </li>
@@ -105,7 +107,7 @@ function Header() {
                     </li>
                 </ul>
             </nav>
-        </IconContext.Provider>
+   
         </>
     );
 }

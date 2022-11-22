@@ -142,6 +142,7 @@ function Formulario() {
         setPDataPagamento('');
         setPDataVencimento('');
         setPNumParcela('');
+        setValorParcelado('');
     }
 
     async function delConta(idConta)
@@ -297,7 +298,9 @@ function Formulario() {
                             <div className='titulo'>
                                 <h1>Contas a Receber</h1>
                             </div>
-                            <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                            <div className='titulo-botoes'>
+                                <input type="button" value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                            </div>
                         </div>
                         <div className='formulario-padrao-tabela'>
                             <div className='inputs-buscar'>

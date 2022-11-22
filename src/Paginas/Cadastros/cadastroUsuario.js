@@ -343,7 +343,8 @@ function Formulario() {
         if(resp === true)
         {
             setForm(false);
-            setFormDados(true);
+            await setFormDados(true);
+            await carregarCargos();
         }
     }
 
@@ -878,8 +879,10 @@ function Formulario() {
                         <div className='titulo'>
                             <h1>Usuarios</h1>
                         </div>
-                        <input type="button" id='cadastrarNovo' value="Cadastrar novo" onClick={e=>{carregarCargos();limpar();setForm(true);setTabela(false)}}></input>
-                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                        <div className='titulo-botoes'>
+                            <input type="button" id='cadastrarNovo' value="Cadastrar novo" onClick={e=>{carregarCargos();limpar();setForm(true);setTabela(false)}}></input>
+                            <input type="button" value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                        </div>
                     </div>
                     <div className='formulario-padrao-tabela'>
                         <div className='inputs-buscar'>
@@ -928,11 +931,14 @@ function Formulario() {
             <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
-                    <div className='titulo-cont'>
-                        <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
-                        <h1>Informações Pessoais</h1>
+                    <div className='titulo-flex'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Informações Pessoais</h1>
+                        </div>
                         <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
+                    <hr></hr>
                 </div>
 
                 <div className="formulario-padrao">
@@ -1022,6 +1028,7 @@ function Formulario() {
                 <div className="formulario">
                     <div className='titulo'>
                         <h1>Informações de Endereço</h1>
+                        <hr></hr>
                     </div>
                     <div className="formulario-padrao">
                         <label htmlFor="cep">CEP</label>
@@ -1075,11 +1082,14 @@ function Formulario() {
             <div className='background'>
             <div className='formulario'>
                 <div className='titulo'>
-                    <div className='titulo-cont'>
-                        <button id="retornar" onClick={e=>{setForm(true);setFormDados(false)}}><BsIcons.BsArrowLeft/></button>
-                        <h1>Dados de Usuário</h1>
+                    <div className='titulo-flex'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setForm(true);setFormDados(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Dados de Usuário</h1>
+                        </div>
                         <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
+                    <hr></hr>
                 </div>
                 <div className='formulario-padrao'>
                     {cargos !== null &&
@@ -1093,19 +1103,6 @@ function Formulario() {
                             </select>
                             <div className='msg' id='msgCargo'></div>
                         </>
-                    }
-                    <input type="button" id='btnCargo' onClick={definirBotaoNovoCargo} value="Novo Cargo"/> 
-                    {btnNovoCargo === true &&
-                       <div className='formulario-padrao'>
-                            <label>Cadastrar Novo Cargo</label>
-                            <div className='adicionar-cargo'>
-                                <input type="text" name="cargo" id="cargo" value={cadDescCargo || ""} onChange={e=>setCadDescCargo(e.target.value)} placeholder="Digite o cargo"/>
-                                <input id='cadCargo' type="button" onClick={cadastrarCargo} value="Cadastrar"/> 
-                                {msgCargo !== "" &&
-                                    <p style={{color: cargoMsgCor}}>{msgCargo}</p>
-                                }
-                            </div>
-                       </div>
                     }
                 </div>
 
@@ -1156,11 +1153,14 @@ function Formulario() {
             <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
-                    <div className='titulo-cont'>
-                        <button id="retornar" onClick={e=>{setFormDados(true);setFormAcesso(false)}}><BsIcons.BsArrowLeft/></button>
-                        <h1>Dados de Acesso</h1>
+                    <div className='titulo-flex'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setFormDados(true);setFormAcesso(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Dados de Acesso</h1>
+                        </div>
                         <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
+                    <hr></hr>
                 </div>
 
                 <div className="formulario-padrao">
@@ -1240,3 +1240,19 @@ function Formulario() {
 }
 
 export default Formulario;
+
+/*
+                   <input type="button" id='btnCargo' onClick={definirBotaoNovoCargo} value="Novo Cargo"/> 
+                    {btnNovoCargo === true &&
+                       <div className='formulario-padrao'>
+                            <label>Cadastrar Novo Cargo</label>
+                            <div className='adicionar-cargo'>
+                                <input type="text" name="cargo" id="cargo" value={cadDescCargo || ""} onChange={e=>setCadDescCargo(e.target.value)} placeholder="Digite o cargo"/>
+                                <input id='cadCargo' type="button" onClick={cadastrarCargo} value="Cadastrar"/> 
+                                {msgCargo !== "" &&
+                                    <p style={{color: cargoMsgCor}}>{msgCargo}</p>
+                                }
+                            </div>
+                       </div>
+                    }
+*/

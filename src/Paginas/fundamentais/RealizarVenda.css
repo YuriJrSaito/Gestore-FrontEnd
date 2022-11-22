@@ -54,7 +54,7 @@ input[type=number]::-webkit-inner-spin-button {
 }
 
 .modal-content-cliente{
-    background-color: #282828;
+    background-color: #353b41;
     margin: 5% auto 15% auto; /* 5% from the top, 15% from the bottom and centered */
     width: 40%; /* Could be more or less, depending on screen size */
 }
@@ -75,7 +75,7 @@ input[type=number]::-webkit-inner-spin-button {
     width: 40%;
     padding: 10px 20px;
     border: 1px solid #ccc;
-    background-color: hsl(0, 0%, 10%);
+    background-color: #353b41;
     color: #afafaf;
 }
 

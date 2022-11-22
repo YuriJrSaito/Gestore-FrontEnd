@@ -108,13 +108,6 @@ export const sidebarDados = [
         categoria: "Conta",
     },
     {
-        titulo: 'Ver Estoque',
-        caminho: '/home',
-        icone: <MdIcons.MdInventory/>,
-        cNome: 'nav-text',
-        nivel: 60,
-    },
-    {
         titulo: 'Relatórios',
         caminho: '/principalRelatorios',
         icone: <HiIcons.HiDocumentReport/>,
@@ -130,3 +123,11 @@ export const sidebarDados = [
         nivel: 20,
     },
 ]
+
+/*    {
+        titulo: 'Ver Estoque',
+        caminho: '/home',
+        icone: <MdIcons.MdInventory/>,
+        cNome: 'nav-text',
+        nivel: 60,
+    },*/

@@ -455,8 +455,10 @@ function Formulario() {
                         <div className='titulo'>
                             <h1>Produtos</h1>
                         </div>
-                        <input type="button" id='cadastrarNovo' value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
-                        <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                        <div className='titulo-botoes'>
+                            <input type="button" id='cadastrarNovo' value="Cadastrar novo" onClick={e=>{limpar();setForm(true);setTabela(false)}}></input>
+                            <input type="button" value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
+                        </div>
                     </div>
                     <div className='formulario-padrao-tabela'>
                         <div className='inputs-buscar'>
@@ -509,13 +511,16 @@ function Formulario() {
             <div className='background'>
             <div className="formulario">
                 <div className='titulo'>
-                    <div className='titulo-cont'>
-                        <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
-                        <h1>Informações</h1>
+                    <div className='titulo-flex'>
+                        <div className='titulo-cont'>
+                            <button id="retornar" onClick={e=>{setTabela(true);setForm(false)}}><BsIcons.BsArrowLeft/></button>
+                            <h1>Informações</h1>
+                        </div>
                         <input type="button" id='manualButton' value="Manual" onClick={e=>{ativarManual(ultimoId)}}></input>
                     </div>
+                    <hr></hr>
                 </div>
-
+                
                 <div className="formulario-padrao">
                     <label>Título*</label>
                     <input type="text" name="titulo" id="titulo" value={titulo || ""} placeholder="Digite o título" onChange={e=>{setTitulo(e.target.value);document.querySelector("#msgTitulo").innerHTML = ""}} required />
@@ -579,19 +584,6 @@ function Formulario() {
                             </select>
                             <div className='msg' id='msgCategoria'></div>
                         </>
-                    }
-                    <input type="button" id='btnCargo' onClick={definirBotaoNovaCategoria} value="Nova Categoria"/> 
-                    {btnNovaCategoria === true &&
-                        <div className='formulario-padrao'>
-                            <label>Cadastrar Nova Categoria</label>
-                            <div className='adicionar-cargo'>
-                                <input type="text" name="cargo" id="cargo" value={cadDescCategoria || ""} onChange={e=>setDescCategoria(e.target.value)} placeholder="Digite a Categoria"/>
-                                <input type="button" id="buttonNCategoria" onClick={cadastrarCategoria} value="Cadastrar"/> 
-                                {msgCategoria !== "" &&
-                                    <p style={{color: categoriaMsgCor}}>{msgCategoria}</p>
-                                }
-                            </div>
-                        </div>
                     }
                 </div>
 
@@ -703,3 +695,21 @@ function Formulario() {
 }
 
 export default Formulario;
+
+
+
+/*
+                    <input type="button" id='btnCargo' onClick={definirBotaoNovaCategoria} value="Nova Categoria"/> 
+                    {btnNovaCategoria === true &&
+                        <div className='formulario-padrao'>
+                            <label>Cadastrar Nova Categoria</label>
+                            <div className='adicionar-cargo'>
+                                <input type="text" name="cargo" id="cargo" value={cadDescCategoria || ""} onChange={e=>setDescCategoria(e.target.value)} placeholder="Digite a Categoria"/>
+                                <input type="button" id="buttonNCategoria" onClick={cadastrarCategoria} value="Cadastrar"/> 
+                                {msgCategoria !== "" &&
+                                    <p style={{color: categoriaMsgCor}}>{msgCategoria}</p>
+                                }
+                            </div>
+                        </div>
+                    }
+*/
